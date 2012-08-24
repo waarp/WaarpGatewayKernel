@@ -1,22 +1,19 @@
 /**
-   This file is part of Waarp Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Waarp is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Waarp Project.
+ * 
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
+ * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
+ * 
+ * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with Waarp . If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.gateway.kernel.session;
 
@@ -33,7 +30,7 @@ import org.waarp.gateway.kernel.database.DbConstant;
 
 /**
  * @author Frederic Bregier
- *
+ * 
  */
 public class HttpSession implements SessionInterface {
 	private HttpAuthInterface httpAuth;
@@ -42,14 +39,15 @@ public class HttpSession implements SessionInterface {
 	private long logid = DbConstant.ILLEGALVALUE;
 	private String filename;
 	private CommonDirImpl dir;
-	
+
 	/**
 	 */
 	public HttpSession() {
 	}
 
 	/**
-	 * @param httpAuth the httpAuth to set
+	 * @param httpAuth
+	 *            the httpAuth to set
 	 */
 	public void setHttpAuth(HttpAuthInterface httpAuth) {
 		this.httpAuth = httpAuth;
@@ -106,7 +104,8 @@ public class HttpSession implements SessionInterface {
 	}
 
 	/**
-	 * @param currentCommand the currentCommand to set
+	 * @param currentCommand
+	 *            the currentCommand to set
 	 */
 	public void setCurrentCommand(PageRole currentCommand) {
 		this.currentCommand = currentCommand;
@@ -120,7 +119,8 @@ public class HttpSession implements SessionInterface {
 	}
 
 	/**
-	 * @param cookieSession the cookieSession to set
+	 * @param cookieSession
+	 *            the cookieSession to set
 	 */
 	public void setCookieSession(String cookieSession) {
 		this.cookieSession = cookieSession;
@@ -134,7 +134,8 @@ public class HttpSession implements SessionInterface {
 	}
 
 	/**
-	 * @param logid the logid to set
+	 * @param logid
+	 *            the logid to set
 	 */
 	public void setLogid(long logid) {
 		this.logid = logid;
@@ -148,13 +149,14 @@ public class HttpSession implements SessionInterface {
 	}
 
 	/**
-	 * @param filename the filename to set
+	 * @param filename
+	 *            the filename to set
 	 */
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
 
 	public String toString() {
-		return "Command: "+currentCommand.name()+" Filename: "+filename;
+		return "Command: " + currentCommand.name() + " Filename: " + filename;
 	}
 }

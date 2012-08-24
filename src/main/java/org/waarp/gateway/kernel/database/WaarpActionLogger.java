@@ -74,29 +74,26 @@ public class WaarpActionLogger {
 			// Insert new one
 			try {
 				DbTransferLog log =
-					new DbTransferLog(httpSession,
-							session.getAuth().getUser(),
-							session.getAuth().getAccount(),
-							DbConstant.ILLEGALVALUE,
-							isSender, session.getFilename(),
-							code.name(),
-							HttpResponseStatus.OK, message,
-							UpdatedInfo.TOSUBMIT);
+						new DbTransferLog(httpSession,
+								session.getAuth().getUser(),
+								session.getAuth().getAccount(),
+								DbConstant.ILLEGALVALUE,
+								isSender, session.getFilename(),
+								code.name(),
+								HttpResponseStatus.OK, message,
+								UpdatedInfo.TOSUBMIT);
 				logger.debug("Create FS: " + log.toString());
 				session.setLogid(log.getSpecialId());
 				return;
 			} catch (WaarpDatabaseException e1) {
 				// Do nothing
 			}
-			/*if (FileBasedConfiguration.fileBasedConfiguration.monitoring != null) {
-			if (isSender) {
-				FileBasedConfiguration.fileBasedConfiguration.monitoring
-						.updateLastOutBand();
-			} else {
-				FileBasedConfiguration.fileBasedConfiguration.monitoring
-						.updateLastInBound();
-			}
-			}*/
+			/*
+			 * if (FileBasedConfiguration.fileBasedConfiguration.monitoring != null) { if (isSender)
+			 * { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastOutBand(); }
+			 * else { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastInBound();
+			 * } }
+			 */
 		}
 		session.setLogid(DbConstant.ILLEGALVALUE);
 	}
@@ -110,8 +107,8 @@ public class WaarpActionLogger {
 	 * @param rcode
 	 * @param info
 	 */
-	public static void logAction(DbSession httpSession, 
-			HttpSession session, String message, HttpResponseStatus rcode, 
+	public static void logAction(DbSession httpSession,
+			HttpSession session, String message, HttpResponseStatus rcode,
 			UpdatedInfo info) {
 		String sessionContexte = session.toString();
 		long specialId = session.getLogid();
@@ -159,8 +156,8 @@ public class WaarpActionLogger {
 	 * @param message
 	 * @param rcode
 	 */
-	public static void logErrorAction(DbSession ftpSession, 
-			HttpSession session, 
+	public static void logErrorAction(DbSession ftpSession,
+			HttpSession session,
 			String message, HttpResponseStatus rcode) {
 		String sessionContexte = session.toString();
 		long specialId = session.getLogid();
