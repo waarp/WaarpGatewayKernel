@@ -1,34 +1,30 @@
 /**
-   This file is part of Waarp Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Waarp is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Waarp Project.
+ * 
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
+ * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
+ * 
+ * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with Waarp . If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.gateway.kernel;
 
 import org.jboss.netty.handler.codec.http.multipart.FileUpload;
 
-
 /**
  * @author Frederic Bregier
- *
+ * 
  */
 public class DefaultHttpField extends AbstractHttpField {
-	
+
 	/**
 	 * @param fieldname
 	 * @param fieldtype
@@ -41,13 +37,14 @@ public class DefaultHttpField extends AbstractHttpField {
 	 * @param fieldposition
 	 * @param fieldrank
 	 */
-	public DefaultHttpField(String fieldname, FieldRole fieldtype, String fieldinfo, 
-			String fieldvalue, boolean fieldvisibility, boolean fieldmandatory, boolean fieldcookieset,
+	public DefaultHttpField(String fieldname, FieldRole fieldtype, String fieldinfo,
+			String fieldvalue, boolean fieldvisibility, boolean fieldmandatory,
+			boolean fieldcookieset,
 			boolean fieldtovalidate, FieldPosition fieldposition, int fieldrank) {
-		super(fieldname, fieldtype, fieldinfo, fieldvalue, fieldvisibility, fieldmandatory, 
+		super(fieldname, fieldtype, fieldinfo, fieldvalue, fieldvisibility, fieldmandatory,
 				fieldcookieset, fieldtovalidate, fieldposition, fieldrank);
 	}
-	
+
 	@Override
 	public String getHtmlFormField(HttpPage page) throws HttpIncorrectRequestException {
 		StringBuilder builder = new StringBuilder();
@@ -56,8 +53,8 @@ public class DefaultHttpField extends AbstractHttpField {
 			case BUSINESS_INPUT_RADIO: {
 				builder.append(fieldinfo);
 				AbstractHttpField source = page.fields.get(fieldname);
-				String []values = source.fieldvalue.split(",");
-				String []finalValues = fieldvalue.split(",");
+				String[] values = source.fieldvalue.split(",");
+				String[] finalValues = fieldvalue.split(",");
 				String inputtype;
 				if (fieldtype == FieldRole.BUSINESS_INPUT_CHECKBOX) {
 					inputtype = ": <INPUT type=CHECKBOX name=";
@@ -109,7 +106,7 @@ public class DefaultHttpField extends AbstractHttpField {
 						builder.append(": <INPUT type=SUBMIT name=");
 						break;
 					default:
-						throw new HttpIncorrectRequestException("Incorrect type: "+this.fieldtype);
+						throw new HttpIncorrectRequestException("Incorrect type: " + this.fieldtype);
 				}
 				builder.append(fieldname);
 				if (fieldvalue != null && fieldvalue.length() > 0) {
@@ -143,7 +140,7 @@ public class DefaultHttpField extends AbstractHttpField {
 				builder.append(fieldname);
 				builder.append('>');
 				AbstractHttpField source = page.fields.get(fieldname);
-				String [] values = source.fieldvalue.split(",");
+				String[] values = source.fieldvalue.split(",");
 				for (String string : values) {
 					builder.append("<OPTION label=\"");
 					builder.append(string);
@@ -175,7 +172,7 @@ public class DefaultHttpField extends AbstractHttpField {
 				// no since Cookie
 				break;
 			default:
-				throw new HttpIncorrectRequestException("Incorrect type: "+this.fieldtype);
+				throw new HttpIncorrectRequestException("Incorrect type: " + this.fieldtype);
 		}
 		return builder.toString();
 	}
@@ -193,8 +190,10 @@ public class DefaultHttpField extends AbstractHttpField {
 
 	@Override
 	public DefaultHttpField clone() {
-		DefaultHttpField newField = new DefaultHttpField(fieldname, fieldtype, fieldinfo, fieldvalue, 
-				fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate, fieldposition, fieldrank);
+		DefaultHttpField newField = new DefaultHttpField(fieldname, fieldtype, fieldinfo,
+				fieldvalue,
+				fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate, fieldposition,
+				fieldrank);
 		return newField;
 	}
 
@@ -204,7 +203,7 @@ public class DefaultHttpField extends AbstractHttpField {
 			case BUSINESS_INPUT_CHECKBOX:
 				if (fieldvalue != null) {
 					if (fieldvalue.length() > 0) {
-						fieldvalue += ","+value;
+						fieldvalue += "," + value;
 					} else {
 						fieldvalue = value;
 					}
@@ -224,7 +223,7 @@ public class DefaultHttpField extends AbstractHttpField {
 			case BUSINESS_COOKIE:
 				if (present) {
 					// should not be
-					throw new HttpIncorrectRequestException("Field already filled: "+fieldname);
+					throw new HttpIncorrectRequestException("Field already filled: " + fieldname);
 				}
 				fieldvalue = value;
 				present = true;
@@ -239,16 +238,16 @@ public class DefaultHttpField extends AbstractHttpField {
 		if (fieldtype == FieldRole.BUSINESS_INPUT_FILE) {
 			if (present) {
 				// should not be
-				throw new HttpIncorrectRequestException("Field already filled: "+fieldname);
+				throw new HttpIncorrectRequestException("Field already filled: " + fieldname);
 			}
 			this.fileUpload = fileUpload;
 			this.fieldvalue = fileUpload.getFilename();
 			present = true;
 		} else {
 			// should not be
-			throw new HttpIncorrectRequestException("Field with wrong type (should be File): "+fieldname);
+			throw new HttpIncorrectRequestException("Field with wrong type (should be File): "
+					+ fieldname);
 		}
 	}
-	
-	
+
 }

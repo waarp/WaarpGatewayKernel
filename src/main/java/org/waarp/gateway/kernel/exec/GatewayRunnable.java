@@ -18,7 +18,7 @@
 package org.waarp.gateway.kernel.exec;
 
 /**
- * Runnable interface for tasks 
+ * Runnable interface for tasks
  * 
  * @author Frederic Bregier
  * 

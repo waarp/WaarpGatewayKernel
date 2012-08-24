@@ -27,7 +27,8 @@ import org.waarp.gateway.kernel.session.HttpAuthInterface;
  * execution. If "REFUSED" is set, the command "RETR" or "STOR" like operations will be stopped at
  * starting of command.<br>
  * If the command starts with "EXECUTE", the following will be a command to be executed.<br>
- * If the command starts with "JAVAEXECUTE", the following will be a command through Java class to be executed.<br>
+ * If the command starts with "JAVAEXECUTE", the following will be a command through Java class to
+ * be executed.<br>
  * If the command starts with "R66PREPARETRANSFER", the following will be a r66 prepare transfer
  * execution (asynchrone only).<br>
  * 
