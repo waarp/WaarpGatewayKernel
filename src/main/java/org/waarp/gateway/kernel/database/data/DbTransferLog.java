@@ -274,7 +274,7 @@ public class DbTransferLog extends AbstractDbData {
 		start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
 		stop = (Timestamp) allFields[Columns.STOPTRANS.ordinal()].getValue();
 		infostatus = HttpResponseStatus.valueOf(((Integer) allFields[Columns.INFOSTATUS
-		                                         					.ordinal()].getValue()));
+				.ordinal()].getValue()));
 		infotransf = (String) allFields[Columns.TRANSINFO.ordinal()]
 				.getValue();
 		updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
@@ -648,7 +648,8 @@ public class DbTransferLog extends AbstractDbData {
 	 * @param time
 	 * @return the number of elements (COUNT) from the statement
 	 */
-	public static long getResultCountPrepareStatement(DbPreparedStatement pstt, HttpResponseStatus error,
+	public static long getResultCountPrepareStatement(DbPreparedStatement pstt,
+			HttpResponseStatus error,
 			long time) {
 		long result = 0;
 		try {

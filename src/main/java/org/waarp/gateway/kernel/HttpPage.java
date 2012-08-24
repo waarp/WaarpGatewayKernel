@@ -1,22 +1,19 @@
 /**
-   This file is part of Waarp Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Waarp is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Waarp Project.
+ * 
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
+ * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
+ * 
+ * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with Waarp . If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.gateway.kernel;
 
@@ -33,7 +30,7 @@ import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 
 /**
  * @author Frederic Bregier
- *
+ * 
  */
 public class HttpPage {
 	/**
@@ -41,13 +38,14 @@ public class HttpPage {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(HttpPage.class);
-	
+
 	public static enum PageRole {
 		HTML, MENU, GETDOWNLOAD, POST, PUT, POSTUPLOAD, DELETE, ERROR;
 	}
 
 	/*
-	 * pagename, fileform, header, footer, beginform, endform, nextinform, uri, pagerole, errorpage, classname, fields
+	 * pagename, fileform, header, footer, beginform, endform, nextinform, uri, pagerole, errorpage,
+	 * classname, fields
 	 */
 	public String pagename;
 	public String fileform;
@@ -62,7 +60,7 @@ public class HttpPage {
 	public String classname;
 	public LinkedHashMap<String, AbstractHttpField> fields;
 	public HttpBusinessFactory httpBusinessFactory;
-	
+
 	/**
 	 * 
 	 * @param pagename
@@ -77,15 +75,15 @@ public class HttpPage {
 	 * @param errorpage
 	 * @param classname
 	 * @param fields
-	 * @throws ClassNotFoundException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 */
-	public HttpPage(String pagename, String fileform, String header, String footer, 
+	public HttpPage(String pagename, String fileform, String header, String footer,
 			String beginform, String endform, String nextinform,
 			String uri, PageRole pagerole, String errorpage,
-			String classname, LinkedHashMap<String, AbstractHttpField> fields) 
-					throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+			String classname, LinkedHashMap<String, AbstractHttpField> fields)
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		this.pagename = pagename;
 		this.fileform = fileform;
 		if (this.fileform != null && this.fileform.length() == 0) {
@@ -105,15 +103,17 @@ public class HttpPage {
 		Class<HttpBusinessFactory> clasz = (Class<HttpBusinessFactory>) Class.forName(classname);
 		this.httpBusinessFactory = clasz.newInstance();
 	}
-	
+
 	/**
 	 * Called at the beginning of every request to get the current HttpBusinessFactory to use.
-	 * @param remoteAddress the remote socket address in use 
-	 * @param reference the associated reference object used for that URI
+	 * 
+	 * @param remoteAddress
+	 *            the remote socket address in use
 	 * @return AbstractHttpBusinessRequest to use during the request
 	 */
 	public AbstractHttpBusinessRequest newRequest(SocketAddress remoteAddress) {
-		LinkedHashMap<String, AbstractHttpField> linkedHashMap = new LinkedHashMap<String, AbstractHttpField>(this.fields.size());
+		LinkedHashMap<String, AbstractHttpField> linkedHashMap = new LinkedHashMap<String, AbstractHttpField>(
+				this.fields.size());
 		for (AbstractHttpField field : this.fields.values()) {
 			AbstractHttpField newfield = field.clone();
 			if (pagerole != PageRole.MENU) {
@@ -121,31 +121,33 @@ public class HttpPage {
 			}
 			linkedHashMap.put(field.fieldname, newfield);
 		}
-		return this.httpBusinessFactory.getNewHttpBusinessRequest(remoteAddress, linkedHashMap, this);
+		return this.httpBusinessFactory.getNewHttpBusinessRequest(remoteAddress, linkedHashMap,
+				this);
 	}
-	
+
 	public String getPageValue(String value) {
 		if (this.fileform != null && value != null) {
 			try {
-				return WaarpStringUtils.readFileException(fileform+value);
+				return WaarpStringUtils.readFileException(fileform + value);
 			} catch (InvalidArgumentException e) {
 			} catch (FileTransferException e) {
 			}
 		}
 		return value;
 	}
-	
+
 	/**
 	 * 
 	 * @param reference
 	 * @return the Html results for all pages except Get (result of a download)
-	 * @throws HttpIncorrectRequestException 
+	 * @throws HttpIncorrectRequestException
 	 */
-	public String getHtmlPage(AbstractHttpBusinessRequest reference) throws HttpIncorrectRequestException {
+	public String getHtmlPage(AbstractHttpBusinessRequest reference)
+			throws HttpIncorrectRequestException {
 		if (this.pagerole == PageRole.HTML) {
 			// No handling of variable management, use MENU instead
 			String value = reference.getHeader();
-			logger.debug("Debug: "+(value!=null));
+			logger.debug("Debug: " + (value != null));
 			if (value == null || value.length() == 0) {
 				value = getPageValue(this.header);
 			}
@@ -189,7 +191,8 @@ public class HttpPage {
 		} else {
 			builder = new StringBuilder(value);
 		}
-		LinkedHashMap<String, AbstractHttpField> requestFields = reference.getLinkedHashMapHttpFields();
+		LinkedHashMap<String, AbstractHttpField> requestFields = reference
+				.getLinkedHashMapHttpFields();
 		if (!isForm) {
 			value = reference.getBeginForm();
 			if (value == null || value.length() == 0) {
@@ -273,54 +276,59 @@ public class HttpPage {
 		}
 		return builder.toString();
 	}
-	
+
 	/**
 	 * Set the value to the field according to fieldname.
 	 * 
 	 * If the field is not registered, the field is ignored.
+	 * 
 	 * @param reference
 	 * @param fieldname
 	 * @param value
 	 * @param position
-	 * @throws HttpIncorrectRequestException 
+	 * @throws HttpIncorrectRequestException
 	 */
-	public void setValue(AbstractHttpBusinessRequest reference, String fieldname, String value, FieldPosition position) 
+	public void setValue(AbstractHttpBusinessRequest reference, String fieldname, String value,
+			FieldPosition position)
 			throws HttpIncorrectRequestException {
-		LinkedHashMap<String, AbstractHttpField> requestFields = reference.getLinkedHashMapHttpFields();
+		LinkedHashMap<String, AbstractHttpField> requestFields = reference
+				.getLinkedHashMapHttpFields();
 		AbstractHttpField field = requestFields.get(fieldname);
 		if (field != null) {
 			if (field.fieldposition == FieldPosition.ANY || field.fieldposition == position) {
 				field.setStringValue(value);
 				if (field.fieldtovalidate) {
-					if (! reference.isFieldValid(field)) {
-						throw new HttpIncorrectRequestException("Field unvalid: "+fieldname);
+					if (!reference.isFieldValid(field)) {
+						throw new HttpIncorrectRequestException("Field unvalid: " + fieldname);
 					}
 				}
 			} else {
-				throw new HttpIncorrectRequestException("Invalid position: "+position+
-						" while field is supposed to be in "+field.fieldposition);
+				throw new HttpIncorrectRequestException("Invalid position: " + position +
+						" while field is supposed to be in " + field.fieldposition);
 			}
 		}
 	}
-	
+
 	/**
 	 * Set the value to the field according to fieldname.
 	 * 
 	 * If the field is not registered, the field is ignored.
+	 * 
 	 * @param reference
 	 * @param fieldname
-	 * @param value
-	 * @throws HttpIncorrectRequestException 
+	 * @throws HttpIncorrectRequestException
 	 */
-	public void setValue(AbstractHttpBusinessRequest reference, String fieldname, FileUpload fileUpload) 
+	public void setValue(AbstractHttpBusinessRequest reference, String fieldname,
+			FileUpload fileUpload)
 			throws HttpIncorrectRequestException {
-		LinkedHashMap<String, AbstractHttpField> requestFields = reference.getLinkedHashMapHttpFields();
+		LinkedHashMap<String, AbstractHttpField> requestFields = reference
+				.getLinkedHashMapHttpFields();
 		AbstractHttpField field = requestFields.get(fieldname);
 		if (field != null) {
 			field.setFileUpload(fileUpload);
 			if (field.fieldtovalidate) {
-				if (! reference.isFieldValid(field)) {
-					throw new HttpIncorrectRequestException("Field unvalid: "+fieldname);
+				if (!reference.isFieldValid(field)) {
+					throw new HttpIncorrectRequestException("Field unvalid: " + fieldname);
 				}
 			}
 		}
@@ -332,27 +340,32 @@ public class HttpPage {
 	 * @return True if the request is fully valid
 	 */
 	public boolean isRequestValid(AbstractHttpBusinessRequest reference) {
-		LinkedHashMap<String, AbstractHttpField> requestFields = reference.getLinkedHashMapHttpFields();
+		LinkedHashMap<String, AbstractHttpField> requestFields = reference
+				.getLinkedHashMapHttpFields();
 		for (AbstractHttpField field : requestFields.values()) {
-			if (field.fieldmandatory && ! field.present) {
-				logger.warn("Request invalid since the following field is absent: "+field.fieldname);
+			if (field.fieldmandatory && !field.present) {
+				logger.warn("Request invalid since the following field is absent: "
+						+ field.fieldname);
 				return false;
 			}
 		}
 		return reference.isRequestValid();
 	}
-	
+
 	/**
 	 * Convenient method to get the fields list
+	 * 
 	 * @param reference
 	 * @return the fields list from the current AbstractHttpBusinessRequest
 	 */
-	public LinkedHashMap<String, AbstractHttpField> getFieldsForRequest(AbstractHttpBusinessRequest reference) {
+	public LinkedHashMap<String, AbstractHttpField> getFieldsForRequest(
+			AbstractHttpBusinessRequest reference) {
 		return reference.getLinkedHashMapHttpFields();
 	}
-	
+
 	/**
 	 * Convenient method to get the value of one field
+	 * 
 	 * @param reference
 	 * @param fieldname
 	 * @return the String value
@@ -367,6 +380,7 @@ public class HttpPage {
 
 	/**
 	 * Convenient method to get the value of one field
+	 * 
 	 * @param reference
 	 * @param fieldname
 	 * @return the FileUpload value
@@ -381,6 +395,7 @@ public class HttpPage {
 
 	/**
 	 * Convenient method to get one field
+	 * 
 	 * @param reference
 	 * @param fieldname
 	 * @return the AbstractHttpField value
