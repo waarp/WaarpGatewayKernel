@@ -109,8 +109,6 @@ public class HttpPage {
 	 * 
 	 * @param remoteAddress
 	 *            the remote socket address in use
-	 * @param reference
-	 *            the associated reference object used for that URI
 	 * @return AbstractHttpBusinessRequest to use during the request
 	 */
 	public AbstractHttpBusinessRequest newRequest(SocketAddress remoteAddress) {
@@ -318,7 +316,6 @@ public class HttpPage {
 	 * 
 	 * @param reference
 	 * @param fieldname
-	 * @param value
 	 * @throws HttpIncorrectRequestException
 	 */
 	public void setValue(AbstractHttpBusinessRequest reference, String fieldname,

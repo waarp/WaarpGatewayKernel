@@ -40,7 +40,6 @@ public class CommonFileChunkedInput implements ChunkedInput {
 
 	/**
 	 * @param document
-	 * @param cts
 	 * @throws HttpIncorrectRetrieveException
 	 */
 	public CommonFileChunkedInput(FileInterface document)
