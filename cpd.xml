@@ -146,8 +146,8 @@
 </codefragment>
 </duplication>
 <duplication lines="16" tokens="168">
-<file line="733" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
-<file line="768" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
+<file line="734" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
+<file line="769" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
