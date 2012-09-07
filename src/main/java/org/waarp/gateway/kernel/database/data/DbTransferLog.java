@@ -34,6 +34,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.xml.XmlDecl;
@@ -994,16 +995,20 @@ public class DbTransferLog extends AbstractDbData {
 		for (int i = 0; i < logDecls.length; i++) {
 			values[i] = new XmlValue(logDecls[i]);
 		}
-		values[0].setFromString(Long.toString(specialId));
-		values[1].setFromString(user);
-		values[2].setFromString(account);
-		values[3].setFromString(filename);
-		values[4].setFromString(mode);
-		values[5].setFromString(getErrorInfo().getReasonPhrase());
-		values[6].setFromString(infotransf);
-		values[7].setFromString(getUpdatedInfo().name());
-		values[8].setFromString(start.toString());
-		values[9].setFromString(stop.toString());
+		try {
+			values[0].setFromString(Long.toString(specialId));
+			values[1].setFromString(user);
+			values[2].setFromString(account);
+			values[3].setFromString(filename);
+			values[4].setFromString(mode);
+			values[5].setFromString(getErrorInfo().getReasonPhrase());
+			values[6].setFromString(infotransf);
+			values[7].setFromString(getUpdatedInfo().name());
+			values[8].setFromString(start.toString());
+			values[9].setFromString(stop.toString());
+		} catch (InvalidArgumentException e) {
+			return null;
+		}
 		return values;
 	}
 
@@ -1020,6 +1025,9 @@ public class DbTransferLog extends AbstractDbData {
 		roots[0] = root;
 		String message = null;
 		XmlValue[] values = saveIntoXmlValue();
+		if (values == null) {
+			return "Error during export";
+		}
 		try {
 			root.addValue(values);
 		} catch (InvalidObjectException e) {
@@ -1064,6 +1072,9 @@ public class DbTransferLog extends AbstractDbData {
 				while (preparedStatement.getNext()) {
 					DbTransferLog log = DbTransferLog.getFromStatement(preparedStatement);
 					XmlValue[] values = log.saveIntoXmlValue();
+					if (values == null) {
+						return "Error during export";
+					}
 					try {
 						root.addValue(values);
 					} catch (InvalidObjectException e) {
