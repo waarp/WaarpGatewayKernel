@@ -18,14 +18,14 @@
 package org.waarp.gateway.kernel.http.saplink;
 
 import org.waarp.gateway.kernel.HttpIncorrectRequestException;
+import org.waarp.gateway.kernel.HttpJsonDefinition;
 import org.waarp.gateway.kernel.HttpPageHandler;
-import org.waarp.gateway.kernel.HttpXmlDefinition;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
-public class HttpGerenateXmlConfiguration {
+public class HttpGerenateJsonConfiguration {
 
 	/**
 	 * @param args
@@ -37,7 +37,7 @@ public class HttpGerenateXmlConfiguration {
 		}
 		HttpPageHandler httpPageHandler = HttpSapBusinessFactory.initializeHttpPageHandler();
 		try {
-			HttpXmlDefinition.exportConfiguration(httpPageHandler, args[0]);
+			HttpJsonDefinition.exportConfiguration(httpPageHandler, args[0]);
 		} catch (HttpIncorrectRequestException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
