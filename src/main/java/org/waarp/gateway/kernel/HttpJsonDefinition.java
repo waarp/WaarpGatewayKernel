@@ -31,6 +31,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;

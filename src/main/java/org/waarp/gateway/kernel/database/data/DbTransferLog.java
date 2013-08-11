@@ -22,6 +22,8 @@ import java.io.InvalidObjectException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.dom4j.Document;
@@ -35,6 +37,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.exception.InvalidArgumentException;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.xml.XmlDecl;
@@ -921,14 +924,15 @@ public class DbTransferLog extends AbstractDbData {
 
 	@Override
 	public String toString() {
-		return "Transfer: on " +
-				filename + " SpecialId: " +
-				specialId + " Mode: " + mode + " isSender: " + isSender +
-				" User: " + user + " Account: " + account +
-				" Start: " + start + " Stop: " + stop +
-				" Internal: " + UpdatedInfo.values()[updatedInfo].name() +
-				":" + infostatus.getReasonPhrase() +
-				" TransferInfo: " + infotransf;
+		Map<String, Object> map = new HashMap<String, Object>();
+		for (Columns col : Columns.values()) {
+			try {
+				map.put(col.name(), allFields[col.ordinal()].getValue());
+			} catch (WaarpDatabaseSqlException e) {
+				// ignore
+			}
+		}
+		return JsonHandler.writeAsString(map);
 	}
 
 	/**

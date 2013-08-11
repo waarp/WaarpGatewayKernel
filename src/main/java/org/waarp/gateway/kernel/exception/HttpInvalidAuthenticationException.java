@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package org.waarp.gateway.kernel;
+package org.waarp.gateway.kernel.exception;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
-public class HttpIncorrectRequestException extends Exception {
+public class HttpInvalidAuthenticationException extends Exception {
 
 	/**
 	 * 
@@ -31,14 +31,14 @@ public class HttpIncorrectRequestException extends Exception {
 	/**
 	 * @param arg0
 	 */
-	public HttpIncorrectRequestException(String arg0) {
+	public HttpInvalidAuthenticationException(String arg0) {
 		super(arg0);
 	}
 
 	/**
 	 * @param arg0
 	 */
-	public HttpIncorrectRequestException(Throwable arg0) {
+	public HttpInvalidAuthenticationException(Throwable arg0) {
 		super(arg0);
 	}
 
@@ -46,7 +46,7 @@ public class HttpIncorrectRequestException extends Exception {
 	 * @param arg0
 	 * @param arg1
 	 */
-	public HttpIncorrectRequestException(String arg0, Throwable arg1) {
+	public HttpInvalidAuthenticationException(String arg0, Throwable arg1) {
 		super(arg0, arg1);
 	}
 

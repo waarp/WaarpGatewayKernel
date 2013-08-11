@@ -66,7 +66,6 @@ import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.AbstractHttpBusinessRequest;
 import org.waarp.gateway.kernel.AbstractHttpField;
 import org.waarp.gateway.kernel.HttpBusinessFactory;
-import org.waarp.gateway.kernel.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.HttpPage;
 import org.waarp.gateway.kernel.HttpPageHandler;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
@@ -74,6 +73,7 @@ import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
 import org.waarp.gateway.kernel.database.DbConstant;
 import org.waarp.gateway.kernel.database.WaarpActionLogger;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.session.DefaultHttpAuth;
 import org.waarp.gateway.kernel.session.HttpSession;
 

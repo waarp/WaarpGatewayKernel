@@ -16,6 +16,7 @@
  */
 package org.waarp.gateway.kernel.database;
 
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -25,6 +26,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
 import org.waarp.gateway.kernel.database.data.DbTransferLog;
 import org.waarp.gateway.kernel.session.HttpSession;
+import org.waarp.gateway.kernel.session.RestSession;
 
 /**
  * Class to help to log any actions through the interface of Waarp
@@ -42,15 +44,15 @@ public class WaarpActionLogger {
 	/**
 	 * Log the action
 	 * 
-	 * @param httpSession
+	 * @param dbSession
 	 * @param message
 	 * @param session
 	 */
-	public static void logCreate(DbSession httpSession,
+	public static void logCreate(DbSession dbSession,
 			String message, HttpSession session) {
 		String sessionContexte = session.toString();
 		logger.info(message + " " + sessionContexte);
-		if (httpSession != null) {
+		if (dbSession != null) {
 			PageRole code = session.getCurrentCommand();
 			boolean isSender = false;
 			switch (code) {
@@ -74,7 +76,7 @@ public class WaarpActionLogger {
 			// Insert new one
 			try {
 				DbTransferLog log =
-						new DbTransferLog(httpSession,
+						new DbTransferLog(dbSession,
 								session.getAuth().getUser(),
 								session.getAuth().getAccount(),
 								DbConstant.ILLEGALVALUE,
@@ -101,19 +103,19 @@ public class WaarpActionLogger {
 	/**
 	 * Log the action
 	 * 
-	 * @param httpSession
+	 * @param dbSession
 	 * @param session
 	 * @param message
 	 * @param rcode
 	 * @param info
 	 */
-	public static void logAction(DbSession httpSession,
+	public static void logAction(DbSession dbSession,
 			HttpSession session, String message, HttpResponseStatus rcode,
 			UpdatedInfo info) {
 		String sessionContexte = session.toString();
 		long specialId = session.getLogid();
 		logger.info(message + " " + sessionContexte);
-		if (httpSession != null && specialId != DbConstant.ILLEGALVALUE) {
+		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
 			PageRole code = session.getCurrentCommand();
 			switch (code) {
 				case ERROR:
@@ -132,7 +134,7 @@ public class WaarpActionLogger {
 			try {
 				// Try load
 				DbTransferLog log =
-						new DbTransferLog(httpSession,
+						new DbTransferLog(dbSession,
 								session.getAuth().getUser(),
 								session.getAuth().getAccount(), specialId);
 				log.changeUpdatedInfo(info);
@@ -151,12 +153,12 @@ public class WaarpActionLogger {
 	/**
 	 * Log the action in error
 	 * 
-	 * @param ftpSession
+	 * @param dbSession
 	 * @param session
 	 * @param message
 	 * @param rcode
 	 */
-	public static void logErrorAction(DbSession ftpSession,
+	public static void logErrorAction(DbSession dbSession,
 			HttpSession session,
 			String message, HttpResponseStatus rcode) {
 		String sessionContexte = session.toString();
@@ -164,7 +166,7 @@ public class WaarpActionLogger {
 		logger.error(rcode.getCode() + ":" + message + " " + sessionContexte);
 		logger.warn("To Change to debug Log",
 				new Exception("Log"));
-		if (ftpSession != null && specialId != DbConstant.ILLEGALVALUE) {
+		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
 			PageRole code = session.getCurrentCommand();
 			switch (code) {
 				case ERROR:
@@ -184,7 +186,7 @@ public class WaarpActionLogger {
 			try {
 				// Try load
 				DbTransferLog log =
-						new DbTransferLog(ftpSession,
+						new DbTransferLog(dbSession,
 								session.getAuth().getUser(),
 								session.getAuth().getAccount(), specialId);
 				log.changeUpdatedInfo(info);
@@ -204,4 +206,131 @@ public class WaarpActionLogger {
 			}
 		}
 	}
+
+	/**
+	 * Log the action
+	 * 
+	 * @param dbSession
+	 * @param message
+	 * @param session
+	 * @param context
+	 */
+	public static void logCreate(DbSession dbSession,
+			String message, RestSession session, String context) {
+		String sessionContexte = session.toString();
+		logger.info(message + " " + sessionContexte);
+		if (dbSession != null) {
+			HttpMethod code = session.getMethod();
+			boolean isSender = false;
+			if (code == HttpMethod.CONNECT) {
+					session.setLogid(DbConstant.ILLEGALVALUE);
+					return;
+			} else if (code == HttpMethod.GET || code == HttpMethod.DELETE
+					|| code == HttpMethod.HEAD || code == HttpMethod.OPTIONS
+					|| code == HttpMethod.TRACE) {
+				isSender = false;
+			} else {
+				isSender = true;
+			}
+			// Insert new one
+			try {
+				DbTransferLog log =
+						new DbTransferLog(dbSession,
+								session.getAuth().getUser(),
+								session.getAuth().getAccount(),
+								DbConstant.ILLEGALVALUE,
+								isSender, context,
+								code.getName(),
+								HttpResponseStatus.OK, message,
+								UpdatedInfo.TOSUBMIT);
+				logger.debug("Create FS: " + log.toString());
+				session.setLogid(log.getSpecialId());
+				return;
+			} catch (WaarpDatabaseException e1) {
+				// Do nothing
+			}
+		}
+		session.setLogid(DbConstant.ILLEGALVALUE);
+	}
+
+	/**
+	 * Log the action
+	 * 
+	 * @param dbSession
+	 * @param session
+	 * @param message
+	 * @param rcode
+	 * @param info
+	 */
+	public static void logAction(DbSession dbSession,
+			RestSession session, String message, HttpResponseStatus rcode,
+			UpdatedInfo info) {
+		String sessionContexte = session.toString();
+		long specialId = session.getLogid();
+		logger.info(message + " " + sessionContexte);
+		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
+			if (session.getMethod() == HttpMethod.CONNECT) {
+					return;
+			}
+			try {
+				// Try load
+				DbTransferLog log =
+						new DbTransferLog(dbSession,
+								session.getAuth().getUser(),
+								session.getAuth().getAccount(), specialId);
+				log.changeUpdatedInfo(info);
+				log.setInfotransf(message);
+				log.setReplyCodeExecutionStatus(rcode);
+				log.update();
+				logger.debug("Update FS: " + log.toString());
+				session.setLogid(log.getSpecialId());
+				return;
+			} catch (WaarpDatabaseException e) {
+				// Do nothing
+			}
+		}
+	}
+
+	/**
+	 * Log the action in error
+	 * 
+	 * @param dbSession
+	 * @param session
+	 * @param message
+	 * @param rcode
+	 */
+	public static void logErrorAction(DbSession dbSession,
+			RestSession session,
+			String message, HttpResponseStatus rcode) {
+		String sessionContexte = session.toString();
+		long specialId = session.getLogid();
+		logger.error(rcode.getCode() + ":" + message + " " + sessionContexte);
+		logger.warn("To Change to debug Log",
+				new Exception("Log"));
+		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
+			if (session.getMethod() == HttpMethod.CONNECT) {
+				return;
+			}
+			UpdatedInfo info = UpdatedInfo.INERROR;
+			try {
+				// Try load
+				DbTransferLog log =
+						new DbTransferLog(dbSession,
+								session.getAuth().getUser(),
+								session.getAuth().getAccount(), specialId);
+				log.changeUpdatedInfo(info);
+				log.setInfotransf(message);
+				if (rcode.getCode() < 400) {
+					log.setReplyCodeExecutionStatus(HttpResponseStatus.BAD_REQUEST);
+				} else {
+					log.setReplyCodeExecutionStatus(rcode);
+				}
+				log.update();
+				logger.debug("Update FS: " + log.toString());
+			} catch (WaarpDatabaseException e) {
+				// Do nothing
+			}
+		}
+	}
+
 }
