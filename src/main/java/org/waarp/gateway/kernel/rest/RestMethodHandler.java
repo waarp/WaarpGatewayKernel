@@ -24,10 +24,9 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
-import org.waarp.gateway.kernel.exception.HttpIncorrectRetrieveException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author "Frederic Bregier"
@@ -43,12 +42,15 @@ public abstract class RestMethodHandler {
 	}
 	
 	/**
-	 * Check the arguments correctness
+	 * Check the arguments correctness, called before any BODY elements but after URI and HEADER.
+	 * Note that ARG_METHOD is only set from current request. It might be also set from URI or HEADER 
+	 * and therefore should be done in this method through 
+	 * @param uri
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void checkArgumentsCorrectness(JsonNode arguments, JsonNode result) throws HttpIncorrectRequestException;
+	public abstract void checkArgumentsCorrectness(String uri, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 
 	/**
 	 * Get a new Http data from BODY
@@ -57,7 +59,7 @@ public abstract class RestMethodHandler {
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void getData(InterfaceHttpData data, JsonNode arguments, JsonNode result) throws HttpIncorrectRequestException;
+	public abstract void getData(InterfaceHttpData data, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when all Data were passed to getData
@@ -65,7 +67,7 @@ public abstract class RestMethodHandler {
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void endBody(JsonNode arguments, JsonNode result) throws HttpIncorrectRequestException;
+	public abstract void endBody(ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when an exception occurs 
@@ -75,7 +77,7 @@ public abstract class RestMethodHandler {
 	 * @return the status to used in sendReponse
 	 * @throws Exception re-throw it if this exception is not handled
 	 */
-	public abstract HttpResponseStatus handleException(JsonNode arguments, JsonNode result, Exception exception) throws Exception;
+	public abstract HttpResponseStatus handleException(ObjectNode arguments, ObjectNode result, Exception exception) throws Exception;
 
 	/**
 	 * Send a response (correct or not)
@@ -84,8 +86,6 @@ public abstract class RestMethodHandler {
 	 * @param result
 	 * @param status
 	 * @return True if this response will need the channel to be closed
-	 * @throws HttpIncorrectRequestException
-	 * @throws HttpIncorrectRetrieveException
 	 */
-	public abstract boolean sendResponse(Channel channel, JsonNode arguments, JsonNode result, HttpResponseStatus status) throws HttpIncorrectRequestException, HttpIncorrectRetrieveException;
+	public abstract boolean sendResponse(Channel channel, ObjectNode arguments, ObjectNode result, HttpResponseStatus status);
 }

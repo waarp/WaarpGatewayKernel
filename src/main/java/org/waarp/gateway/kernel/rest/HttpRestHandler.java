@@ -27,9 +27,14 @@ import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
+import org.waarp.gateway.kernel.AbstractHttpField;
+import org.waarp.gateway.kernel.HttpBusinessFactory;
+import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
+import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.database.DbConstant;
 import org.waarp.gateway.kernel.database.WaarpActionLogger;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRetrieveException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.http.HttpCleanChannelFutureListener;
 import org.waarp.gateway.kernel.http.HttpRequestHandler;
@@ -42,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +113,10 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	public static final String ARGS_URI = "uri";
 	/**
+	 * arguments.path(ARGS_BODY) main entry for BODY arguments
+	 */
+	public static final String ARGS_BODY = "body";
+	/**
 	 * arguments.path(ARG_PATH) = uri path
 	 */
 	public static final String ARG_PATH = "path";
@@ -118,6 +128,10 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * arguments.path(ARG_METHOD) = method identified
 	 */
 	public static final String ARG_METHOD = "X-method";
+	/**
+	 * arguments.path(ARG_HASBODY) = true if the body has content
+	 */
+	public static final String ARG_HASBODY = "hasBody";
 
 	/**
      * Internal Logger
@@ -223,6 +237,8 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	public static ChannelGroup group = null;
 	
+	public static HashMap<String, RestMethodHandler> restHashMap = new HashMap<>();
+	
 	/**
 	 * Initialize the Disk support
 	 */
@@ -245,13 +261,16 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected HttpResponseStatus status = HttpResponseStatus.OK;
 
 	protected volatile HttpRequest request = null;
-
+	protected volatile RestMethodHandler handler = null;
+	
 	protected volatile boolean willClose = false;
 
 	protected volatile boolean readingChunks = false;
 	protected volatile boolean readingPutChunks = false;
 
 	protected volatile ObjectNode arguments = null;
+	protected volatile ObjectNode body = null;
+	protected volatile ObjectNode response = null;
 	
 	protected static class HttpCleanChannelFutureListener implements ChannelFutureListener {
 		protected final HttpRestHandler handler;
@@ -348,7 +367,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				int pos2 = path.indexOf('/', pos+1);
 				path = path.substring(pos+1, pos2);
 			} else {
-				path = path.substring(pos);
+				path = path.substring(0, pos);
 			}
 		}
 		arguments.put(ARG_BASEPATH, path);
@@ -369,7 +388,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Example of method to get method From URI
 	 */
-	protected void methodFromUri() {
+	public static void methodFromUri(ObjectNode arguments) {
 		JsonNode node = arguments.path(ARGS_URI).path(ARG_METHOD);
 		if (! node.isMissingNode()) {
 			// override
@@ -380,7 +399,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Example of method to get method From Header
 	 */
-	protected void methodFromHeader() {
+	public static void methodFromHeader(ObjectNode arguments) {
 		JsonNode node = arguments.path(ARGS_HEADER).path(ARG_METHOD);
 		if (! node.isMissingNode()) {
 			// override
@@ -390,10 +409,18 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	/**
 	 * 
-	 * @return the path uri or empty String
+	 * @return the base path uri or empty String
+	 */
+	protected String getBASEURI() {
+		return arguments.path(ARG_BASEPATH).asText();
+	}
+
+	/**
+	 * 
+	 * @return the uri or empty String
 	 */
 	protected String getURI() {
-		return arguments.path(ARG_BASEPATH).asText();
+		return arguments.path(ARG_PATH).asText();
 	}
 
 	/**
@@ -415,14 +442,47 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			if (!readingChunks) {
 				initialize();
 				this.request = (HttpRequest) e.getMessage();
+				arguments.put(ARG_HASBODY, 
+						(request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
 				getUriArgs();
 				getHeaderArgs();
 				checkConnection(channel);
-				HttpMethod method = getMethod().method;
-				String uri = getURI();
+				METHOD method = getMethod();
+				String uri = getBASEURI();
 				WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
 						+ arguments, session, uri+":"+method);
-				
+				boolean restFound = false;
+				handler = restHashMap.get(uri);
+				if (handler != null) {
+					response = JsonHandler.createObjectNode();
+					handler.checkArgumentsCorrectness(getURI(), arguments, response);
+					for (METHOD meth : handler.methods) {
+						if (meth == method) {
+							restFound = true;
+							break;
+						}
+					}
+				}
+				if (! restFound){
+					throw new HttpIncorrectRequestException("No Method found for that URI: "+uri);
+				}
+				if (request.isChunked()) {
+					// no body yet
+					readingChunks = true;
+					createDecoder();
+					return;
+				} else {
+					ChannelBuffer buffer = request.getContent();
+					if (buffer != ChannelBuffers.EMPTY_BUFFER) {
+						// decoder for 1 chunk
+						createDecoder();
+						// Not chunk version
+						readAllHttpData();
+					}
+					handler.endBody(arguments, response);
+					handler.sendResponse(channel, arguments, response, status);
+					return;
+				}
 			} else {
 				if (readingPutChunks) {
 					// New chunk for Put
@@ -434,12 +494,120 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			}
 		} catch (HttpIncorrectRequestException e1) {
 			// real error => 400
+			if (handler != null) {
+				try {
+					status = handler.handleException(arguments, response, e1);
+				} catch (Exception e2) {
+				}
+			}
 			if (status == HttpResponseStatus.OK) {
 				status = HttpResponseStatus.BAD_REQUEST;
 			}
-			errorMesg = e1.getMessage();
 			logger.warn("Error", e1);
-			writeErrorPage(channel);
+			handler.sendResponse(channel, arguments, response, status);
+		}
+	}
+	
+	/**
+	 * Create the decoder
+	 * @throws HttpIncorrectRequestException
+	 */
+	protected void createDecoder() throws HttpIncorrectRequestException {
+		try {
+			decoder = new HttpPostRequestDecoder(HttpBusinessFactory.factory, request);
+		} catch (ErrorDataDecoderException e1) {
+			status = HttpResponseStatus.NOT_ACCEPTABLE;
+			throw new HttpIncorrectRequestException(e1);
+		} catch (IncompatibleDataDecoderException e1) {
+			// GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
+			// So OK but stop here
+			status = HttpResponseStatus.NOT_ACCEPTABLE;
+			throw new HttpIncorrectRequestException(e1);
+		}
+	}
+
+	/**
+	 * Read all InterfaceHttpData from finished transfer
+	 * 
+	 * @throws HttpIncorrectRequestException
+	 */
+	protected void readAllHttpData() throws HttpIncorrectRequestException {
+		List<InterfaceHttpData> datas = null;
+		try {
+			datas = decoder.getBodyHttpDatas();
+		} catch (NotEnoughDataDecoderException e1) {
+			// Should not be!
+			logger.warn("decoder issue", e1);
+			status = HttpResponseStatus.NOT_ACCEPTABLE;
+			throw new HttpIncorrectRequestException(e1);
+		}
+		if (body == null) {
+			body = JsonHandler.createObjectNode();
+			arguments.put(ARGS_BODY, body);			
+		}
+		for (InterfaceHttpData data : datas) {
+			readHttpData(data);
+		}
+	}
+	
+	/**
+	 * Read one Data
+	 * 
+	 * @param data
+	 * @throws HttpIncorrectRequestException
+	 */
+	protected void readHttpData(InterfaceHttpData data)
+			throws HttpIncorrectRequestException {
+		if (data.getHttpDataType() == HttpDataType.Attribute) {
+			Attribute attribute = (Attribute) data;
+			String name = attribute.getName();
+			try {
+				String value = attribute.getValue();
+				body.put(name, value);
+			} catch (IOException e) {
+				// Error while reading data from File, only print name and
+				// error
+				attribute.delete();
+				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+				throw new HttpIncorrectRequestException(e);
+			}
+			attribute.delete();
+		} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
+			FileUpload fileUpload = (FileUpload) data;
+			if (fileUpload.isCompleted()) {
+				ObjectNode node = JsonHandler.createObjectNode();
+				node.put("filename", fileUpload.getFilename());
+				node.put("isInMemory", fileUpload.isInMemory());
+				node.put("length", fileUpload.length());
+				node.put("contentType", fileUpload.getContentType());
+				if (fileUpload.isInMemory()) {
+					try {
+						node.put("binary", fileUpload.getChannelBuffer().array());
+					} catch (IOException e) {
+						logger.warn("File cannot be retrieved");
+						fileUpload.delete();
+						status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+						throw new HttpIncorrectRequestException("File cannot be retrieved", e);
+					}
+				} else {
+					try {
+						node.put("filepath", fileUpload.getFile().getAbsolutePath());
+					} catch (IOException e) {
+						logger.warn("File cannot be retrieved");
+						fileUpload.delete();
+						status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+						throw new HttpIncorrectRequestException("File cannot be retrieved", e);
+					}
+				}
+				body.put(data.getName(), node);
+			} else {
+				logger.warn("File still pending but should not");
+				fileUpload.delete();
+				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+				throw new HttpIncorrectRequestException("File still pending but should not");
+			}
+		} else {
+			logger.warn("Unknown element: " + data.toString());
 		}
 	}
 
@@ -626,8 +794,16 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			if (e.getCause() instanceof ClosedChannelException) {
 				return;
 			}
-			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-			writeErrorPage(e.getChannel());
+			if (handler != null) {
+				try {
+					status = handler.handleException(arguments, response, (Exception) e.getCause());
+				} catch (Exception e2) {
+				}
+			}
+			if (status == HttpResponseStatus.OK) {
+				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+			}
+			handler.sendResponse(e.getChannel(), arguments, response, status);
 		}
 	}
 
