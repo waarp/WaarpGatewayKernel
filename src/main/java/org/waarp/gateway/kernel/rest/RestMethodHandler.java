@@ -45,47 +45,52 @@ public abstract class RestMethodHandler {
 	 * Check the arguments correctness, called before any BODY elements but after URI and HEADER.
 	 * Note that ARG_METHOD is only set from current request. It might be also set from URI or HEADER 
 	 * and therefore should be done in this method through 
+	 * @param handler
 	 * @param uri
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void checkArgumentsCorrectness(String uri, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void checkArgumentsCorrectness(HttpRestHandler handler, String uri, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 
 	/**
 	 * Get a new Http data from BODY
+	 * @param handler
 	 * @param data
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void getData(InterfaceHttpData data, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void getData(HttpRestHandler handler, InterfaceHttpData data, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when all Data were passed to getData
+	 * @param handler
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void endBody(ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void endBody(HttpRestHandler handler, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when an exception occurs 
+	 * @param handler
 	 * @param arguments
 	 * @param result
 	 * @param exception
 	 * @return the status to used in sendReponse
 	 * @throws Exception re-throw it if this exception is not handled
 	 */
-	public abstract HttpResponseStatus handleException(ObjectNode arguments, ObjectNode result, Exception exception) throws Exception;
+	public abstract HttpResponseStatus handleException(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Exception exception) throws Exception;
 
 	/**
 	 * Send a response (correct or not)
+	 * @param handler
 	 * @param channel
 	 * @param arguments
 	 * @param result
 	 * @param status
 	 * @return True if this response will need the channel to be closed
 	 */
-	public abstract boolean sendResponse(Channel channel, ObjectNode arguments, ObjectNode result, HttpResponseStatus status);
+	public abstract boolean sendResponse(HttpRestHandler handler, Channel channel, ObjectNode arguments, ObjectNode result, HttpResponseStatus status);
 }
