@@ -200,7 +200,7 @@ public class HttpJsonDefinition {
 		cpage.PAGEROLE = page.pagerole;
 		cpage.ERRORPAGE = page.errorpage;
 		cpage.CLASSNAME = page.classname;
-		cpage.FIELD = new ArrayList<>();
+		cpage.FIELD = new ArrayList<ConfigHttpField>();
 		for (AbstractHttpField field : page.fields.values()) {
 			addToField(cpage.FIELD, field);
 		}
@@ -210,7 +210,7 @@ public class HttpJsonDefinition {
 	public static void exportConfiguration(HttpPageHandler httpPageHandler, String filename)
 			throws HttpIncorrectRequestException {
 		ConfigHttpPages cpages = new ConfigHttpPages();
-		cpages.PAGE = new ArrayList<>();
+		cpages.PAGE = new ArrayList<ConfigHttpPage>();
 		for (HttpPage page : httpPageHandler.hashmap.values()) {
 			addToElement(cpages.PAGE, page);
 		}
