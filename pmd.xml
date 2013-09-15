@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd version="4.3" timestamp="2012-09-07T22:46:56.473">
+<pmd version="4.3" timestamp="2013-09-15T20:28:36.528">
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\DefaultHttpField.java">
-<violation beginline="204" endline="212" begincolumn="33" endcolumn="33" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="DefaultHttpField" method="setStringValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="205" endline="213" begincolumn="33" endcolumn="33" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="DefaultHttpField" method="setStringValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
 </file>
@@ -16,65 +16,65 @@ Avoid empty catch blocks
 Avoid empty catch blocks
 </violation>
 </file>
-<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\HttpIncorrectRetrieveException.java">
-<violation beginline="34" endline="35" begincolumn="16" endcolumn="9" rule="UncommentedEmptyConstructor" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpIncorrectRetrieveException" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyConstructor" priority="3">
-Document empty constructor
+<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\HttpJsonDefinition.java">
+<violation beginline="44" endline="228" begincolumn="33" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpJsonDefinition" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\HttpPage.java">
-<violation beginline="132" endline="133" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getPageValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
-Avoid empty catch blocks
-</violation>
 <violation beginline="133" endline="134" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getPageValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="196" endline="222" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="134" endline="135" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getPageValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="197" endline="223" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="201" endline="213" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="202" endline="214" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="251" endline="269" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="252" endline="270" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="256" endline="260" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="257" endline="261" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="getHtmlPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="301" endline="303" begincolumn="41" endcolumn="41" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="setValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
+<violation beginline="302" endline="304" begincolumn="41" endcolumn="41" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="setValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
 These nested if statements could be combined
 </violation>
-<violation beginline="330" endline="332" begincolumn="33" endcolumn="33" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="setValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
+<violation beginline="331" endline="333" begincolumn="33" endcolumn="33" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPage" method="setValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
 These nested if statements could be combined
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\HttpPageHandler.java">
-<violation beginline="77" endline="81" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
+<violation beginline="78" endline="82" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
 Method call on object which may be null
 </violation>
-<violation beginline="93" endline="97" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
+<violation beginline="94" endline="98" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
 Method call on object which may be null
 </violation>
-<violation beginline="106" endline="110" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
+<violation beginline="107" endline="111" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
 Method call on object which may be null
 </violation>
-<violation beginline="118" endline="122" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
+<violation beginline="119" endline="123" begincolumn="41" endcolumn="41" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
 Method call on object which may be null
 </violation>
-<violation beginline="131" endline="135" begincolumn="33" endcolumn="33" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
+<violation beginline="132" endline="136" begincolumn="33" endcolumn="33" rule="BrokenNullCheck" ruleset="Basic Rules" package="org.waarp.gateway.kernel" class="HttpPageHandler" method="getHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#BrokenNullCheck" priority="2">
 Method call on object which may be null
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\HttpXmlDefinition.java">
-<violation beginline="48" endline="496" begincolumn="32" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+<violation beginline="49" endline="497" begincolumn="32" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
 All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
 </violation>
-<violation beginline="246" endline="247" begincolumn="25" endcolumn="62" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="loadHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="247" endline="248" begincolumn="25" endcolumn="62" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="loadHttpPage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="352" endline="353" begincolumn="25" endcolumn="61" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="loadHttpConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="353" endline="354" begincolumn="25" endcolumn="61" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="loadHttpConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="409" endline="409" begincolumn="25" endcolumn="99" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="setConfigurationHttpServerFromXml" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="410" endline="410" begincolumn="25" endcolumn="99" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel" class="HttpXmlDefinition" method="setConfigurationHttpServerFromXml" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
 </file>
@@ -84,76 +84,88 @@ Private field 'document' could be made final; it is only initialized in the decl
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\WaarpActionLogger.java">
-<violation beginline="35" endline="207" begincolumn="32" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+<violation beginline="37" endline="336" begincolumn="32" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
 All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
 </violation>
-<violation beginline="88" endline="90" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logCreate" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="90" endline="92" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logCreate" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="145" endline="147" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="147" endline="149" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="202" endline="204" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logErrorAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="204" endline="206" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logErrorAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="249" endline="251" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logCreate" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="288" endline="290" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="330" endline="332" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database" class="WaarpActionLogger" method="logErrorAction" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java">
-<violation beginline="182" endline="182" begincolumn="17" endcolumn="28" rule="ConstructorCallsOverridableMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConstructorCallsOverridableMethod" priority="1">
+<violation beginline="185" endline="185" begincolumn="17" endcolumn="28" rule="ConstructorCallsOverridableMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConstructorCallsOverridableMethod" priority="1">
 Overridable method 'setToArray' called during object construction
 </violation>
-<violation beginline="184" endline="184" begincolumn="17" endcolumn="24" rule="ConstructorCallsOverridableMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConstructorCallsOverridableMethod" priority="1">
+<violation beginline="187" endline="187" begincolumn="17" endcolumn="24" rule="ConstructorCallsOverridableMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConstructorCallsOverridableMethod" priority="1">
 Overridable method 'insert' called during object construction
 </violation>
-<violation beginline="433" endline="433" begincolumn="57" endcolumn="96" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="436" endline="436" begincolumn="57" endcolumn="96" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="442" endline="442" begincolumn="57" endcolumn="111" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="445" endline="445" begincolumn="57" endcolumn="111" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="445" endline="445" begincolumn="49" endcolumn="103" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="448" endline="448" begincolumn="49" endcolumn="103" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="create" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="498" endline="503" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getStatusPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="501" endline="506" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getStatusPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="537" endline="563" begincolumn="24" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getLogPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="540" endline="566" begincolumn="24" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getLogPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="548" endline="563" begincolumn="24" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getLogPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="551" endline="566" begincolumn="24" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getLogPrepareStament" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="602" endline="603" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="605" endline="606" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="603" endline="604" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="606" endline="607" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="604" endline="605" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="607" endline="608" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="663" endline="664" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="666" endline="667" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="664" endline="665" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="667" endline="668" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="665" endline="666" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="668" endline="669" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="684" endline="685" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="687" endline="688" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="685" endline="686" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="688" endline="689" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="686" endline="687" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="689" endline="690" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="getResultCountPrepareStatement" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="806" endline="806" begincolumn="21" endcolumn="38" rule="CompareObjectsWithEquals" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="setReplyCodeExecutionStatus" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#CompareObjectsWithEquals" priority="3">
+<violation beginline="809" endline="809" begincolumn="21" endcolumn="38" rule="CompareObjectsWithEquals" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="setReplyCodeExecutionStatus" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#CompareObjectsWithEquals" priority="3">
 Use equals() to compare object references.
 </violation>
-<violation beginline="918" endline="920" begincolumn="29" endcolumn="9" rule="UncommentedEmptyMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyMethod" priority="3">
+<violation beginline="921" endline="923" begincolumn="29" endcolumn="9" rule="UncommentedEmptyMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyMethod" priority="3">
 Document empty method
+</violation>
+<violation beginline="931" endline="933" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.data" class="DbTransferLog" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelFactory.java">
@@ -170,6 +182,11 @@ Avoid empty catch blocks
 </violation>
 <violation beginline="217" endline="218" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.database.model" class="DbModelMysql" method="nextSequence" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
+</violation>
+</file>
+<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\exception\HttpIncorrectRetrieveException.java">
+<violation beginline="34" endline="35" begincolumn="16" endcolumn="9" rule="UncommentedEmptyConstructor" ruleset="Design Rules" package="org.waarp.gateway.kernel.exception" class="HttpIncorrectRetrieveException" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyConstructor" priority="3">
+Document empty constructor
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\exec\AbstractExecutor.java">
@@ -231,42 +248,39 @@ Document empty constructor
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\exec\R66PreparedTransferExecutor.java">
-<violation beginline="135" endline="135" begincolumn="63" endcolumn="100" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
+<violation beginline="137" endline="137" begincolumn="63" endcolumn="100" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
 When instantiating a SimpleDateFormat object, specify a Locale
 </violation>
-<violation beginline="140" endline="141" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="142" endline="143" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="182" endline="183" begincolumn="25" endcolumn="71" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="184" endline="185" begincolumn="25" endcolumn="71" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="201" endline="201" begincolumn="25" endcolumn="91" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="211" endline="211" begincolumn="25" endcolumn="91" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="209" endline="209" begincolumn="25" endcolumn="91" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="219" endline="219" begincolumn="25" endcolumn="91" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.gateway.kernel.exec" class="R66PreparedTransferExecutor" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\http\HttpRequestHandler.java">
-<violation beginline="263" endline="356" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="261" endline="346" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="319" endline="347" begincolumn="33" endcolumn="33" rule="MissingBreakInSwitch" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#MissingBreakInSwitch" priority="3">
+<violation beginline="317" endline="342" begincolumn="33" endcolumn="33" rule="MissingBreakInSwitch" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#MissingBreakInSwitch" priority="3">
 A switch statement does not contain a break
 </violation>
-<violation beginline="456" endline="456" begincolumn="46" endcolumn="93" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="446" endline="446" begincolumn="46" endcolumn="93" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="458" endline="458" begincolumn="36" endcolumn="107" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="448" endline="448" begincolumn="36" endcolumn="107" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="463" endline="465" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="453" endline="455" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="writeSimplePage" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="752" endline="755" begincolumn="25" endcolumn="25" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="getBodyAsFile" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
-These nested if statements could be combined
-</violation>
-<violation beginline="876" endline="881" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="exceptionCaught" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="783" endline="788" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.http" class="HttpRequestHandler" method="exceptionCaught" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
 </file>
@@ -284,8 +298,8 @@ Avoid empty catch blocks
 Avoid empty if statements
 </violation>
 </file>
-<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\http\saplink\HttpGerenateXmlConfiguration.java">
-<violation beginline="28" endline="47" begincolumn="43" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel.http.saplink" class="HttpGerenateXmlConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\http\saplink\HttpGerenateJsonConfiguration.java">
+<violation beginline="28" endline="47" begincolumn="44" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.gateway.kernel.http.saplink" class="HttpGerenateJsonConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
 All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
 </violation>
 </file>
@@ -294,16 +308,50 @@ All methods are static.  Consider using Singleton instead.  Alternatively, you c
 Document empty constructor
 </violation>
 </file>
+<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\rest\HttpRestHandler.java">
+<violation beginline="418" endline="418" begincolumn="43" endcolumn="59" rule="UseLocaleWithCaseConversions" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="computeBaseAuthent" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseLocaleWithCaseConversions" priority="3">
+When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+</violation>
+<violation beginline="659" endline="700" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="706" endline="707" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="713" endline="721" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="messageReceived" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="763" endline="763" begincolumn="43" endcolumn="85" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="readAllHttpData" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="878" endline="882" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="bodyChunk" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="948" endline="953" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="exceptionCaught" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="961" endline="962" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="exceptionCaught" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="967" endline="975" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.gateway.kernel.rest" class="HttpRestHandler" method="exceptionCaught" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+</file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\session\DefaultHttpAuth.java">
 <violation beginline="124" endline="125" begincolumn="29" endcolumn="9" rule="UncommentedEmptyMethod" ruleset="Design Rules" package="org.waarp.gateway.kernel.session" class="DefaultHttpAuth" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyMethod" priority="3">
 Document empty method
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\session\HttpSession.java">
-<violation beginline="45" endline="46" begincolumn="16" endcolumn="9" rule="UncommentedEmptyConstructor" ruleset="Design Rules" package="org.waarp.gateway.kernel.session" class="HttpSession" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyConstructor" priority="3">
+<violation beginline="33" endline="34" begincolumn="16" endcolumn="9" rule="UncommentedEmptyConstructor" ruleset="Design Rules" package="org.waarp.gateway.kernel.session" class="HttpSession" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyConstructor" priority="3">
 Document empty constructor
 </violation>
-<violation beginline="58" endline="59" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.session" class="HttpSession" method="setHttpAuth" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+</file>
+<file name="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\session\RestSession.java">
+<violation beginline="43" endline="44" begincolumn="16" endcolumn="9" rule="UncommentedEmptyConstructor" ruleset="Design Rules" package="org.waarp.gateway.kernel.session" class="RestSession" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UncommentedEmptyConstructor" priority="3">
+Document empty constructor
+</violation>
+<violation beginline="71" endline="72" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.gateway.kernel.session" class="RestSession" method="setHttpAuth" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>

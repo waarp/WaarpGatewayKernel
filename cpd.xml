@@ -65,7 +65,7 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="72" tokens="260">
+<duplication lines="86" tokens="299">
 <file line="105" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelH2.java"/>
 <file line="101" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelPostgresql.java"/>
 <codefragment>
@@ -141,13 +141,27 @@
 		}
 	}
 
+	@Override
+	public boolean upgradeDb(DbSession session, String version)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="16" tokens="168">
-<file line="734" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
-<file line="769" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
+<file line="737" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
+<file line="772" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\data\DbTransferLog.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -262,6 +276,52 @@
 		 * 1) WHERE name = ?; $seq = $db->LastInsertId();
 		 */
 		action = "CREATE TABLE Sequences (name VARCHAR(22) NOT NULL PRIMARY KEY," +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="37" tokens="120">
+<file line="154" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelH2.java"/>
+<file line="158" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelOracle.java"/>
+<file line="150" path="J:\Git\github\waarp-digest\WaarpGatewayKernel\src\main\java\org\waarp\gateway\kernel\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		DbPreparedStatement preparedStatement = new DbPreparedStatement(
+				dbSession);
+		try {
+			preparedStatement.createPrepareStatement(action);
+			// Limit the search
+			preparedStatement.executeQuery();
+			if (preparedStatement.getNext()) {
+				try {
+					result = preparedStatement.getResultSet().getLong(1);
+				} catch (SQLException e) {
+					throw new WaarpDatabaseSqlException(e);
+				}
+				return result;
+			} else {
+				throw new WaarpDatabaseNoDataException(
+						"No sequence found. Must be initialized first");
+			}
+		} finally {
+			preparedStatement.realClose();
+		}
+	}
+
+	@Override
+	public boolean upgradeDb(DbSession session, String version)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+}
 ]]>
 </codefragment>
 </duplication>
