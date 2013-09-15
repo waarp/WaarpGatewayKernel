@@ -22,7 +22,7 @@ import org.waarp.common.exception.FileEndOfTransferException;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.file.FileInterface;
-import org.waarp.gateway.kernel.HttpIncorrectRetrieveException;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRetrieveException;
 
 import org.jboss.netty.handler.stream.ChunkedInput;
 

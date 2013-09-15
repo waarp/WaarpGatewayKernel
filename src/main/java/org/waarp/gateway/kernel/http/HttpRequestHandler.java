@@ -66,7 +66,6 @@ import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.AbstractHttpBusinessRequest;
 import org.waarp.gateway.kernel.AbstractHttpField;
 import org.waarp.gateway.kernel.HttpBusinessFactory;
-import org.waarp.gateway.kernel.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.HttpPage;
 import org.waarp.gateway.kernel.HttpPageHandler;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
@@ -74,6 +73,7 @@ import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
 import org.waarp.gateway.kernel.database.DbConstant;
 import org.waarp.gateway.kernel.database.WaarpActionLogger;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.session.DefaultHttpAuth;
 import org.waarp.gateway.kernel.session.HttpSession;
 
@@ -118,7 +118,6 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	protected volatile boolean willClose = false;
 
 	protected volatile boolean readingChunks = false;
-	protected volatile boolean readingPutChunks = false;
 
 	/**
 	 * Clean method
@@ -152,7 +151,6 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		status = HttpResponseStatus.OK;
 		httpPage = null;
 		businessRequest = null;
-		readingPutChunks = false;
 	}
 
 	/**
@@ -333,11 +331,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 						return;
 					case POST:
 					case POSTUPLOAD:
-						post(e);
-						return;
 					case PUT:
-						// body element = file
-						put(e);
+						post(e);
 						return;
 					default:
 						// real error => 400
@@ -346,13 +341,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 						return;
 				}
 			} else {
-				if (readingPutChunks) {
-					// New chunk for Put
-					putChunk(e);
-				} else {
-					// New chunk is received: only for Post or PostMulti!
-					postChunk(e);
-				}
+				// New chunk is received: only for Put, Post or PostMulti!
+				postChunk(e);
 			}
 		} catch (HttpIncorrectRequestException e1) {
 			// real error => 400
@@ -715,89 +705,6 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getFile(Channel channel) throws HttpIncorrectRequestException {
 		finalData(channel);
-	}
-
-	/**
-	 * Get body as a file for Put
-	 * 
-	 * @param e
-	 * @return True if the file is totally ready
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected boolean getBodyAsFile(MessageEvent e) throws HttpIncorrectRequestException {
-		AbstractHttpField fileuploadField = businessRequest.getMainFileUpload();
-		if (fileuploadField == null) {
-			throw new HttpIncorrectRequestException("Field MainFile unknown");
-		}
-		if (request.isChunked()) {
-			readingPutChunks = true;
-			readingChunks = true;
-			FileUpload fileUpload = HttpBusinessFactory.factory.createFileUpload(request,
-					fileuploadField.fieldname, "unknownFileName", businessRequest.getContentType(),
-					"application/octet-stream", null, 0);
-			fileuploadField.setFileUpload(fileUpload);
-			return false;
-		}
-		ChannelBuffer filechunk = request.getContent();
-		FileUpload fileUpload = HttpBusinessFactory.factory.createFileUpload(request,
-				fileuploadField.fieldname, "unknownFileName", businessRequest.getContentType(),
-				"application/octet-stream", null, filechunk.readableBytes());
-		try {
-			fileUpload.addContent(filechunk, true);
-		} catch (IOException e1) {
-			throw new HttpIncorrectRequestException("PUT Request in error due to IO error", e1);
-		}
-		fileuploadField.setFileUpload(fileUpload);
-		if (fileuploadField.fieldtovalidate) {
-			if (!businessRequest.isFieldValid(fileuploadField)) {
-				throw new HttpIncorrectRequestException("Field unvalid: "
-						+ fileuploadField.fieldname);
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Method that get a chunk of data for PUT
-	 * 
-	 * @param e
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected void putChunk(MessageEvent e) throws HttpIncorrectRequestException {
-		// New chunk is received: only for Post!
-		AbstractHttpField fileuploadField = businessRequest.getMainFileUpload();
-		if (fileuploadField == null) {
-			throw new HttpIncorrectRequestException("Field MainFile unknown");
-		}
-		HttpChunk chunk = (HttpChunk) e.getMessage();
-		ChannelBuffer filechunk = chunk.getContent();
-		try {
-			fileuploadField.fileUpload.addContent(filechunk, chunk.isLast());
-		} catch (IOException e1) {
-			throw new HttpIncorrectRequestException("PUT Request in error due to IO error", e1);
-		}
-		if (chunk.isLast()) {
-			readingChunks = false;
-			readingPutChunks = false;
-			finalData(e.getChannel());
-			writeSimplePage(e.getChannel());
-			clean();
-		}
-	}
-
-	/**
-	 * Method that get put data
-	 * 
-	 * @param e
-	 */
-	protected void put(MessageEvent e) throws HttpIncorrectRequestException {
-		if (!getBodyAsFile(e)) {
-			// not yet ready, some chunks are needed
-			return;
-		}
-		finalData(e.getChannel());
-		writeSimplePage(e.getChannel());
-		clean();
 	}
 
 	/**

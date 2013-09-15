@@ -22,6 +22,7 @@ import java.util.HashMap;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.gateway.kernel.database.DbConstant;
 import org.waarp.gateway.kernel.database.WaarpActionLogger;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.session.HttpSession;
 
 /**

@@ -17,83 +17,20 @@
  */
 package org.waarp.gateway.kernel.session;
 
-import org.waarp.common.command.exception.CommandAbstractException;
-import org.waarp.common.file.DirInterface;
-import org.waarp.common.file.FileParameterInterface;
-import org.waarp.common.file.Restart;
-import org.waarp.common.file.SessionInterface;
-import org.waarp.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
-import org.waarp.gateway.kernel.commonfile.CommonDirImpl;
-import org.waarp.gateway.kernel.commonfile.FilesystemBasedFileParameterImpl;
-import org.waarp.gateway.kernel.database.DbConstant;
 
 /**
  * @author Frederic Bregier
  * 
  */
-public class HttpSession implements SessionInterface {
-	private HttpAuthInterface httpAuth;
+public class HttpSession extends RestSession {
 	private String cookieSession;
 	private PageRole currentCommand;
-	private long logid = DbConstant.ILLEGALVALUE;
-	private String filename;
-	private CommonDirImpl dir;
+	protected String filename;
 
 	/**
 	 */
 	public HttpSession() {
-	}
-
-	/**
-	 * @param httpAuth
-	 *            the httpAuth to set
-	 */
-	public void setHttpAuth(HttpAuthInterface httpAuth) {
-		this.httpAuth = httpAuth;
-		dir = new CommonDirImpl(this, new FilesystemBasedOptsMLSxImpl());
-		try {
-			dir.changeDirectoryNotChecked(httpAuth.getUser());
-			dir.changeDirectoryNotChecked(httpAuth.getAccount());
-		} catch (CommandAbstractException e) {
-		}
-	}
-
-	@Override
-	public DirInterface getDir() {
-		return dir;
-	}
-
-	@Override
-	public HttpAuthInterface getAuth() {
-		return this.httpAuth;
-	}
-
-	@Override
-	public void clear() {
-		if (httpAuth != null) {
-			httpAuth.clear();
-		}
-	}
-
-	@Override
-	public int getBlockSize() {
-		return 8192; // HttpChunk size
-	}
-
-	@Override
-	public FileParameterInterface getFileParameter() {
-		return FilesystemBasedFileParameterImpl.fileParameterInterface;
-	}
-
-	@Override
-	public Restart getRestart() {
-		return null;
-	}
-
-	@Override
-	public String getUniqueExtension() {
-		return ".postu";
 	}
 
 	/**
@@ -127,21 +64,6 @@ public class HttpSession implements SessionInterface {
 	}
 
 	/**
-	 * @return the logid
-	 */
-	public long getLogid() {
-		return logid;
-	}
-
-	/**
-	 * @param logid
-	 *            the logid to set
-	 */
-	public void setLogid(long logid) {
-		this.logid = logid;
-	}
-
-	/**
 	 * @return the filename
 	 */
 	public String getFilename() {
@@ -155,6 +77,7 @@ public class HttpSession implements SessionInterface {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
+
 
 	public String toString() {
 		return "Command: " + currentCommand.name() + " Filename: " + filename;
