@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package org.waarp.gateway.kernel;
+package org.waarp.gateway.kernel.exception;
 
 /**
  * @author "Frederic Bregier"

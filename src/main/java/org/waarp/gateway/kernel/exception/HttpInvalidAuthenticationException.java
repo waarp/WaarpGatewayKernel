@@ -15,33 +15,39 @@
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package org.waarp.gateway.kernel.http.saplink;
-
-import org.waarp.gateway.kernel.HttpIncorrectRequestException;
-import org.waarp.gateway.kernel.HttpPageHandler;
-import org.waarp.gateway.kernel.HttpXmlDefinition;
+package org.waarp.gateway.kernel.exception;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
-public class HttpGerenateXmlConfiguration {
+public class HttpInvalidAuthenticationException extends Exception {
 
 	/**
-	 * @param args
+	 * 
 	 */
-	public static void main(String[] args) {
-		if (args.length < 1) {
-			System.err.println("Not enough argument: filepath for output");
-			System.exit(1);
-		}
-		HttpPageHandler httpPageHandler = HttpSapBusinessFactory.initializeHttpPageHandler();
-		try {
-			HttpXmlDefinition.exportConfiguration(httpPageHandler, args[0]);
-		} catch (HttpIncorrectRequestException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	private static final long serialVersionUID = -6357523132449299675L;
+
+	/**
+	 * @param arg0
+	 */
+	public HttpInvalidAuthenticationException(String arg0) {
+		super(arg0);
+	}
+
+	/**
+	 * @param arg0
+	 */
+	public HttpInvalidAuthenticationException(Throwable arg0) {
+		super(arg0);
+	}
+
+	/**
+	 * @param arg0
+	 * @param arg1
+	 */
+	public HttpInvalidAuthenticationException(String arg0, Throwable arg1) {
+		super(arg0, arg1);
 	}
 
 }

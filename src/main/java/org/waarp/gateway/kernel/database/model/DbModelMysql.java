@@ -219,4 +219,18 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 			lock.unlock();
 		}
 	}
+
+	@Override
+	public boolean upgradeDb(DbSession session, String version)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -27,6 +27,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 
 /**
  * @author Frederic Bregier

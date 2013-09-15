@@ -40,6 +40,7 @@ import org.waarp.common.xml.XmlValue;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
+import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 
 /**
  * @author frederic bregier

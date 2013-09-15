@@ -16,6 +16,7 @@
  */
 package org.waarp.gateway.kernel.exec;
 
+import java.io.File;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +34,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
@@ -186,8 +188,16 @@ public class R66PreparedTransferExecutor extends AbstractExecutor {
 		if (isMD5) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
+		String sep = PartnerConfiguration.getSeparator(remoteHost);
+		long originalSize = -1;
+		if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
+			File file = new File(filename);
+			if (file.canRead()) {
+				originalSize = file.length();
+			}
+		}
 		RequestPacket request = new RequestPacket(rulename, mode, filename,
-				blocksize, 0, DbConstant.ILLEGALVALUE, fileinfo);
+				blocksize, 0, DbConstant.ILLEGALVALUE, fileinfo, originalSize, sep);
 		// Not isRecv since it is the requester, so send => isRetrieve is true
 		boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
 		logger.debug("Will prepared: " + request.toString());
