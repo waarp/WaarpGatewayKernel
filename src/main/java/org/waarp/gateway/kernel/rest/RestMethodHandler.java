@@ -20,9 +20,11 @@
  */
 package org.waarp.gateway.kernel.rest;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
+import org.jboss.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
@@ -35,11 +37,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class RestMethodHandler {
 	protected final String path;
 	protected final METHOD []methods;
+	protected final boolean isBodyDedicatedDecode;
 	
-	public RestMethodHandler(String path, METHOD ...method) {
+	public RestMethodHandler(String path, boolean isBodyDedicatedDecode, METHOD ...method) {
 		this.path = path;
 		this.methods = method;
+		this.isBodyDedicatedDecode = isBodyDedicatedDecode;
 	}
+	
 	
 	/**
 	 * Check the arguments correctness, called before any BODY elements but after URI and HEADER.
@@ -54,34 +59,47 @@ public abstract class RestMethodHandler {
 	public abstract void checkArgumentsCorrectness(HttpRestHandler handler, String uri, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 
 	/**
-	 * Get a new Http data from BODY
+	 * Get a new Http Uploaded File from BODY
 	 * @param handler
 	 * @param data
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void getData(HttpRestHandler handler, InterfaceHttpData data, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void getFileUpload(HttpRestHandler handler, FileUpload data, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+
+	/**
+	 * Get data from BODY
+	 * @param handler
+	 * @param body
+	 * @param arguments
+	 * @param result
+	 * @return the object related to BODY decoding
+	 * @throws HttpIncorrectRequestException
+	 */
+	public abstract Object getBody(HttpRestHandler handler, ChannelBuffer body, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when all Data were passed to getData
 	 * @param handler
 	 * @param arguments
 	 * @param result
+	 * @param body
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void endBody(HttpRestHandler handler, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void endBody(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Object body) throws HttpIncorrectRequestException;
 	
 	/**
 	 * Called when an exception occurs 
 	 * @param handler
 	 * @param arguments
 	 * @param result
+	 * @param body
 	 * @param exception
 	 * @return the status to used in sendReponse
 	 * @throws Exception re-throw it if this exception is not handled
 	 */
-	public abstract HttpResponseStatus handleException(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Exception exception) throws Exception;
+	public abstract HttpResponseStatus handleException(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Object body, Exception exception) throws Exception;
 
 	/**
 	 * Send a response (correct or not)
@@ -89,8 +107,16 @@ public abstract class RestMethodHandler {
 	 * @param channel
 	 * @param arguments
 	 * @param result
+	 * @param body
 	 * @param status
-	 * @return True if this response will need the channel to be closed
+	 * @return The ChannelFuture if this response will need the channel to be closed, else null
 	 */
-	public abstract boolean sendResponse(HttpRestHandler handler, Channel channel, ObjectNode arguments, ObjectNode result, HttpResponseStatus status);
+	public abstract ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, ObjectNode arguments, ObjectNode result, Object body, HttpResponseStatus status);
+
+	/**
+	 * @return the isBodyJson
+	 */
+	public boolean isBodyDedicatedDecode() {
+		return isBodyDedicatedDecode;
+	}
 }

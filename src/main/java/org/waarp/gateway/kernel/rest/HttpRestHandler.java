@@ -19,6 +19,7 @@
  */
 package org.waarp.gateway.kernel.rest;
 
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -31,14 +32,18 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.session.RestSession;
 
+import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -78,6 +83,7 @@ import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataTy
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * Handler for HTTP Rest support
@@ -124,7 +130,18 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * arguments.path(ARG_HASBODY).asBoolean() = true if the body has content
 	 */
 	public static final String ARG_HASBODY = "hasBody";
-
+	/**
+	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
+	 */
+	public static final String ARG_X_AUTH_KEY = "X-Auth-Key";
+	/**
+	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
+	 */
+	public static final String ARG_X_AUTH_USER = "X-Auth-User";
+	/**
+	 * arguments.path(ARG_X_AUTH_INTERNALKEY).asText() = Internal Key used (not to be passed through wire)
+	 */
+	public static final String ARG_X_AUTH_INTERNALKEY = "X-Auth-InternalKey";
 	/**
      * Internal Logger
      */
@@ -235,7 +252,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Initialize the Disk support
 	 */
-	public static void initialize(String tempPath) {
+	public static void initialize(String tempPath, String authentKey) {
 		TempPath = tempPath;
 		DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
 															// on exit (in normal
@@ -245,6 +262,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
 														// exit (in normal exit)
 		DiskAttribute.baseDirectory = TempPath; // system temp directory
+		hmacSha256.setSecretKey(authentKey.getBytes());
 	}
 
     protected RestSession session = null;
@@ -254,7 +272,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected volatile HttpRequest request = null;
 	protected volatile RestMethodHandler handler = null;
 	
-	protected volatile boolean willClose = false;
+	private volatile boolean willClose = false;
 
 	protected volatile boolean readingChunks = false;
 
@@ -272,6 +290,19 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * The only structure that might be needed is: ARGS_COOKIE (subset)
 	 */
 	protected volatile ObjectNode response = null;
+	/**
+	 * JSON decoded object
+	 */
+	protected volatile Object jsonObject = null;
+	/**
+	 * Cumulative chunks
+	 */
+	protected volatile ChannelBuffer cumulativeBody = null;
+	/**
+	 * Key for authent
+	 *
+	 */
+	protected static final HmacSha256 hmacSha256 = new HmacSha256();
 	
 	protected static class HttpCleanChannelFutureListener implements ChannelFutureListener {
 		protected final HttpRestHandler handler;
@@ -288,21 +319,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			handler.clean();
 		}
 	}
-
-	/**
-	 * To be used for instance to check correctness of connection<br>
-	 * <br>
-	 * for instance, if X-AUTH is included<br>
-	 * check if in uri or header, X-AUTH is present and check X-AUTH argument (known, any key if present)<br>
-	 * then get timestamp and check is correct (|curtime - timestamp| < maxinterval)<br>
-	 * then get all uri args in alphabetic lower case order<br>
-	 * hash using SHA-1 all args (in order including timestamp)<br>
-	 * compare sha-1 hashedkey with the computed one
-	 * 
-	 * @param channel
-	 * @throws HttpInvalidAuthenticationException
-	 */
-    protected abstract void checkConnection(Channel channel) throws HttpInvalidAuthenticationException;
 
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -334,6 +350,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		if (session != null) {
 			session.setLogid(DbConstant.ILLEGALVALUE);
 		}
+		handler = null;
+		cumulativeBody = null;
+		jsonObject = null;
 	}
 
 	/**
@@ -349,10 +368,80 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
         }
 		status = HttpResponseStatus.OK;
 		request = null;
-		willClose = false;
+		setWillClose(false);
 		readingChunks = false;
 		arguments = JsonHandler.createObjectNode();
 		response = JsonHandler.createObjectNode();
+	}
+
+
+	/**
+	 * To be used for instance to check correctness of connection<br>
+	 * <br>
+	 * for instance, if X-AUTH is included<br>
+	 * check if in uri or header, X-AUTH is present and check X-AUTH argument (known, any key if present)<br>
+	 * then get timestamp and check is correct (|curtime - timestamp| < maxinterval)<br>
+	 * then get all uri args in alphabetic lower case order<br>
+	 * hash using SHA-1 all args (in order including timestamp)<br>
+	 * compare sha-1 hashedkey with the computed one
+	 * 
+	 * @param channel
+	 * @throws HttpInvalidAuthenticationException
+	 */
+    protected abstract void checkConnection(Channel channel) throws HttpInvalidAuthenticationException;
+    
+    /**
+     * 
+	 * for instance, if X-AUTH is included<br>
+	 * check if in uri or header, X-AUTH is present and check X-AUTH argument (known, any key if present)<br>
+	 * then get timestamp and check is correct (|curtime - timestamp| < maxinterval)<br>
+	 * then get all uri args in alphabetic lower case order<br>
+	 * hash using SHA-1 all args (in order including timestamp)<br>
+	 * compare sha-1 hashedkey with the computed one
+	 * @param arguments contains ARG_PATH, ARGS_URI
+	 * @return the authentication string if any that should be compared with ARG_X_AUTH_KEY
+	 * @throws HttpIncorrectRequestException
+	 */
+	public static String computeBaseAuthent(ObjectNode arguments, String extraKey) throws HttpIncorrectRequestException {
+		TreeMap<String, String> treeMap = new TreeMap<String, String>();
+		TextNode argpath = (TextNode) arguments.get(ARG_PATH);
+		ObjectNode arguri = (ObjectNode) arguments.get(ARGS_URI);
+		if (arguri == null) {
+			throw new HttpIncorrectRequestException("Not enough argument");
+		}
+		Iterator<String> iteratorKey = arguri.fieldNames();
+		while (iteratorKey.hasNext()) {
+			String key = iteratorKey.next();
+			if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
+				continue;
+			}
+			String keylower = key.toLowerCase();
+			ArrayNode values = (ArrayNode) arguri.get(key);
+			for (JsonNode jsonNode : values) {
+				treeMap.put(keylower, jsonNode.asText());
+			}
+		}
+		Set<String> keys = treeMap.keySet();
+		String concat = argpath.asText()+ (keys.isEmpty() ? "" : "?");
+		boolean first = true;
+		for (String keylower : keys) {
+			if (first) {
+				concat += keylower+"="+treeMap.get(keylower);
+				first = false;
+			} else {
+				concat += "&"+keylower+"="+treeMap.get(keylower);
+			}
+		}
+		if (extraKey != null) {
+			concat += "&"+ARG_X_AUTH_INTERNALKEY+"="+extraKey;
+		}
+		// FIXME to encode using HMACSHA1 
+		logger.debug("to sign: {}",concat);
+		try {
+			return hmacSha256.cryptToHex(concat);
+		} catch (Exception e) {
+			throw new HttpIncorrectRequestException(e);
+		}
 	}
 
 	/**
@@ -360,10 +449,8 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void getUriArgs() throws HttpIncorrectRequestException {
-		QueryStringDecoder decoderQuery = new QueryStringDecoder(
-				request.getUri());
-		arguments.put(ARG_METHOD, request.getMethod().getName());
+	public static void getUriArgs(String uri, ObjectNode arguments) throws HttpIncorrectRequestException {
+		QueryStringDecoder decoderQuery = new QueryStringDecoder(uri);
 		String path = decoderQuery.getPath();
 		arguments.put(ARG_PATH, path);
 		// compute path main uri
@@ -397,7 +484,22 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				}
 			}
 		}
-		arguments.putPOJO(ARGS_URI, decoderQuery.getParameters());
+		Map<String, List<String>> map = decoderQuery.getParameters();
+		ObjectNode node = arguments.putObject(ARGS_URI);
+		for (String key : map.keySet()) {
+			if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
+				arguments.put(ARG_X_AUTH_KEY, map.get(key).get(0));
+				continue;
+			}
+			if (key.equalsIgnoreCase(ARG_X_AUTH_USER)) {
+				arguments.put(ARG_X_AUTH_USER, map.get(key).get(0));
+				continue;
+			}
+			ArrayNode array = node.putArray(key);
+			for (String val : map.get(key)) {
+				array.add(val);
+			}
+		}
 	}
 
 
@@ -407,8 +509,24 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * @throws HttpIncorrectRequestException
 	 */
 	protected void getHeaderArgs() throws HttpIncorrectRequestException {
-		arguments.putPOJO(ARGS_HEADER, request.getHeaders());
+		ObjectNode node = arguments.putObject(ARGS_HEADER);
+		List<Entry<String,String>> list = request.getHeaders();
+		for (Entry<String, String> entry : list) {
+			String key = entry.getKey();
+			if (! key.equals(HttpHeaders.Names.COOKIE)) {
+				if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
+					arguments.put(ARG_X_AUTH_KEY, entry.getValue());
+					continue;
+				}
+				if (key.equalsIgnoreCase(ARG_X_AUTH_USER)) {
+					arguments.put(ARG_X_AUTH_USER, entry.getValue());
+					continue;
+				}
+				node.put(entry.getKey(), entry.getValue());
+			}
+		}
 	}
+	
 
 	/**
 	 * set values from Cookies into arguments.path(ARGS_COOKIE)
@@ -438,6 +556,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * @param httpResponse
 	 */
 	protected void setCookies(HttpResponse httpResponse) {
+		if (response == null) {
+			return;
+		}
 		JsonNode cookieON = response.path(ARGS_COOKIE);
 		if (! cookieON.isMissingNode()) {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
@@ -509,8 +630,10 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected RestMethodHandler getHandler() throws HttpIncorrectRequestException {
 		METHOD method = getMethod();
 		String uri = getBASEURI();
-		WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
+		if (DbConstant.admin != null) {
+			WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
 				+ arguments, session, uri+":"+method);
+		}
 		boolean restFound = false;
 		RestMethodHandler handler = restHashMap.get(uri);
 		if (handler != null) {
@@ -538,7 +661,8 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				this.request = (HttpRequest) e.getMessage();
 				arguments.put(ARG_HASBODY, 
 						(request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
-				getUriArgs();
+				arguments.put(ARG_METHOD, request.getMethod().getName());
+				getUriArgs(request.getUri(), arguments);
 				getHeaderArgs();
 				getCookieArgs();
 				checkConnection(channel);
@@ -547,15 +671,27 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				if (request.isChunked()) {
 					// no body yet
 					readingChunks = true;
-					createDecoder();
+					if (! handler.isBodyDedicatedDecode()) {
+						createDecoder();
+					}
+					logger.warn("to be chunk");
 					return;
 				} else {
-					// decoder for 1 chunk
-					createDecoder();
-					// Not chunk version
-					readAllHttpData();
-					handler.endBody(this, arguments, response);
-					handler.sendResponse(this, channel, arguments, response, status);
+					if (handler.isBodyDedicatedDecode()) {
+						ChannelBuffer buffer = request.getContent();
+						jsonObject = getBodyJsonArgs(buffer);
+					} else {
+						// decoder for 1 chunk
+						createDecoder();
+						// Not chunk version
+						readAllHttpData();
+					}
+					handler.endBody(this, arguments, response, jsonObject);
+					ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
+					if (future != null) {
+						future.addListener(WaarpSslUtility.SSLCLOSE);
+					}
+					clean();
 					return;
 				}
 			} else {
@@ -566,7 +702,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			// real error => 400
 			if (handler != null) {
 				try {
-					status = handler.handleException(this, arguments, response, e1);
+					status = handler.handleException(this, arguments, response, jsonObject, e1);
 				} catch (Exception e2) {
 				}
 			}
@@ -574,7 +710,15 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.BAD_REQUEST;
 			}
 			logger.warn("Error", e1);
-			handler.sendResponse(this, channel, arguments, response, status);
+			if (handler != null) {
+				ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
+				if (future != null) {
+					future.addListener(WaarpSslUtility.SSLCLOSE);
+				}
+				clean();
+			} else {
+				forceClosing(e.getChannel());
+			}
 		}
 	}
 	
@@ -585,7 +729,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected void createDecoder() throws HttpIncorrectRequestException {
 		HttpMethod method = request.getMethod();
         if (!method.equals(HttpMethod.HEAD)) {
-        	// FIXME in order decoder allows to parse
+        	// in order decoder allows to parse
             request.setMethod(HttpMethod.POST);
         }
 		try {
@@ -616,6 +760,11 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
 		}
+		logger.warn("readAll: "+ (datas != null ? datas.size() : "no element"));
+		ObjectNode body = (ObjectNode) arguments.get(HttpRestHandler.ARGS_BODY);
+		if (body == null) {
+			body = arguments.putObject(HttpRestHandler.ARGS_BODY);
+		}
 		for (InterfaceHttpData data : datas) {
 			readHttpData(data);
 		}
@@ -630,12 +779,16 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected void readHttpData(InterfaceHttpData data)
 			throws HttpIncorrectRequestException {
 		if (data.getHttpDataType() == HttpDataType.Attribute) {
-			Attribute attribute = (Attribute) data;
-			handler.getData(this, attribute, arguments, response);
+			ObjectNode body = (ObjectNode) arguments.get(HttpRestHandler.ARGS_BODY);
+			try {
+				body.put(data.getName(), ((Attribute) data).getValue());
+			} catch (IOException e) {
+				throw new HttpIncorrectRequestException("Bad reading", e);
+			}
 		} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
 			FileUpload fileUpload = (FileUpload) data;
 			if (fileUpload.isCompleted()) {
-				handler.getData(this, fileUpload, arguments, response);
+				handler.getFileUpload(this, fileUpload, arguments, response);
 			} else {
 				logger.warn("File still pending but should not");
 				fileUpload.delete();
@@ -658,7 +811,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		}
 		if (channel.isConnected()) {
-			willClose = true;
+			setWillClose(true);
 			HttpResponse response = getResponse();
 			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.setHeader(HttpHeaders.Names.REFERER, request.getUri());
@@ -668,8 +821,11 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
-		WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+		if (DbConstant.admin != null) {
+			WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
 				"Error: " , status);
+		}
+		clean();
 	}
 
 
@@ -677,23 +833,23 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the Http Response according to the status
 	 */
-	protected HttpResponse getResponse() {
+	public HttpResponse getResponse() {
 		// Decide whether to close the connection or not.
 		if (request == null) {
 			HttpResponse response = new DefaultHttpResponse(
 					HttpVersion.HTTP_1_0, status);
 			setCookies(response);
-			willClose = true;
+			setWillClose(true);
 			return response;
 		}
 		boolean keepAlive = HttpHeaders.isKeepAlive(request);
-		willClose = willClose ||
+		setWillClose(isWillClose() ||
 				status != HttpResponseStatus.OK ||
 				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
 						.getHeader(HttpHeaders.Names.CONNECTION)) ||
 				request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-				!keepAlive;
-		if (willClose) {
+				!keepAlive);
+		if (isWillClose()) {
 			keepAlive = false;
 		}
 		// Build the response object.
@@ -716,30 +872,61 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected void bodyChunk(MessageEvent e) throws HttpIncorrectRequestException {
 		// New chunk is received: only for Post!
 		HttpChunk chunk = (HttpChunk) e.getMessage();
-		try {
-			decoder.offer(chunk);
-		} catch (ErrorDataDecoderException e1) {
-			status = HttpResponseStatus.NOT_ACCEPTABLE;
-			throw new HttpIncorrectRequestException(e1);
+		if (handler.isBodyDedicatedDecode()) {
+			ChannelBuffer buffer = chunk.getContent();
+			logger.warn("new chunk");
+			if (cumulativeBody != null) {
+				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, buffer);
+			} else {
+				cumulativeBody = buffer;
+			}
+		} else {
+			try {
+				decoder.offer(chunk);
+			} catch (ErrorDataDecoderException e1) {
+				status = HttpResponseStatus.NOT_ACCEPTABLE;
+				throw new HttpIncorrectRequestException(e1);
+			}
+			// example of reading chunk by chunk (minimize memory usage due to
+			// Factory)
+			readHttpDataChunkByChunk();
 		}
-		// example of reading chunk by chunk (minimize memory usage due to
-		// Factory)
-		readHttpDataChunkByChunk();
 		// example of reading only if at the end
 		if (chunk.isLast()) {
 			readingChunks = false;
-			handler.endBody(this, arguments, response);
-			handler.sendResponse(this, e.getChannel(), arguments, response, status);
+			jsonObject = getBodyJsonArgs(cumulativeBody);
+			cumulativeBody = null;
+			handler.endBody(this, arguments, response, jsonObject);
+			ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
+			if (future != null) {
+				future.addListener(WaarpSslUtility.SSLCLOSE);
+			}
 			clean();
 		}
 	}
 
+	/**
+	 * Get Body args as JSON body
+	 * @param data
+	 * @throws HttpIncorrectRequestException
+	 */
+	protected Object getBodyJsonArgs(ChannelBuffer data) throws HttpIncorrectRequestException {
+		if (data == null || data.readableBytes() == 0) {
+			return null;
+		}
+		return handler.getBody(this, data, arguments, response);
+	}
+	
 	/**
 	 * Read request by chunk and getting values from chunk to chunk
 	 * 
 	 * @throws HttpIncorrectRequestException
 	 */
 	protected void readHttpDataChunkByChunk() throws HttpIncorrectRequestException {
+		ObjectNode body = (ObjectNode) arguments.get(HttpRestHandler.ARGS_BODY);
+		if (body == null) {
+			body = arguments.putObject(HttpRestHandler.ARGS_BODY);
+		}
 		try {
 			while (decoder.hasNext()) {
 				InterfaceHttpData data = decoder.next();
@@ -764,19 +951,28 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			} else {
 				logger.warn("Exception Received", e.getCause());
 			}
-			if (e.getCause() instanceof ClosedChannelException) {
+			Throwable thro = e.getCause();
+			if (thro instanceof ClosedChannelException || thro instanceof IOException) {
 				return;
 			}
 			if (handler != null) {
 				try {
-					status = handler.handleException(this, arguments, response, (Exception) e.getCause());
+					status = handler.handleException(this, arguments, response, jsonObject, (Exception) e.getCause());
 				} catch (Exception e2) {
 				}
 			}
 			if (status == HttpResponseStatus.OK) {
 				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 			}
-			handler.sendResponse(this, e.getChannel(), arguments, response, status);
+			if (handler != null) {
+				ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
+				if (future != null) {
+					future.addListener(WaarpSslUtility.SSLCLOSE);
+				}
+				clean();
+			} else {
+				forceClosing(e.getChannel());
+			}
 		}
 	}
 
@@ -785,5 +981,40 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			throws Exception {
 		super.channelClosed(ctx, e);
 		clean();
+	}
+
+	/**
+	 * @return the status
+	 */
+	public HttpResponseStatus getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(HttpResponseStatus status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the request
+	 */
+	public HttpRequest getRequest() {
+		return request;
+	}
+
+	/**
+	 * @return the willClose
+	 */
+	public boolean isWillClose() {
+		return willClose;
+	}
+
+	/**
+	 * @param willClose the willClose to set
+	 */
+	public void setWillClose(boolean willClose) {
+		this.willClose = willClose;
 	}
 }
