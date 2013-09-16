@@ -88,6 +88,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(HttpRequestHandler.class);
 
+	private static final Random random = new Random(System.currentTimeMillis());
+	
 	protected String baseStaticPath;
 	protected String cookieSession;
 	protected HttpPageHandler httpPageHandler;
@@ -892,7 +894,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * @return the new session cookie value
 	 */
 	protected String getNewCookieSession() {
-		return "Waarp" + Long.toHexString(new Random(System.currentTimeMillis()).nextLong());
+		return "Waarp" + Long.toHexString(random.nextLong());
 	}
 
 	/**
