@@ -25,12 +25,10 @@ import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
-import org.waarp.gateway.kernel.HttpBusinessFactory;
-import org.waarp.gateway.kernel.database.DbConstant;
-import org.waarp.gateway.kernel.database.WaarpActionLogger;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.session.RestSession;
+import org.waarp.openr66.database.DbConstant;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -630,10 +628,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected RestMethodHandler getHandler() throws HttpIncorrectRequestException {
 		METHOD method = getMethod();
 		String uri = getBASEURI();
-		if (DbConstant.admin != null) {
-			WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
-				+ arguments, session, uri+":"+method);
-		}
 		boolean restFound = false;
 		RestMethodHandler handler = restHashMap.get(uri);
 		if (handler != null) {
@@ -733,7 +727,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
             request.setMethod(HttpMethod.POST);
         }
 		try {
-			decoder = new HttpPostRequestDecoder(HttpBusinessFactory.factory, request);
+			decoder = new HttpPostRequestDecoder(factory, request);
 		} catch (ErrorDataDecoderException e1) {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
@@ -820,10 +814,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			ChannelFuture future = channel.write(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
-		}
-		if (DbConstant.admin != null) {
-			WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-				"Error: " , status);
 		}
 		clean();
 	}
