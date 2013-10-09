@@ -375,13 +375,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	/**
 	 * To be used for instance to check correctness of connection<br>
-	 * <br>
-	 * for instance, if X-AUTH is included<br>
-	 * check if in uri or header, X-AUTH is present and check X-AUTH argument (known, any key if present)<br>
-	 * then get timestamp and check is correct (|curtime - timestamp| < maxinterval)<br>
-	 * then get all uri args in alphabetic lower case order<br>
-	 * hash using SHA-1 all args (in order including timestamp)<br>
-	 * compare sha-1 hashedkey with the computed one
+	 * Could also be used to set ARG_METHOD from URI or HEADER.
 	 * 
 	 * @param channel
 	 * @throws HttpInvalidAuthenticationException
@@ -596,7 +590,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the base path uri or empty String
 	 */
-	protected String getBASEURI() {
+	public String getBASEURI() {
 		return arguments.path(ARG_BASEPATH).asText();
 	}
 
@@ -604,7 +598,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the uri or empty String
 	 */
-	protected String getURI() {
+	public String getURI() {
 		return arguments.path(ARG_PATH).asText();
 	}
 
@@ -612,7 +606,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the method or null
 	 */
-	protected METHOD getMethod() {
+	public METHOD getMethod() {
 		String text = arguments.path(ARG_METHOD).asText();
 		if (text == null || text.isEmpty()) {
 			return null;
@@ -621,6 +615,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	}
 	
 	/**
+	 * Could be overwritten if necessary
 	 * 
 	 * @return RestMethodHandler associated with the current context
 	 * @throws HttpIncorrectRequestException 
@@ -631,8 +626,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		boolean restFound = false;
 		RestMethodHandler handler = restHashMap.get(uri);
 		if (handler != null) {
-			response = JsonHandler.createObjectNode();
-			handler.checkArgumentsCorrectness(this, getURI(), arguments, response);
+			handler.checkArgumentsCorrectness(this, arguments, response);
 			for (METHOD meth : handler.methods) {
 				if (meth == method) {
 					restFound = true;
@@ -656,6 +650,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				arguments.put(ARG_HASBODY, 
 						(request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
 				arguments.put(ARG_METHOD, request.getMethod().getName());
+				response = JsonHandler.createObjectNode();
 				getUriArgs(request.getUri(), arguments);
 				getHeaderArgs();
 				getCookieArgs();
@@ -681,11 +676,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 						readAllHttpData();
 					}
 					handler.endBody(this, arguments, response, jsonObject);
-					ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
-					if (future != null) {
-						future.addListener(WaarpSslUtility.SSLCLOSE);
-					}
-					clean();
+					finalizeSend(channel);
 					return;
 				}
 			} else {
@@ -705,11 +696,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			}
 			logger.warn("Error", e1);
 			if (handler != null) {
-				ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
-				if (future != null) {
-					future.addListener(WaarpSslUtility.SSLCLOSE);
-				}
-				clean();
+				finalizeSend(channel);
 			} else {
 				forceClosing(e.getChannel());
 			}
@@ -858,8 +845,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @param e
 	 * @throws HttpIncorrectRequestException
+	 * @throws HttpInvalidAuthenticationException 
 	 */
-	protected void bodyChunk(MessageEvent e) throws HttpIncorrectRequestException {
+	protected void bodyChunk(MessageEvent e) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		// New chunk is received: only for Post!
 		HttpChunk chunk = (HttpChunk) e.getMessage();
 		if (handler.isBodyDedicatedDecode()) {
@@ -887,12 +875,16 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			jsonObject = getBodyJsonArgs(cumulativeBody);
 			cumulativeBody = null;
 			handler.endBody(this, arguments, response, jsonObject);
-			ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
-			if (future != null) {
-				future.addListener(WaarpSslUtility.SSLCLOSE);
-			}
-			clean();
+			finalizeSend(e.getChannel());
 		}
+	}
+	
+	protected void finalizeSend(Channel channel) {
+		ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
+		if (future != null) {
+			future.addListener(WaarpSslUtility.SSLCLOSE);
+		}
+		clean();
 	}
 
 	/**
@@ -955,11 +947,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 			}
 			if (handler != null) {
-				ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
-				if (future != null) {
-					future.addListener(WaarpSslUtility.SSLCLOSE);
-				}
-				clean();
+				finalizeSend(e.getChannel());
 			} else {
 				forceClosing(e.getChannel());
 			}
