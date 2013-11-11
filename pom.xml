@@ -44,14 +44,6 @@
     <filtermodule>**</filtermodule>
   </properties>
   
-  <dependencies>
-    <dependency>
-    	<groupId>Waarp</groupId>
-    	<artifactId>WaarpR66</artifactId>
-    	<version>2.4.19</version>
-    	<optional>true</optional>
-    </dependency>
-  </dependencies>
   <build>
     <plugins>
       <plugin>
@@ -219,4 +211,17 @@
 	</plugins>
   </reporting>
   
+  <dependencies>
+  	<dependency>
+  		<groupId>Waarp</groupId>
+  		<artifactId>WaarpR66</artifactId>
+  		<version>2.4.23</version>
+  		<exclusions>
+  			<exclusion>
+  				<artifactId>WaarpFtpClient</artifactId>
+  				<groupId>Waarp</groupId>
+  			</exclusion>
+  		</exclusions>
+  	</dependency>
+  </dependencies>
 </project>
