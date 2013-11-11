@@ -26,6 +26,7 @@ import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.WaarpThreadFactory;
 
 /**
  * @author "Frederic Bregier"
@@ -73,12 +74,12 @@ public class JavaExecutor extends AbstractExecutor {
 			runnable.run();
 			status = runnable.getFinalStatus();
 		} else {
-			ExecutorService executorService = Executors.newFixedThreadPool(1);
+			ExecutorService executorService = Executors.newFixedThreadPool(1, new WaarpThreadFactory("JavaExecutor"));
 			executorService.execute(runnable);
 			try {
 				Thread.yield();
 				executorService.shutdown();
-				if (delay > 0) {
+				if (delay > 100) {
 					if (!executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
 						executorService.shutdownNow();
 						logger.error("Exec is in Time Out");

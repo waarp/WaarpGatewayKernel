@@ -260,7 +260,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
 														// exit (in normal exit)
 		DiskAttribute.baseDirectory = TempPath; // system temp directory
-		hmacSha256.setSecretKey(authentKey.getBytes());
+		hmacSha256.setSecretKey(authentKey.getBytes(WaarpStringUtils.UTF8));
 	}
 
     protected RestSession session = null;
@@ -414,23 +414,29 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		Set<String> keys = treeMap.keySet();
-		String concat = argpath.asText()+ (keys.isEmpty() ? "" : "?");
+		StringBuilder builder = new StringBuilder(argpath.asText());
+		if (! keys.isEmpty()) {
+			builder.append('?');
+		}
 		boolean first = true;
 		for (String keylower : keys) {
 			if (first) {
-				concat += keylower+"="+treeMap.get(keylower);
 				first = false;
 			} else {
-				concat += "&"+keylower+"="+treeMap.get(keylower);
+				builder.append('&');
 			}
+			builder.append(keylower);
+			builder.append('=');
+			builder.append(treeMap.get(keylower));
 		}
 		if (extraKey != null) {
-			concat += "&"+ARG_X_AUTH_INTERNALKEY+"="+extraKey;
+			builder.append("&"+ARG_X_AUTH_INTERNALKEY+"=");
+			builder.append(extraKey);
 		}
 		// FIXME to encode using HMACSHA1 
-		logger.debug("to sign: {}",concat);
+		logger.debug("to sign: {}",builder.toString());
 		try {
-			return hmacSha256.cryptToHex(concat);
+			return hmacSha256.cryptToHex(builder.toString());
 		} catch (Exception e) {
 			throw new HttpIncorrectRequestException(e);
 		}
