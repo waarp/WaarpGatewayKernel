@@ -74,7 +74,6 @@ import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.IncompatibleDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.NotEnoughDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
@@ -508,7 +507,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getHeaderArgs() throws HttpIncorrectRequestException {
 		ObjectNode node = arguments.putObject(ARGS_HEADER);
-		List<Entry<String,String>> list = request.getHeaders();
+		List<Entry<String,String>> list = request.headers().entries();
 		for (Entry<String, String> entry : list) {
 			String key = entry.getKey();
 			if (! key.equals(HttpHeaders.Names.COOKIE)) {
@@ -533,7 +532,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getCookieArgs() throws HttpIncorrectRequestException {
 		Set<Cookie> cookies;
-		String value = request.getHeader(HttpHeaders.Names.COOKIE);
+		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
@@ -565,7 +564,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				Entry<String, JsonNode> entry = iter.next();
 				cookieEncoder.addCookie(entry.getKey(), entry.getValue().asText());
 			}
-			httpResponse.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 		}
 	}
 
@@ -724,7 +723,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		} catch (ErrorDataDecoderException e1) {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
-		} catch (IncompatibleDataDecoderException e1) {
+		} catch (Exception e1) {
 			// GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
 			// So OK but stop here
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
@@ -800,8 +799,8 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		if (channel.isConnected()) {
 			setWillClose(true);
 			HttpResponse response = getResponse();
-			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.setHeader(HttpHeaders.Names.REFERER, request.getUri());
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+			response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
 			String answer = "<html><body>Error " + status.getReasonPhrase() + "</body></html>";
 			response.setContent(ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			ChannelFuture future = channel.write(response);
@@ -829,7 +828,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		setWillClose(isWillClose() ||
 				status != HttpResponseStatus.OK ||
 				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-						.getHeader(HttpHeaders.Names.CONNECTION)) ||
+						.headers().get(HttpHeaders.Names.CONNECTION)) ||
 				request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
 				!keepAlive);
 		if (isWillClose()) {
@@ -839,7 +838,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		HttpResponse response = new DefaultHttpResponse(
 				request.getProtocolVersion(), status);
 		if (keepAlive) {
-			response.setHeader(HttpHeaders.Names.CONNECTION,
+			response.headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
 		}
 		setCookies(response);
