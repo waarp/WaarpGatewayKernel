@@ -26,6 +26,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
+import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -51,12 +52,11 @@ public abstract class RestMethodHandler {
 	 * Note that ARG_METHOD is only set from current request. It might be also set from URI or HEADER 
 	 * and therefore should be done in this method through 
 	 * @param handler
-	 * @param uri
 	 * @param arguments
 	 * @param result
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void checkArgumentsCorrectness(HttpRestHandler handler, String uri, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
+	public abstract void checkArgumentsCorrectness(HttpRestHandler handler, ObjectNode arguments, ObjectNode result) throws HttpIncorrectRequestException;
 
 	/**
 	 * Get a new Http Uploaded File from BODY
@@ -87,7 +87,7 @@ public abstract class RestMethodHandler {
 	 * @param body
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void endBody(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Object body) throws HttpIncorrectRequestException;
+	public abstract void endBody(HttpRestHandler handler, ObjectNode arguments, ObjectNode result, Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException;
 	
 	/**
 	 * Called when an exception occurs 

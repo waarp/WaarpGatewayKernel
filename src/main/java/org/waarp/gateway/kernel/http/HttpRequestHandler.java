@@ -54,7 +54,6 @@ import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.IncompatibleDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.NotEnoughDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import org.jboss.netty.util.CharsetUtil;
@@ -76,6 +75,7 @@ import org.waarp.gateway.kernel.database.WaarpActionLogger;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.session.DefaultHttpAuth;
 import org.waarp.gateway.kernel.session.HttpSession;
+import org.waarp.openr66.protocol.http.HttpWriteCacheEnable;
 
 /**
  * @author "Frederic Bregier"
@@ -88,6 +88,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(HttpRequestHandler.class);
 
+	private static final Random random = new Random(System.currentTimeMillis());
+	
 	protected String baseStaticPath;
 	protected String cookieSession;
 	protected HttpPageHandler httpPageHandler;
@@ -193,9 +195,9 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * @throws HttpIncorrectRequestException
 	 */
 	protected void getHeaderArgs() throws HttpIncorrectRequestException {
-		Set<String> headerNames = request.getHeaderNames();
+		Set<String> headerNames = request.headers().names();
 		for (String name : headerNames) {
-			List<String> values = request.getHeaders(name);
+			List<String> values = request.headers().getAll(name);
 			if (values != null) {
 				if (values.size() == 1) {
 					// only one element is allowed
@@ -221,7 +223,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getCookieArgs() throws HttpIncorrectRequestException {
 		Set<Cookie> cookies;
-		String value = request.getHeader(HttpHeaders.Names.COOKIE);
+		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
@@ -281,7 +283,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 					if (method == HttpMethod.GET) {
 						logger.debug("simple get: " + this.request.getUri());
 						// send content (image for instance)
-						HttpWriteCacheEnable.writeFileChunked(request, channel,
+						HttpWriteCacheEnable.writeFile(request, channel,
 								baseStaticPath + uriRequest, cookieSession);
 						return;
 						// end of task
@@ -424,8 +426,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		if (channel.isConnected()) {
 			willClose = true;
 			HttpResponse response = getResponse();
-			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.setHeader(HttpHeaders.Names.REFERER, request.getUri());
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+			response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
 			String answer = "<html><body>Error " + status.getReasonPhrase() + "</body></html>";
 			response.setContent(ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			ChannelFuture future = channel.write(response);
@@ -459,14 +461,14 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		int length = 0;
 		// Convert the response content to a ChannelBuffer.
 		ChannelBuffer buf = ChannelBuffers.wrappedBuffer(answer.getBytes(CharsetUtil.UTF_8));
-		response.setHeader(HttpHeaders.Names.CONTENT_TYPE, this.businessRequest.getContentType());
-		response.setHeader(HttpHeaders.Names.REFERER, request.getUri());
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, this.businessRequest.getContentType());
+		response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
 		length = buf.readableBytes();
 		response.setContent(buf);
 		if (!willClose) {
 			// There's no need to add 'Content-Length' header
 			// if this is the last response.
-			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 					String.valueOf(length));
 		}
 		// Write the response.
@@ -500,7 +502,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				Cookie cookie = new DefaultCookie(field.fieldname, field.fieldvalue);
 				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				cookieEncoder.addCookie(cookie);
-				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			}
 		}
 	}
@@ -512,7 +514,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void setCookieEncoder(HttpResponse response) {
 		Set<Cookie> cookies;
-		String value = request.getHeader(HttpHeaders.Names.COOKIE);
+		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
@@ -527,7 +529,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				if (isCookieValid(cookie)) {
 					CookieEncoder cookieEncoder = new CookieEncoder(true);
 					cookieEncoder.addCookie(cookie);
-					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 					if (cookie.getName().equals(cookieSession)) {
 						foundCookieSession = true;
 					}
@@ -539,7 +541,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
 			Cookie cookie = new DefaultCookie(cookieSession, session.getCookieSession());
 			cookieEncoder.addCookie(cookie);
-			response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			cookiesName.add(cookie.getName());
 		}
 		addBusinessCookie(response, cookiesName);
@@ -564,7 +566,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		willClose = willClose ||
 				status != HttpResponseStatus.OK ||
 				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-						.getHeader(HttpHeaders.Names.CONNECTION)) ||
+						.headers().get(HttpHeaders.Names.CONNECTION)) ||
 				request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
 				!keepAlive;
 		if (willClose) {
@@ -574,7 +576,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		HttpResponse response = new DefaultHttpResponse(
 				request.getProtocolVersion(), status);
 		if (keepAlive) {
-			response.setHeader(HttpHeaders.Names.CONNECTION,
+			response.headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
 		}
 		setCookieEncoder(response);
@@ -730,7 +732,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		} catch (ErrorDataDecoderException e1) {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
-		} catch (IncompatibleDataDecoderException e1) {
+		} catch (Exception e1) {
 			// GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
 			// So OK but stop here
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
@@ -892,7 +894,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * @return the new session cookie value
 	 */
 	protected String getNewCookieSession() {
-		return "Waarp" + Long.toHexString(new Random(System.currentTimeMillis()).nextLong());
+		return "Waarp" + Long.toHexString(random.nextLong());
 	}
 
 	/**

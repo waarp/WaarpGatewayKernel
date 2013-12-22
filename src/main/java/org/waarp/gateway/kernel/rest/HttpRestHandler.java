@@ -25,12 +25,10 @@ import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
-import org.waarp.gateway.kernel.HttpBusinessFactory;
-import org.waarp.gateway.kernel.database.DbConstant;
-import org.waarp.gateway.kernel.database.WaarpActionLogger;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.session.RestSession;
+import org.waarp.openr66.database.DbConstant;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -76,7 +74,6 @@ import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.IncompatibleDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.NotEnoughDataDecoderException;
 import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
@@ -262,7 +259,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
 														// exit (in normal exit)
 		DiskAttribute.baseDirectory = TempPath; // system temp directory
-		hmacSha256.setSecretKey(authentKey.getBytes());
+		hmacSha256.setSecretKey(authentKey.getBytes(WaarpStringUtils.UTF8));
 	}
 
     protected RestSession session = null;
@@ -377,13 +374,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	/**
 	 * To be used for instance to check correctness of connection<br>
-	 * <br>
-	 * for instance, if X-AUTH is included<br>
-	 * check if in uri or header, X-AUTH is present and check X-AUTH argument (known, any key if present)<br>
-	 * then get timestamp and check is correct (|curtime - timestamp| < maxinterval)<br>
-	 * then get all uri args in alphabetic lower case order<br>
-	 * hash using SHA-1 all args (in order including timestamp)<br>
-	 * compare sha-1 hashedkey with the computed one
+	 * Could also be used to set ARG_METHOD from URI or HEADER.
 	 * 
 	 * @param channel
 	 * @throws HttpInvalidAuthenticationException
@@ -422,23 +413,29 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		Set<String> keys = treeMap.keySet();
-		String concat = argpath.asText()+ (keys.isEmpty() ? "" : "?");
+		StringBuilder builder = new StringBuilder(argpath.asText());
+		if (! keys.isEmpty()) {
+			builder.append('?');
+		}
 		boolean first = true;
 		for (String keylower : keys) {
 			if (first) {
-				concat += keylower+"="+treeMap.get(keylower);
 				first = false;
 			} else {
-				concat += "&"+keylower+"="+treeMap.get(keylower);
+				builder.append('&');
 			}
+			builder.append(keylower);
+			builder.append('=');
+			builder.append(treeMap.get(keylower));
 		}
 		if (extraKey != null) {
-			concat += "&"+ARG_X_AUTH_INTERNALKEY+"="+extraKey;
+			builder.append("&"+ARG_X_AUTH_INTERNALKEY+"=");
+			builder.append(extraKey);
 		}
 		// FIXME to encode using HMACSHA1 
-		logger.debug("to sign: {}",concat);
+		logger.debug("to sign: {}",builder.toString());
 		try {
-			return hmacSha256.cryptToHex(concat);
+			return hmacSha256.cryptToHex(builder.toString());
 		} catch (Exception e) {
 			throw new HttpIncorrectRequestException(e);
 		}
@@ -510,7 +507,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getHeaderArgs() throws HttpIncorrectRequestException {
 		ObjectNode node = arguments.putObject(ARGS_HEADER);
-		List<Entry<String,String>> list = request.getHeaders();
+		List<Entry<String,String>> list = request.headers().entries();
 		for (Entry<String, String> entry : list) {
 			String key = entry.getKey();
 			if (! key.equals(HttpHeaders.Names.COOKIE)) {
@@ -535,7 +532,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getCookieArgs() throws HttpIncorrectRequestException {
 		Set<Cookie> cookies;
-		String value = request.getHeader(HttpHeaders.Names.COOKIE);
+		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
@@ -567,7 +564,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				Entry<String, JsonNode> entry = iter.next();
 				cookieEncoder.addCookie(entry.getKey(), entry.getValue().asText());
 			}
-			httpResponse.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 		}
 	}
 
@@ -598,7 +595,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the base path uri or empty String
 	 */
-	protected String getBASEURI() {
+	public String getBASEURI() {
 		return arguments.path(ARG_BASEPATH).asText();
 	}
 
@@ -606,7 +603,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the uri or empty String
 	 */
-	protected String getURI() {
+	public String getURI() {
 		return arguments.path(ARG_PATH).asText();
 	}
 
@@ -614,7 +611,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @return the method or null
 	 */
-	protected METHOD getMethod() {
+	public METHOD getMethod() {
 		String text = arguments.path(ARG_METHOD).asText();
 		if (text == null || text.isEmpty()) {
 			return null;
@@ -623,6 +620,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	}
 	
 	/**
+	 * Could be overwritten if necessary
 	 * 
 	 * @return RestMethodHandler associated with the current context
 	 * @throws HttpIncorrectRequestException 
@@ -630,15 +628,10 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected RestMethodHandler getHandler() throws HttpIncorrectRequestException {
 		METHOD method = getMethod();
 		String uri = getBASEURI();
-		if (DbConstant.admin != null) {
-			WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
-				+ arguments, session, uri+":"+method);
-		}
 		boolean restFound = false;
 		RestMethodHandler handler = restHashMap.get(uri);
 		if (handler != null) {
-			response = JsonHandler.createObjectNode();
-			handler.checkArgumentsCorrectness(this, getURI(), arguments, response);
+			handler.checkArgumentsCorrectness(this, arguments, response);
 			for (METHOD meth : handler.methods) {
 				if (meth == method) {
 					restFound = true;
@@ -662,6 +655,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				arguments.put(ARG_HASBODY, 
 						(request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
 				arguments.put(ARG_METHOD, request.getMethod().getName());
+				response = JsonHandler.createObjectNode();
 				getUriArgs(request.getUri(), arguments);
 				getHeaderArgs();
 				getCookieArgs();
@@ -687,11 +681,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 						readAllHttpData();
 					}
 					handler.endBody(this, arguments, response, jsonObject);
-					ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
-					if (future != null) {
-						future.addListener(WaarpSslUtility.SSLCLOSE);
-					}
-					clean();
+					finalizeSend(channel);
 					return;
 				}
 			} else {
@@ -711,11 +701,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			}
 			logger.warn("Error", e1);
 			if (handler != null) {
-				ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
-				if (future != null) {
-					future.addListener(WaarpSslUtility.SSLCLOSE);
-				}
-				clean();
+				finalizeSend(channel);
 			} else {
 				forceClosing(e.getChannel());
 			}
@@ -733,11 +719,11 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
             request.setMethod(HttpMethod.POST);
         }
 		try {
-			decoder = new HttpPostRequestDecoder(HttpBusinessFactory.factory, request);
+			decoder = new HttpPostRequestDecoder(factory, request);
 		} catch (ErrorDataDecoderException e1) {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
-		} catch (IncompatibleDataDecoderException e1) {
+		} catch (Exception e1) {
 			// GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
 			// So OK but stop here
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
@@ -813,17 +799,13 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		if (channel.isConnected()) {
 			setWillClose(true);
 			HttpResponse response = getResponse();
-			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.setHeader(HttpHeaders.Names.REFERER, request.getUri());
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+			response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
 			String answer = "<html><body>Error " + status.getReasonPhrase() + "</body></html>";
 			response.setContent(ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			ChannelFuture future = channel.write(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
-		}
-		if (DbConstant.admin != null) {
-			WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-				"Error: " , status);
 		}
 		clean();
 	}
@@ -846,7 +828,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		setWillClose(isWillClose() ||
 				status != HttpResponseStatus.OK ||
 				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-						.getHeader(HttpHeaders.Names.CONNECTION)) ||
+						.headers().get(HttpHeaders.Names.CONNECTION)) ||
 				request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
 				!keepAlive);
 		if (isWillClose()) {
@@ -856,7 +838,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		HttpResponse response = new DefaultHttpResponse(
 				request.getProtocolVersion(), status);
 		if (keepAlive) {
-			response.setHeader(HttpHeaders.Names.CONNECTION,
+			response.headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
 		}
 		setCookies(response);
@@ -868,8 +850,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @param e
 	 * @throws HttpIncorrectRequestException
+	 * @throws HttpInvalidAuthenticationException 
 	 */
-	protected void bodyChunk(MessageEvent e) throws HttpIncorrectRequestException {
+	protected void bodyChunk(MessageEvent e) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		// New chunk is received: only for Post!
 		HttpChunk chunk = (HttpChunk) e.getMessage();
 		if (handler.isBodyDedicatedDecode()) {
@@ -897,12 +880,16 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			jsonObject = getBodyJsonArgs(cumulativeBody);
 			cumulativeBody = null;
 			handler.endBody(this, arguments, response, jsonObject);
-			ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
-			if (future != null) {
-				future.addListener(WaarpSslUtility.SSLCLOSE);
-			}
-			clean();
+			finalizeSend(e.getChannel());
 		}
+	}
+	
+	protected void finalizeSend(Channel channel) {
+		ChannelFuture future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
+		if (future != null) {
+			future.addListener(WaarpSslUtility.SSLCLOSE);
+		}
+		clean();
 	}
 
 	/**
@@ -965,11 +952,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 			}
 			if (handler != null) {
-				ChannelFuture future = handler.sendResponse(this, e.getChannel(), arguments, response, jsonObject, status);
-				if (future != null) {
-					future.addListener(WaarpSslUtility.SSLCLOSE);
-				}
-				clean();
+				finalizeSend(e.getChannel());
 			} else {
 				forceClosing(e.getChannel());
 			}
