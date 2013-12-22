@@ -76,7 +76,7 @@
 <a class="jxr_linenumber" name="66" href="#66">66</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="67" href="#67">67</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="68" href="#68">68</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="69" href="#69">69</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/waarp/gateway/kernel/exec/R66PreparedTransferExecutor.html">R66PreparedTransferExecutor</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../org/waarp/gateway/kernel/exec/AbstractExecutor.html">AbstractExecutor</a> {
+<a class="jxr_linenumber" name="69" href="#69">69</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> R66PreparedTransferExecutor <strong class="jxr_keyword">extends</strong> <a href="../../../../../org/waarp/gateway/kernel/exec/AbstractExecutor.html">AbstractExecutor</a> {
 <a class="jxr_linenumber" name="70" href="#70">70</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="71" href="#71">71</a>  <em class="jxr_javadoccomment">	 * Internal Logger</em>
 <a class="jxr_linenumber" name="72" href="#72">72</a>  <em class="jxr_javadoccomment">	 */</em>
@@ -109,7 +109,7 @@
 <a class="jxr_linenumber" name="99" href="#99">99</a>  <em class="jxr_javadoccomment">	 * @param delay</em>
 <a class="jxr_linenumber" name="100" href="#100">100</a> <em class="jxr_javadoccomment">	 * @param futureCompletion</em>
 <a class="jxr_linenumber" name="101" href="#101">101</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="102" href="#102">102</a> 	<strong class="jxr_keyword">public</strong> <a href="../../../../../org/waarp/gateway/kernel/exec/R66PreparedTransferExecutor.html">R66PreparedTransferExecutor</a>(String command, <strong class="jxr_keyword">long</strong> delay,
+<a class="jxr_linenumber" name="102" href="#102">102</a> 	<strong class="jxr_keyword">public</strong> R66PreparedTransferExecutor(String command, <strong class="jxr_keyword">long</strong> delay,
 <a class="jxr_linenumber" name="103" href="#103">103</a> 			WaarpFuture futureCompletion) {
 <a class="jxr_linenumber" name="104" href="#104">104</a> 		String args[] = command.split(<span class="jxr_string">" "</span>);
 <a class="jxr_linenumber" name="105" href="#105">105</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; args.length; i++) {
