@@ -115,12 +115,18 @@ public class ExecuteExecutor extends AbstractExecutor {
 				try {
 					status = defaultExecutor.execute(commandLine);
 				} catch (ExecuteException e2) {
-					pumpStreamHandler.stop();
+					try {
+						pumpStreamHandler.stop();
+					} catch (IOException e1) {
+					}
 					logger.error("System Exception: " + e.getMessage() +
 							"\n    Exec cannot execute command " + commandLine.toString());
 					throw new Reply421Exception("Cannot execute Pre command");
 				} catch (IOException e2) {
-					pumpStreamHandler.stop();
+					try {
+						pumpStreamHandler.stop();
+					} catch (IOException e1) {
+					}
 					logger.error("Exception: " + e.getMessage() +
 							"\n    Exec in error with " + commandLine.toString());
 					throw new Reply421Exception("Cannot execute Pre command");
@@ -128,18 +134,27 @@ public class ExecuteExecutor extends AbstractExecutor {
 				logger.info("System Exception: " + e.getMessage() +
 						" but finally get the command executed " + commandLine.toString());
 			} else {
-				pumpStreamHandler.stop();
+				try {
+					pumpStreamHandler.stop();
+				} catch (IOException e1) {
+				}
 				logger.error("Exception: " + e.getMessage() +
 						"\n    Exec in error with " + commandLine.toString());
 				throw new Reply421Exception("Cannot execute Pre command");
 			}
 		} catch (IOException e) {
-			pumpStreamHandler.stop();
+			try {
+				pumpStreamHandler.stop();
+			} catch (IOException e1) {
+			}
 			logger.error("Exception: " + e.getMessage() +
 					"\n    Exec in error with " + commandLine.toString());
 			throw new Reply421Exception("Cannot execute Pre command");
 		}
-		pumpStreamHandler.stop();
+		try {
+			pumpStreamHandler.stop();
+		} catch (IOException e1) {
+		}
 		if (watchdog != null &&
 				watchdog.killedProcess()) {
 			// kill by the watchdoc (time out)
