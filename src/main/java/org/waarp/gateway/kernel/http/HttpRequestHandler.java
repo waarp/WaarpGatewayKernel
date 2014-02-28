@@ -114,8 +114,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	protected HttpResponseStatus status = HttpResponseStatus.OK;
 	protected String errorMesg;
 
-	protected volatile HttpRequest request;
-	protected volatile HttpMethod method;
+	protected HttpRequest request;
+	protected HttpMethod method;
 
 	protected volatile boolean willClose = false;
 

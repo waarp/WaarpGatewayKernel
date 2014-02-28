@@ -266,8 +266,8 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected HttpPostRequestDecoder decoder = null;
 	protected HttpResponseStatus status = HttpResponseStatus.OK;
 
-	protected volatile HttpRequest request = null;
-	protected volatile RestMethodHandler handler = null;
+	protected HttpRequest request = null;
+	protected RestMethodHandler handler = null;
 	
 	private volatile boolean willClose = false;
 
@@ -282,19 +282,19 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * ARGS_BODY (subset)
 	 * 
 	 */
-	protected volatile ObjectNode arguments = null;
+	protected ObjectNode arguments = null;
 	/**
 	 * The only structure that might be needed is: ARGS_COOKIE (subset)
 	 */
-	protected volatile ObjectNode response = null;
+	protected ObjectNode response = null;
 	/**
 	 * JSON decoded object
 	 */
-	protected volatile Object jsonObject = null;
+	protected Object jsonObject = null;
 	/**
 	 * Cumulative chunks
 	 */
-	protected volatile ChannelBuffer cumulativeBody = null;
+	protected ChannelBuffer cumulativeBody = null;
 	/**
 	 * Key for authent
 	 *
