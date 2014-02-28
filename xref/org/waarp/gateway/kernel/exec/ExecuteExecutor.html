@@ -125,51 +125,66 @@
 <a class="jxr_linenumber" name="115" href="#115">115</a> 				<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="116" href="#116">116</a> 					status = defaultExecutor.execute(commandLine);
 <a class="jxr_linenumber" name="117" href="#117">117</a> 				} <strong class="jxr_keyword">catch</strong> (ExecuteException e2) {
-<a class="jxr_linenumber" name="118" href="#118">118</a> 					pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="119" href="#119">119</a> 					logger.error(<span class="jxr_string">"System Exception: "</span> + e.getMessage() +
-<a class="jxr_linenumber" name="120" href="#120">120</a> 							<span class="jxr_string">"\n    Exec cannot execute command "</span> + commandLine.toString());
-<a class="jxr_linenumber" name="121" href="#121">121</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
-<a class="jxr_linenumber" name="122" href="#122">122</a> 				} <strong class="jxr_keyword">catch</strong> (IOException e2) {
-<a class="jxr_linenumber" name="123" href="#123">123</a> 					pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="124" href="#124">124</a> 					logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
-<a class="jxr_linenumber" name="125" href="#125">125</a> 							<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
-<a class="jxr_linenumber" name="126" href="#126">126</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
-<a class="jxr_linenumber" name="127" href="#127">127</a> 				}
-<a class="jxr_linenumber" name="128" href="#128">128</a> 				logger.info(<span class="jxr_string">"System Exception: "</span> + e.getMessage() +
-<a class="jxr_linenumber" name="129" href="#129">129</a> 						<span class="jxr_string">" but finally get the command executed "</span> + commandLine.toString());
-<a class="jxr_linenumber" name="130" href="#130">130</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="131" href="#131">131</a> 				pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="132" href="#132">132</a> 				logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
-<a class="jxr_linenumber" name="133" href="#133">133</a> 						<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
-<a class="jxr_linenumber" name="134" href="#134">134</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
-<a class="jxr_linenumber" name="135" href="#135">135</a> 			}
-<a class="jxr_linenumber" name="136" href="#136">136</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="137" href="#137">137</a> 			pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="138" href="#138">138</a> 			logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
-<a class="jxr_linenumber" name="139" href="#139">139</a> 					<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
-<a class="jxr_linenumber" name="140" href="#140">140</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
-<a class="jxr_linenumber" name="141" href="#141">141</a> 		}
-<a class="jxr_linenumber" name="142" href="#142">142</a> 		pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="143" href="#143">143</a> 		<strong class="jxr_keyword">if</strong> (watchdog != <strong class="jxr_keyword">null</strong> &amp;&amp;
-<a class="jxr_linenumber" name="144" href="#144">144</a> 				watchdog.killedProcess()) {
-<a class="jxr_linenumber" name="145" href="#145">145</a> 			<em class="jxr_comment">// kill by the watchdoc (time out)</em>
-<a class="jxr_linenumber" name="146" href="#146">146</a> 			logger.error(<span class="jxr_string">"Exec is in Time Out"</span>);
-<a class="jxr_linenumber" name="147" href="#147">147</a> 			status = -1;
-<a class="jxr_linenumber" name="148" href="#148">148</a> 		}
-<a class="jxr_linenumber" name="149" href="#149">149</a> 		<strong class="jxr_keyword">if</strong> (status == 0) {
-<a class="jxr_linenumber" name="150" href="#150">150</a> 			futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="151" href="#151">151</a> 			logger.info(<span class="jxr_string">"Exec OK with {}"</span>, commandLine);
-<a class="jxr_linenumber" name="152" href="#152">152</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (status == 1) {
-<a class="jxr_linenumber" name="153" href="#153">153</a> 			logger.warn(<span class="jxr_string">"Exec in warning with {}"</span>, commandLine);
-<a class="jxr_linenumber" name="154" href="#154">154</a> 			futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="155" href="#155">155</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="156" href="#156">156</a> 			logger.debug(<span class="jxr_string">"Status: "</span> + status + (status == -1 ? <span class="jxr_string">" Tiemout"</span> : <span class="jxr_string">""</span>)
-<a class="jxr_linenumber" name="157" href="#157">157</a> 					+ <span class="jxr_string">" Exec in error with "</span> +
-<a class="jxr_linenumber" name="158" href="#158">158</a> 					commandLine.toString());
-<a class="jxr_linenumber" name="159" href="#159">159</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Pre command executed in error"</span>);
-<a class="jxr_linenumber" name="160" href="#160">160</a> 		}
-<a class="jxr_linenumber" name="161" href="#161">161</a> 	}
-<a class="jxr_linenumber" name="162" href="#162">162</a> }
+<a class="jxr_linenumber" name="118" href="#118">118</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="119" href="#119">119</a> 						pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="120" href="#120">120</a> 					} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="121" href="#121">121</a> 					}
+<a class="jxr_linenumber" name="122" href="#122">122</a> 					logger.error(<span class="jxr_string">"System Exception: "</span> + e.getMessage() +
+<a class="jxr_linenumber" name="123" href="#123">123</a> 							<span class="jxr_string">"\n    Exec cannot execute command "</span> + commandLine.toString());
+<a class="jxr_linenumber" name="124" href="#124">124</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
+<a class="jxr_linenumber" name="125" href="#125">125</a> 				} <strong class="jxr_keyword">catch</strong> (IOException e2) {
+<a class="jxr_linenumber" name="126" href="#126">126</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="127" href="#127">127</a> 						pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="128" href="#128">128</a> 					} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="129" href="#129">129</a> 					}
+<a class="jxr_linenumber" name="130" href="#130">130</a> 					logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
+<a class="jxr_linenumber" name="131" href="#131">131</a> 							<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
+<a class="jxr_linenumber" name="132" href="#132">132</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
+<a class="jxr_linenumber" name="133" href="#133">133</a> 				}
+<a class="jxr_linenumber" name="134" href="#134">134</a> 				logger.info(<span class="jxr_string">"System Exception: "</span> + e.getMessage() +
+<a class="jxr_linenumber" name="135" href="#135">135</a> 						<span class="jxr_string">" but finally get the command executed "</span> + commandLine.toString());
+<a class="jxr_linenumber" name="136" href="#136">136</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="137" href="#137">137</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="138" href="#138">138</a> 					pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="139" href="#139">139</a> 				} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="140" href="#140">140</a> 				}
+<a class="jxr_linenumber" name="141" href="#141">141</a> 				logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
+<a class="jxr_linenumber" name="142" href="#142">142</a> 						<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
+<a class="jxr_linenumber" name="143" href="#143">143</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
+<a class="jxr_linenumber" name="144" href="#144">144</a> 			}
+<a class="jxr_linenumber" name="145" href="#145">145</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="146" href="#146">146</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="147" href="#147">147</a> 				pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="148" href="#148">148</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="149" href="#149">149</a> 			}
+<a class="jxr_linenumber" name="150" href="#150">150</a> 			logger.error(<span class="jxr_string">"Exception: "</span> + e.getMessage() +
+<a class="jxr_linenumber" name="151" href="#151">151</a> 					<span class="jxr_string">"\n    Exec in error with "</span> + commandLine.toString());
+<a class="jxr_linenumber" name="152" href="#152">152</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Cannot execute Pre command"</span>);
+<a class="jxr_linenumber" name="153" href="#153">153</a> 		}
+<a class="jxr_linenumber" name="154" href="#154">154</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="155" href="#155">155</a> 			pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="156" href="#156">156</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="157" href="#157">157</a> 		}
+<a class="jxr_linenumber" name="158" href="#158">158</a> 		<strong class="jxr_keyword">if</strong> (watchdog != <strong class="jxr_keyword">null</strong> &amp;&amp;
+<a class="jxr_linenumber" name="159" href="#159">159</a> 				watchdog.killedProcess()) {
+<a class="jxr_linenumber" name="160" href="#160">160</a> 			<em class="jxr_comment">// kill by the watchdoc (time out)</em>
+<a class="jxr_linenumber" name="161" href="#161">161</a> 			logger.error(<span class="jxr_string">"Exec is in Time Out"</span>);
+<a class="jxr_linenumber" name="162" href="#162">162</a> 			status = -1;
+<a class="jxr_linenumber" name="163" href="#163">163</a> 		}
+<a class="jxr_linenumber" name="164" href="#164">164</a> 		<strong class="jxr_keyword">if</strong> (status == 0) {
+<a class="jxr_linenumber" name="165" href="#165">165</a> 			futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="166" href="#166">166</a> 			logger.info(<span class="jxr_string">"Exec OK with {}"</span>, commandLine);
+<a class="jxr_linenumber" name="167" href="#167">167</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (status == 1) {
+<a class="jxr_linenumber" name="168" href="#168">168</a> 			logger.warn(<span class="jxr_string">"Exec in warning with {}"</span>, commandLine);
+<a class="jxr_linenumber" name="169" href="#169">169</a> 			futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="170" href="#170">170</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="171" href="#171">171</a> 			logger.debug(<span class="jxr_string">"Status: "</span> + status + (status == -1 ? <span class="jxr_string">" Tiemout"</span> : <span class="jxr_string">""</span>)
+<a class="jxr_linenumber" name="172" href="#172">172</a> 					+ <span class="jxr_string">" Exec in error with "</span> +
+<a class="jxr_linenumber" name="173" href="#173">173</a> 					commandLine.toString());
+<a class="jxr_linenumber" name="174" href="#174">174</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Reply421Exception(<span class="jxr_string">"Pre command executed in error"</span>);
+<a class="jxr_linenumber" name="175" href="#175">175</a> 		}
+<a class="jxr_linenumber" name="176" href="#176">176</a> 	}
+<a class="jxr_linenumber" name="177" href="#177">177</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
