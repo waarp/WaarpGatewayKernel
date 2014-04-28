@@ -157,9 +157,10 @@ public abstract class RestMethodHandler {
 		response.setContent(buffer);
 		ChannelFuture future = channel.write(response);
 		if (handler.isWillClose()) {
+			System.err.println("Will close session in RestMethodHandler");
 			return future;
 		}
-		return future;
+		return null;
 	}
 	
 	/**

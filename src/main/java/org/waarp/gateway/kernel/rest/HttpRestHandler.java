@@ -93,9 +93,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
     /*
      * Note:
      * Presence de BODY dans toutes les requetes/responses = Content-Length ou Transfer-Encoding
-     * 
-     * OPTIONS: request + Content-Type ; response : si pas de body => Content-Length = 0
-     * 
      * HEAD: response pas de BODY
      * 
      */
@@ -182,7 +179,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
     public static final HttpDataFactory factory = new DefaultHttpDataFactory(
 			DefaultHttpDataFactory.MINSIZE); 
     // Disk if size exceed MINSIZE = 16K
-	// Disk if size exceed MINSIZE = 16K, but for FileUpload from Ark directly
 	// XXX FIXME TODO to setup outside !
 	public static String TempPath = "J:/GG/ARK/TMP"; // "C:/Temp/Java/GG/ARK/TMP";
 

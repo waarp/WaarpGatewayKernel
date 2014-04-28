@@ -231,7 +231,7 @@ public class RestArgument {
 		if (source.arguments.has(ARGS_COOKIE)) {
 			arguments.putObject(ARGS_COOKIE).putAll((ObjectNode) source.arguments.get(ARGS_COOKIE));
 		}
-		logger.warn("DEBUG: {}\n {}", arguments, source);
+		logger.debug("DEBUG: {}\n {}", arguments, source);
 	}
 	
 	public String getUri() {

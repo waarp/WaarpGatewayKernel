@@ -370,8 +370,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		logger.debug("Will write: {}", body);
 		ChannelFuture future = channel.write(response);
 		if (handler.isWillClose()) {
+			System.err.println("Will close session in DataModelRestMethodHandler");
 			return future;
 		}
-		return future;
+		return null;
 	}
 }
