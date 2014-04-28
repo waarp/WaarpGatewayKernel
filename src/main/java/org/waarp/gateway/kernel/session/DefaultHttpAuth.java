@@ -22,7 +22,6 @@ import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply502Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.file.SessionInterface;
-import org.waarp.gateway.kernel.exec.AbstractExecutor.CommandExecutor;
 
 /**
  * Allow all default implementation
@@ -137,7 +136,7 @@ public class DefaultHttpAuth implements HttpAuthInterface {
 	}
 
 	@Override
-	public CommandExecutor getCommandExecutor() {
+	public CommandExecutorInterface getCommandExecutor() {
 		// TODO Auto-generated method stub
 		return null;
 	}

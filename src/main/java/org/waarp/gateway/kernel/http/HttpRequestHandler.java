@@ -75,7 +75,6 @@ import org.waarp.gateway.kernel.database.WaarpActionLogger;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.session.DefaultHttpAuth;
 import org.waarp.gateway.kernel.session.HttpSession;
-import org.waarp.openr66.protocol.http.HttpWriteCacheEnable;
 
 /**
  * @author "Frederic Bregier"

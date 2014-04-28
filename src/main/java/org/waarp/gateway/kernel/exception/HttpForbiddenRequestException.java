@@ -15,40 +15,39 @@
  * You should have received a copy of the GNU General Public License along with Waarp . If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package org.waarp.gateway.kernel.exec;
+package org.waarp.gateway.kernel.exception;
 
 /**
- * Runnable interface for tasks
- * 
- * @author Frederic Bregier
+ * @author "Frederic Bregier"
  * 
  */
-public interface GatewayRunnable extends Runnable {
-
-	/**
-	 * The way the parameter will be set
-	 * 
-	 * @param waitForValidation
-	 *            True if the caller will wait up to delay time in ms
-	 * @param useLocalExec
-	 *            True if currently is configured to use LocalExec (may be ignored)
-	 * @param delay
-	 *            Delay in ms used only if waitForValidation is True
-	 * @param args
-	 *            First arg is the Class name used
-	 */
-	public void setArgs(boolean waitForValidation,
-			boolean useLocalExec, int delay, String[] args);
+public class HttpForbiddenRequestException extends Exception {
 
 	/**
 	 * 
-	 * @return the final status where 0 is OK, 1 is Warning, 2 is Error
 	 */
-	public int getFinalStatus();
+	private static final long serialVersionUID = -6357523132449299675L;
 
 	/**
-	 * 
-	 * @return Information on task
+	 * @param arg0
 	 */
-	public String toString();
+	public HttpForbiddenRequestException(String arg0) {
+		super(arg0);
+	}
+
+	/**
+	 * @param arg0
+	 */
+	public HttpForbiddenRequestException(Throwable arg0) {
+		super(arg0);
+	}
+
+	/**
+	 * @param arg0
+	 * @param arg1
+	 */
+	public HttpForbiddenRequestException(String arg0, Throwable arg1) {
+		super(arg0, arg1);
+	}
+
 }

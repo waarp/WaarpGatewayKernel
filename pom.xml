@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpGatewayKernel</artifactId>
   <name>GoldenGate Gateway Kernel</name>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
   <description>Waarp Gateway contains the kernel for Http Gateway</description>
     <inceptionYear>2009</inceptionYear>
   <parent>
@@ -214,11 +214,6 @@
   <dependencies>
   	<dependency>
   		<groupId>Waarp</groupId>
-  		<artifactId>WaarpR66</artifactId>
-  		<version>2.4.25</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>Waarp</groupId>
   		<artifactId>WaarpFtpClient</artifactId>
   		<version>1.0.4</version>
   		<optional>true</optional>
@@ -228,6 +223,16 @@
   		<artifactId>WaarpExec</artifactId>
   		<version>1.1.4</version>
   		<optional>true</optional>
+  	</dependency>
+  	<dependency>
+  	    <groupId>joda-time</groupId>
+  	    <artifactId>joda-time</artifactId>
+  	    <version>2.3</version>
+  	</dependency>
+  	<dependency>
+  	    <groupId>Waarp</groupId>
+  	    <artifactId>WaarpCommon</artifactId>
+  	    <version>1.2.24</version>
   	</dependency>
   </dependencies>
 </project>
