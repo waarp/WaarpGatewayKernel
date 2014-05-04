@@ -34,6 +34,7 @@ import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -45,7 +46,6 @@ import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -54,10 +54,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 public abstract class DataModelRestMethodHandler<E extends AbstractDbData> extends RestMethodHandler {
-	public static final String JSON_COUNT = "count";
-	public static final String JSON_RESULTS = "results";
-	public static final String JSON_LIMIT = "limit";
-	public static final String JSON_ID = "id";
 
 	public static enum COMMAND_TYPE {
 		MULTIGET, GET, UPDATE, CREATE, DELETE, OPTIONS;
@@ -86,7 +82,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		boolean hasOneExtraPathAsId = arguments.getSubUriSize() == 1;
 		boolean hasNoExtraPath = arguments.getSubUriSize() == 0;
 		if (hasOneExtraPathAsId) {
-			arguments.addItem(JSON_ID, arguments.getSubUri().next().asText());
+			arguments.addIdToUriArgs();
 		}
 		switch (method) {
 			case DELETE:
@@ -111,6 +107,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			default:
 				break;
 		}
+		logger.warn("NotAllowed: "+method+":"+hasNoExtraPath+":"+hasOneExtraPathAsId+":"+arguments.getUri()+":"+arguments.getUriArgs());
 		throw new HttpForbiddenRequestException("Unallowed Method and arguments combinaison");
 	}
 
@@ -216,6 +213,16 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	 */
 	protected abstract E getItemPreparedStatement(DbPreparedStatement statement)  throws HttpIncorrectRequestException, HttpNotFoundRequestException;
 	/**
+	 * 
+	 * @return the primary property name used in the uri for Get,Put,Delete for unique access
+	 */
+	public abstract String getPrimaryPropertyName();
+	
+	protected void setOk(HttpRestHandler handler, RestArgument result) {
+		handler.setStatus(HttpResponseStatus.OK);
+		result.setResult(HttpResponseStatus.OK);
+	}
+	/**
 	 * Get all items, according to a possible filter
 	 * @param handler
 	 * @param arguments
@@ -228,25 +235,32 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	protected void getAll(HttpRestHandler handler, RestArgument arguments,
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
-		ObjectNode args = arguments.getUriArgs();
-		int limit = args.path(JSON_LIMIT).asInt(100);
+		long limit = arguments.getLimitFromUri();
 		DbPreparedStatement statement = getPreparedStatement(handler, arguments, result, body);
-		ObjectNode node = result.getAnswer();
-		ArrayNode array = node.putArray(JSON_RESULTS);
+		result.addFilter((ObjectNode) body);
 		int count = 0;
-		for (; count < limit ; count++) {
-			E item = getItemPreparedStatement(statement);
-			if (item != null) {
-				try {
-					array.add(item.getJson());
-				} catch (WaarpDatabaseSqlException e) {
-					throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
+		try {
+			statement.executeQuery();
+		} catch (WaarpDatabaseNoConnectionException e) {
+			throw new HttpIncorrectRequestException(e);
+		} catch (WaarpDatabaseSqlException e) {
+			throw new HttpNotFoundRequestException(e);
+		}
+		try {
+			for (; count < limit && statement.getNext(); count++) {
+				E item = getItemPreparedStatement(statement);
+				if (item != null) {
+					result.addResult(item.getJson());
 				}
 			}
+		} catch (WaarpDatabaseNoConnectionException e) {
+			throw new HttpIncorrectRequestException(e);
+		} catch (WaarpDatabaseSqlException e) {
+			throw new HttpNotFoundRequestException(e);
 		}
-		node.put(JSON_COUNT, count);
-		node.put(JSON_LIMIT, limit);
-		result.addItem(RestArgument.JSON_COMMAND, COMMAND_TYPE.MULTIGET.name());
+		result.addCountLimit(count, limit);
+		result.setCommand(COMMAND_TYPE.MULTIGET);
+		setOk(handler, result);
 	}
 	/**
 	 * Get one item according to id
@@ -262,12 +276,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 		E item = getItem(handler, arguments, result, body);
-		try {
-			result.addItems(item.getJson());
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
-		}
-		result.addItem(RestArgument.JSON_COMMAND, COMMAND_TYPE.GET.name());
+		result.addAnswer(item.getJson());
+		result.setCommand(COMMAND_TYPE.GET);
+		setOk(handler, result);
 	}
 	/**
 	 * Update one item according to id
@@ -294,12 +305,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while updating to database", e);
 		}
-		try {
-			result.addItems(item.getJson());
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
-		}
-		result.addItem(RestArgument.JSON_COMMAND, COMMAND_TYPE.UPDATE.name());
+		result.addAnswer(item.getJson());
+		result.setCommand(COMMAND_TYPE.UPDATE);
+		setOk(handler, result);
 	}
 	/**
 	 * Create one item
@@ -320,12 +328,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while inserting to database", e);
 		}
-		try {
-			result.addItems(item.getJson());
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
-		}
-		result.addItem(RestArgument.JSON_COMMAND, COMMAND_TYPE.CREATE.name());
+		result.addAnswer(item.getJson());
+		result.setCommand(COMMAND_TYPE.CREATE);
+		setOk(handler, result);
 	}
 	/**
 	 * delete one item
@@ -346,12 +351,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while deleting from database", e);
 		}
-		try {
-			result.addItems(item.getJson());
-		} catch (WaarpDatabaseSqlException e) {
-			throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
-		}
-		result.addItem(RestArgument.JSON_COMMAND, COMMAND_TYPE.DELETE.name());
+		result.addAnswer(item.getJson());
+		result.setCommand(COMMAND_TYPE.DELETE);
+		setOk(handler, result);
 	}
 	
 	public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel,

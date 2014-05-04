@@ -37,12 +37,13 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpMethodNotAllowedRequestException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
+import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Rest Method handler (used by Http Rest Handler)
  * @author "Frederic Bregier"
  *
  */
@@ -115,16 +116,22 @@ public abstract class RestMethodHandler {
 	 */
 	public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body, Exception exception) {
 		if (exception instanceof HttpInvalidAuthenticationException) {
+			result.setResult(HttpResponseStatus.UNAUTHORIZED);
 			return HttpResponseStatus.UNAUTHORIZED;
 		} else if (exception instanceof HttpForbiddenRequestException) {
+			result.setResult(HttpResponseStatus.FORBIDDEN);
 			return HttpResponseStatus.FORBIDDEN;
 		} else if (exception instanceof HttpIncorrectRequestException) {
+			result.setResult(HttpResponseStatus.BAD_REQUEST);
 			return HttpResponseStatus.BAD_REQUEST;
 		} else if (exception instanceof HttpMethodNotAllowedRequestException) {
+			result.setResult(HttpResponseStatus.METHOD_NOT_ALLOWED);
 			return HttpResponseStatus.METHOD_NOT_ALLOWED;
 		} else if (exception instanceof HttpNotFoundRequestException) {
+			result.setResult(HttpResponseStatus.NOT_FOUND);
 			return HttpResponseStatus.NOT_FOUND;
 		} else {
+			result.setResult(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			return HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		}
 	}
@@ -149,7 +156,7 @@ public abstract class RestMethodHandler {
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
-		String list = result.getItem(HttpHeaders.Names.ALLOW);
+		String list = result.getAllowOption();
 		response.headers().add(HttpHeaders.Names.ALLOW, list);
 		String answer = result.toString();
 		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
@@ -170,6 +177,7 @@ public abstract class RestMethodHandler {
 	 * @param result
 	 */
 	protected void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
+		result.setCommand(COMMAND_TYPE.OPTIONS);
 		METHOD [] realmethods = METHOD.values();
 		boolean []allMethods = new boolean[realmethods.length];
 		for (METHOD methoditem : methods) {
@@ -185,14 +193,7 @@ public abstract class RestMethodHandler {
 				}
 			}
 		}
-		result.addItem(HttpHeaders.Names.ALLOW, allow);
-		allow = path;
-		result.addItem(RestArgument.X_ALLOW_URIS, allow);
-		ArrayNode array = getDetailedAllow();
-		if (array != null) {
-			ObjectNode node = result.getAnswer();
-			node.putArray(RestArgument.X_DETAILED_ALLOW).addAll(array);
-		}
+		result.addOptions(allow, path, getDetailedAllow());
 	}
 	/**
 	 * 

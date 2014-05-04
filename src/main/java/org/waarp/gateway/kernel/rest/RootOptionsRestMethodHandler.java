@@ -23,7 +23,6 @@ package org.waarp.gateway.kernel.rest;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.common.json.JsonHandler;
@@ -74,6 +73,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 
 	@Override
 	public void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
+		result.setCommand(COMMAND_TYPE.OPTIONS);
 		METHOD [] realmethods = METHOD.values();
 		boolean []allMethods = new boolean[realmethods.length];
 		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
@@ -91,19 +91,15 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 				}
 			}
 		}
-		result.addItem(HttpHeaders.Names.ALLOW, allow);
-		allow = null;
+		String allowUri = null;
 		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
-			if (allow == null) {
-				allow = method.path;
+			if (allowUri == null) {
+				allowUri = method.path;
 			} else {
-				allow += ","+method.path;
+				allowUri += ","+method.path;
 			}
 		}
-		result.addItem(RestArgument.X_ALLOW_URIS, allow);
-		allow = null;
-		ObjectNode node = result.getAnswer();
-		ArrayNode array = node.putArray(RestArgument.X_DETAILED_ALLOW);
+		ArrayNode array = JsonHandler.createArrayNode();
 		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
 			ArrayNode array2 = method.getDetailedAllow();
 			if (method != this) {
@@ -112,6 +108,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 				array.addObject().putArray(ROOT).addAll(array2);
 			}
 		}
+		result.addOptions(allow, allowUri, array);
 	}
 
 	@Override
@@ -119,8 +116,8 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
 		ObjectNode node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, this.path);
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
+		node2.put(RestArgument.REST_FIELD.JSON_PATH.field, this.path);
+		node2.put(RestArgument.REST_ROOT_FIELD.JSON_COMMAND.field, COMMAND_TYPE.OPTIONS.name());
 
 		return node;
 	}

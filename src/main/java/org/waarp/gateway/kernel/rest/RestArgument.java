@@ -35,6 +35,7 @@ import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.codec.http.QueryStringEncoder;
 import org.joda.time.DateTime;
@@ -49,6 +50,7 @@ import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
+import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,6 +58,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Rest object that contains all arguments or answers once all tasks are over:</br>
+ * - ARG_HASBODY, ARG_METHOD, ARG_PATH, ARG_BASEPATH, ARGS_SUBPATH, ARG_X_AUTH_KEY, ARG_X_AUTH_USER, ARG_X_AUTH_TIMESTAMP, ARG_X_AUTH_ROLE: root elements (query only)</br>
+ * - ARG_METHOD, ARG_PATH, ARG_BASEPATH, ARGS_SUBPATH, ARG_X_AUTH_USER, JSON_STATUSMESSAGE, JSON_STATUSCODE: root elements (answer only)</br>
+ * - ARGS_URI: uri elements (query only)</br>
+ * - ARGS_HEADER: header elements (query only)</br>
+ * - ARG_COOKIE: cookie elements</br>
+ * - ARGS_BODY: body elements (query only)</br>
+ * - ARGS_ANSWER: answer part (answer only)</br>
+ * 
  * @author "Frederic Bregier"
  *
  */
@@ -63,69 +74,116 @@ public class RestArgument {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-            .getLogger(RestArgument.class);
-	/**
-	 * arguments.path(ARGS_HEADER) main entry for HEADER arguments
-	 */
-	public static final String ARGS_HEADER = "header";
-	/**
-	 * arguments.path(ARGS_COOKIE) main entry for COOKIE arguments
-	 */
-	public static final String ARGS_COOKIE = "cookie";
-	/**
-	 * arguments.path(ARGS_URI) main entry for URI arguments
-	 */
-	public static final String ARGS_URI = "uri";
-	/**
-	 * arguments.path(ARGS_BODY) main entry for BODY arguments
-	 */
-	public static final String ARGS_BODY = "body";
-	/**
-	 * arguments.path(ARGS_ANSWER) main entry for ANSWER arguments
-	 */
-	public static final String ARGS_ANSWER = "answer";
-	/**
-	 * arguments.path(ARG_PATH) = uri path
-	 */
-	public static final String ARG_PATH = "path";
-	/**
-	 * arguments.path(ARG_BASEPATH).asText() = uri base path
-	 */
-	public static final String ARG_BASEPATH = "base";
-	/**
-	 * arguments.path(ARGS_SUBPATH) main entry for SUB-PATH arguments<br>
-	 * arguments.path(ARGS_SUBPATH).elements() for an iterator or .get(x) for xth SUB-PATH argument
-	 */
-	public static final String ARGS_SUBPATH = "subpath";
-	/**
-	 * arguments.path(ARG_METHOD).asText() = method identified
-	 */
-	public static final String ARG_METHOD = "X-method";
-	/**
-	 * arguments.path(ARG_HASBODY).asBoolean() = true if the body has content
-	 */
-	public static final String ARG_HASBODY = "hasBody";
-	/**
-	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
-	 */
-	public static final String ARG_X_AUTH_KEY = "X-Auth-Key";
-	/**
-	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
-	 */
-	public static final String ARG_X_AUTH_USER = "X-Auth-User";
-	/**
-	 * Internal Key used (not to be passed through wire)
-	 */
-	public static final String ARG_X_AUTH_INTERNALKEY = "X-Auth-InternalKey";
-	/**
-	 * arguments.path(ARG_X_AUTH_TIMESTAMP).asText() = Timestamp in ISO 8601 format
-	 */
-	public static final String ARG_X_AUTH_TIMESTAMP = "X-Auth-Timestamp";
-	/**
-	 * arguments.path(ARG_X_AUTH_ROLE).asInt() = Role used
-	 */
-	public static final String ARG_X_AUTH_ROLE = "X-Auth-Role";
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(RestArgument.class);
+    
+    public static enum REST_GROUP {
+    	/**
+    	 * arguments.path(ARGS_URI) main entry for URI arguments
+    	 */
+    	ARGS_URI("uri"),
+    	/**
+    	 * arguments.path(ARGS_HEADER) main entry for HEADER arguments
+    	 */
+    	ARGS_HEADER("header"),
+    	/**
+    	 * arguments.path(ARGS_COOKIE) main entry for COOKIE arguments
+    	 */
+    	ARGS_COOKIE("cookie"),
+    	/**
+    	 * arguments.path(ARGS_BODY) main entry for BODY arguments
+    	 */
+    	ARGS_BODY("body"),
+    	/**
+    	 * arguments.path(ARGS_ANSWER) main entry for ANSWER arguments
+    	 */
+    	ARGS_ANSWER("answer");
+    	
+    	
+    	public String group;
+    	REST_GROUP(String group) {
+    		this.group = group;
+    	}
+    }
+    
+    public static enum REST_ROOT_FIELD {
+    	/**
+    	 * arguments.path(ARG_PATH) = uri path
+    	 */
+    	ARG_PATH("path"),
+    	/**
+    	 * arguments.path(ARG_BASEPATH).asText() = uri base path
+    	 */
+    	ARG_BASEPATH("base"),
+    	/**
+    	 * arguments.path(ARGS_SUBPATH) main entry for SUB-PATH arguments<br>
+    	 * arguments.path(ARGS_SUBPATH).elements() for an iterator or .get(x) for xth SUB-PATH argument
+    	 */
+    	ARGS_SUBPATH("subpath"),
+    	/**
+    	 * arguments.path(ARG_METHOD).asText() = method identified
+    	 */
+    	ARG_METHOD("X-method"),
+    	/**
+    	 * arguments.path(ARG_HASBODY).asBoolean() = true if the body has content
+    	 */
+    	ARG_HASBODY("hasBody"),
+    	/**
+    	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
+    	 */
+    	ARG_X_AUTH_KEY("X-Auth-Key"),
+    	/**
+    	 * arguments.path(ARG_X_AUTH_KEY).asText() = Key used
+    	 */
+    	ARG_X_AUTH_USER("X-Auth-User"),
+    	/**
+    	 * Internal Key used (not to be passed through wire)
+    	 */
+    	ARG_X_AUTH_INTERNALKEY("X-Auth-InternalKey"),
+    	/**
+    	 * arguments.path(ARG_X_AUTH_TIMESTAMP).asText() = Timestamp in ISO 8601 format
+    	 */
+    	ARG_X_AUTH_TIMESTAMP("X-Auth-Timestamp"),
+    	/**
+    	 * arguments.path(ARG_X_AUTH_ROLE).asInt() = Role used
+    	 */
+    	ARG_X_AUTH_ROLE("X-Auth-Role"),
+    	JSON_STATUSCODE("code"),
+    	JSON_STATUSMESSAGE("message"),
+    	JSON_COMMAND("command"),
+    	JSON_DETAIL("detail");
+    	
+    	public String field;
+    	REST_ROOT_FIELD(String field) {
+    		this.field = field;
+    	}
+    }
+    
+    public static enum REST_FIELD {
+    	JSON_RESULT("result"),
+    	JSON_PATH("path"),
+    	JSON_JSON("json"),
+    	X_DETAILED_ALLOW("DetailedAllow"),
+    	X_ALLOW_URIS("UriAllowed"),
+		JSON_ID("_id");
+    	
+    	public String field;
+    	REST_FIELD(String field) {
+    		this.field = field;
+    	}
+    }
+    
+	public static enum DATAMODEL {
+		JSON_COUNT("count"),
+		JSON_RESULTS("results"),
+		JSON_FILTER("filter"),
+		JSON_LIMIT("limit");
+		
+		public String field;
+		DATAMODEL(String field) {
+			this.field = field;
+		}
+	}
+
 	/**
 	 * Key for authentication in SHA-256
 	 *
@@ -139,14 +197,13 @@ public class RestArgument {
 	}
 	
 	ObjectNode arguments;
-	public static final String JSON_PATH = "PATH";
-	public static final String JSON_JSON = "json";
-	public static final String JSON_COMMAND = "command";
-	public static final String X_DETAILED_ALLOW = "DetailedAllow";
-	public static final String X_ALLOW_URIS = "UriAllowed";
 	
 	public RestArgument(ObjectNode emptyArgument) {
-		arguments = emptyArgument;
+		if (emptyArgument == null) {
+			arguments = JsonHandler.createObjectNode();
+		} else {
+			arguments = emptyArgument;
+		}
 	}
 	
 	public void clean() {
@@ -154,11 +211,11 @@ public class RestArgument {
 	}
 
 	public void setRequest(HttpRequest request) {
-		arguments.put(ARG_HASBODY, (request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
-		arguments.put(ARG_METHOD, request.getMethod().getName());
+		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
+		arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, request.getMethod().getName());
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		String path = decoderQuery.getPath();
-		arguments.put(ARG_PATH, path);
+		arguments.put(REST_ROOT_FIELD.ARG_PATH.field, path);
 		// compute path main uri
 		String basepath = path;
 		int pos = basepath.indexOf('/');
@@ -174,7 +231,7 @@ public class RestArgument {
 				basepath = basepath.substring(0, pos);
 			}
 		}
-		arguments.put(ARG_BASEPATH, basepath);
+		arguments.put(REST_ROOT_FIELD.ARG_BASEPATH.field, basepath);
 		// compute sub path args
 		if (pos == 0) {
 			pos = path.indexOf('/', 1);
@@ -182,88 +239,138 @@ public class RestArgument {
 		if (pos >= 0) {
 			int pos2 = path.indexOf('/', pos+1);
 			if (pos2 > 0) {
-				ArrayNode array = arguments.putArray(ARGS_SUBPATH);
+				ArrayNode array = arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field);
 				while (pos2 > 0) {
 					array.add(path.substring(pos+1, pos2));
 					pos = pos2;
 					pos2 = path.indexOf('/', pos+1);
 				}
 			}
+			pos2 = path.indexOf('?', pos+1);
+			if (pos2 > 0 && pos2 > pos+1) {
+				ArrayNode array = (ArrayNode) arguments.get(REST_ROOT_FIELD.ARGS_SUBPATH.field);
+				if (array == null) {
+					array = arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field);
+				}
+				array.add(path.substring(pos+1, pos2));
+			} else {
+				String last = path.substring(pos+1);
+				if (! last.isEmpty()) {
+					ArrayNode array = (ArrayNode) arguments.get(REST_ROOT_FIELD.ARGS_SUBPATH.field);
+					if (array == null) {
+						array = arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field);
+					}
+					array.add(last);
+				}
+			}
 		}
 		Map<String, List<String>> map = decoderQuery.getParameters();
-		ObjectNode node = arguments.putObject(ARGS_URI);
+		ObjectNode node = arguments.putObject(REST_GROUP.ARGS_URI.group);
 		for (String key : map.keySet()) {
-			if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
-				arguments.put(ARG_X_AUTH_KEY, map.get(key).get(0));
+			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
+				arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, map.get(key).get(0));
 				continue;
 			}
-			if (key.equalsIgnoreCase(ARG_X_AUTH_USER)) {
-				arguments.put(ARG_X_AUTH_USER, map.get(key).get(0));
+			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_USER.field)) {
+				arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field, map.get(key).get(0));
 				continue;
 			}
-			if (key.equalsIgnoreCase(ARG_X_AUTH_TIMESTAMP)) {
-				arguments.put(ARG_X_AUTH_TIMESTAMP, map.get(key).get(0));
+			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field)) {
+				arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, map.get(key).get(0));
 				continue;
 			}
-			ArrayNode array = node.putArray(key);
-			for (String val : map.get(key)) {
-				array.add(val);
+			List<String> list = map.get(key);
+			if (list.size() > 1) {
+				ArrayNode array = node.putArray(key);
+				for (String val : map.get(key)) {
+					array.add(val);
+				}
+			} else if (list.isEmpty()) {
+				node.putNull(key);
+			} else {
+				//1
+				node.put(key, list.get(0));
 			}
 		}
 	}
 	/**
-	 * Set X_AUTH, Method, Path and Cookie from source
+	 * Set X_AUTH_USER, Method, Path, Basepath and Cookie from source
 	 * @param source
 	 */
 	public void setFromArgument(RestArgument source) {
-		if (source.arguments.has(ARG_X_AUTH_USER)) {
-			arguments.put(ARG_X_AUTH_USER, source.arguments.get(ARG_X_AUTH_USER).asText());
+		if (source.arguments.has(REST_ROOT_FIELD.ARG_X_AUTH_USER.field)) {
+			arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field, source.arguments.get(REST_ROOT_FIELD.ARG_X_AUTH_USER.field).asText());
 		}
-		if (source.arguments.has(ARG_METHOD)) {
-			arguments.put(ARG_METHOD, source.arguments.get(ARG_METHOD).asText());
+		if (source.arguments.has(REST_ROOT_FIELD.ARG_METHOD.field)) {
+			arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, source.arguments.get(REST_ROOT_FIELD.ARG_METHOD.field).asText());
 		}
-		if (source.arguments.has(ARG_PATH)) {
-			arguments.put(ARG_PATH, source.arguments.get(ARG_PATH).asText());
+		if (source.arguments.has(REST_ROOT_FIELD.ARG_PATH.field)) {
+			arguments.put(REST_ROOT_FIELD.ARG_PATH.field, source.arguments.get(REST_ROOT_FIELD.ARG_PATH.field).asText());
 		}
-		if (source.arguments.has(ARG_BASEPATH)) {
-			arguments.put(ARG_BASEPATH, source.arguments.get(ARG_BASEPATH).asText());
+		if (source.arguments.has(REST_ROOT_FIELD.ARG_BASEPATH.field)) {
+			arguments.put(REST_ROOT_FIELD.ARG_BASEPATH.field, source.arguments.get(REST_ROOT_FIELD.ARG_BASEPATH.field).asText());
 		}
-		if (source.arguments.has(ARGS_COOKIE)) {
-			arguments.putObject(ARGS_COOKIE).putAll((ObjectNode) source.arguments.get(ARGS_COOKIE));
+		if (source.arguments.has(REST_ROOT_FIELD.ARGS_SUBPATH.field)) {
+			arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field).addAll((ArrayNode) source.arguments.get(REST_ROOT_FIELD.ARGS_SUBPATH.field));
+		}
+		if (source.arguments.has(REST_GROUP.ARGS_URI.group)) {
+			arguments.putObject(REST_GROUP.ARGS_URI.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_URI.group));
+		}
+		if (source.arguments.has(REST_GROUP.ARGS_COOKIE.group)) {
+			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
 		}
 		logger.debug("DEBUG: {}\n {}", arguments, source);
 	}
 	
 	public String getUri() {
-		return arguments.path(ARG_PATH).asText();
+		return arguments.path(REST_ROOT_FIELD.ARG_PATH.field).asText();
 	}
 	public String getBaseUri() {
-		return arguments.path(ARG_BASEPATH).asText();
+		return arguments.path(REST_ROOT_FIELD.ARG_BASEPATH.field).asText();
 	}
 	/**
 	 * 
 	 * @return An iterator of JsonNode, which values can be retrieved by item.asText()
 	 */
 	public Iterator<JsonNode> getSubUri() {
-		return arguments.path(ARGS_SUBPATH).elements();
+		return arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).elements();
 	}
 	public int getSubUriSize() {
-		return arguments.path(ARGS_SUBPATH).size();
+		return arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).size();
+	}
+	public void addSubUriToUriArgs(String name, int rank) {
+		ObjectNode node = getUriArgs();
+		JsonNode elt = arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).get(rank);
+		if (elt == null) {
+			node.put(name, elt);
+		}
+	}
+	public void addIdToUriArgs() {
+		addSubUriToUriArgs(REST_FIELD.JSON_ID.field, 0);
+	}
+	public JsonNode getId() {
+		return getUriArgs().path(REST_FIELD.JSON_ID.field);
+	}
+	public static JsonNode getId(ObjectNode node) {
+		return node.path(REST_FIELD.JSON_ID.field);
+	}
+	public long getLimitFromUri() {
+		return getUriArgs().path(DATAMODEL.JSON_LIMIT.field).asLong(100);
 	}
 	public String getXAuthKey() {
-		return arguments.path(ARG_X_AUTH_KEY).asText();
+		return arguments.path(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field).asText();
 	}
 	public String getXAuthUser() {
-		return arguments.path(ARG_X_AUTH_USER).asText();
+		return arguments.path(REST_ROOT_FIELD.ARG_X_AUTH_USER.field).asText();
 	}
 	public String getXAuthTimestamp() {
-		return arguments.path(ARG_X_AUTH_TIMESTAMP).asText();
+		return arguments.path(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field).asText();
 	}
 	public void setXAuthRole(RoleDefault role) {
-		arguments.put(ARG_X_AUTH_ROLE, role.getRoleAsByte());
+		arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_ROLE.field, role.getRoleAsByte());
 	}
 	public ROLE getXAuthRole() {
-		byte role = (byte) arguments.get(ARG_X_AUTH_ROLE).asInt();
+		byte role = (byte) arguments.get(REST_ROOT_FIELD.ARG_X_AUTH_ROLE.field).asInt();
 		return ROLE.fromByte(role);
 	}
 	/**
@@ -271,9 +378,9 @@ public class RestArgument {
 	 * @return The ObjectNode containing all couples key/value
 	 */
 	public ObjectNode getUriArgs() {
-		JsonNode node = arguments.path(ARGS_URI);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_URI.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_URI);
+			node = arguments.putObject(REST_GROUP.ARGS_URI.group);
 		}
 		return (ObjectNode) node;
 	}
@@ -283,9 +390,9 @@ public class RestArgument {
 	 * @return the method or null
 	 */
 	public METHOD getMethod() {
-		String text = arguments.path(ARG_METHOD).asText();
+		String text = arguments.path(REST_ROOT_FIELD.ARG_METHOD.field).asText();
 		if (text == null || text.isEmpty()) {
-			return null;
+			return METHOD.TRACE;
 		}
 		return METHOD.valueOf(text);
 	}
@@ -297,23 +404,23 @@ public class RestArgument {
 	 * @throws HttpIncorrectRequestException
 	 */
 	public void setHeaderArgs(List<Entry<String,String>> list) {
-		ObjectNode node = (ObjectNode) arguments.get(ARGS_HEADER);
+		ObjectNode node = (ObjectNode) arguments.get(REST_GROUP.ARGS_HEADER.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_HEADER);
+			node = arguments.putObject(REST_GROUP.ARGS_HEADER.group);
 		}
 		for (Entry<String, String> entry : list) {
 			String key = entry.getKey();
 			if (! key.equals(HttpHeaders.Names.COOKIE)) {
-				if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
-					arguments.put(ARG_X_AUTH_KEY, entry.getValue());
+				if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
+					arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, entry.getValue());
 					continue;
 				}
-				if (key.equalsIgnoreCase(ARG_X_AUTH_USER)) {
-					arguments.put(ARG_X_AUTH_USER, entry.getValue());
+				if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_USER.field)) {
+					arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field, entry.getValue());
 					continue;
 				}
-				if (key.equalsIgnoreCase(ARG_X_AUTH_TIMESTAMP)) {
-					arguments.put(ARG_X_AUTH_TIMESTAMP, entry.getValue());
+				if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field)) {
+					arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, entry.getValue());
 					continue;
 				}
 				node.put(entry.getKey(), entry.getValue());
@@ -325,9 +432,9 @@ public class RestArgument {
 	 * @return The ObjectNode containing all couples key/value
 	 */
 	public ObjectNode getHeaderArgs() {
-		JsonNode node = arguments.path(ARGS_HEADER);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_HEADER.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_HEADER);
+			node = arguments.putObject(REST_GROUP.ARGS_HEADER.group);
 		}
 		return (ObjectNode) node;
 	}
@@ -335,20 +442,20 @@ public class RestArgument {
 	 * set method From URI
 	 */
 	public void methodFromUri() {
-		JsonNode node = arguments.path(ARGS_URI).path(ARG_METHOD);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_URI.group).path(REST_ROOT_FIELD.ARG_METHOD.field);
 		if (! node.isMissingNode()) {
 			// override
-			arguments.put(ARG_METHOD, node.asText());
+			arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, node.asText());
 		}
 	}
 	/**
 	 * set method From Header
 	 */
 	public void methodFromHeader() {
-		JsonNode node = arguments.path(ARGS_HEADER).path(ARG_METHOD);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_HEADER.group).path(REST_ROOT_FIELD.ARG_METHOD.field);
 		if (! node.isMissingNode()) {
 			// override
-			arguments.put(ARG_METHOD, node.asText());
+			arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, node.asText());
 		}
 	}
 
@@ -365,7 +472,7 @@ public class RestArgument {
 			cookies = decoder.decode(cookieString);
 		}
 		if (!cookies.isEmpty()) {
-			ObjectNode node = arguments.putObject(ARGS_COOKIE);
+			ObjectNode node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
 			for (Cookie cookie : cookies) {
 				node.put(cookie.getName(), cookie.getValue());
 			}
@@ -376,9 +483,9 @@ public class RestArgument {
 	 * @return The ObjectNode containing all couples key/value
 	 */
 	public ObjectNode getCookieArgs() {
-		JsonNode node = arguments.path(ARGS_COOKIE);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_COOKIE.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_COOKIE);
+			node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
 		}
 		return (ObjectNode) node;
 	}
@@ -387,9 +494,9 @@ public class RestArgument {
 	 * @return The ObjectNode containing all couples key/value
 	 */
 	public ObjectNode getBody() {
-		JsonNode node = arguments.path(ARGS_BODY);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_BODY.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_BODY);
+			node = arguments.putObject(REST_GROUP.ARGS_BODY.group);
 		}
 		return (ObjectNode) node;
 	}
@@ -398,24 +505,127 @@ public class RestArgument {
 	 * @return The ObjectNode containing all couples key/value
 	 */
 	public ObjectNode getAnswer() {
-		JsonNode node = arguments.path(ARGS_ANSWER);
+		JsonNode node = arguments.path(REST_GROUP.ARGS_ANSWER.group);
 		if (node == null || node.isMissingNode()) {
-			node = arguments.putObject(ARGS_ANSWER);
+			node = arguments.putObject(REST_GROUP.ARGS_ANSWER.group);
 		}
 		return (ObjectNode) node;
 	}
-	public void addItem(String name, String value) {
-		getAnswer().put(name, value);
+	public void addAnswer(ObjectNode node) {
+		getAnswer().putAll(node);
 	}
-	public String getItem(String name) {
-		JsonNode node = getAnswer().get(name);
-		if (node == null || node.isMissingNode()) {
+	public void setResult(HttpResponseStatus status) {
+		arguments.put(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field, status.getReasonPhrase());
+		arguments.put(REST_ROOT_FIELD.JSON_STATUSCODE.field, status.getCode());
+	}
+	public int getStatusCode() {
+		return arguments.path(REST_ROOT_FIELD.JSON_STATUSCODE.field).asInt();
+	}
+	public String getStatusMessage() {
+		return arguments.path(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field).asText();
+	}
+	public void setDetail(String detail) {
+		arguments.put(REST_ROOT_FIELD.JSON_DETAIL.field, detail);
+	}
+	public String getDetail() {
+		return arguments.path(REST_ROOT_FIELD.JSON_DETAIL.field).asText();
+	}
+	public void setCommand(COMMAND_TYPE command) {
+		arguments.put(REST_ROOT_FIELD.JSON_COMMAND.field, command.name());
+	}
+	/**
+	 * 
+	 * @return the COMMAND_TYPE but might be null if not found
+	 */
+	public COMMAND_TYPE getCommand() {
+		String cmd = arguments.path(REST_ROOT_FIELD.JSON_COMMAND.field).asText();
+		if (cmd != null && ! cmd.isEmpty()) {
+			return COMMAND_TYPE.valueOf(cmd);
+		} else {
 			return null;
 		}
-		return node.asText();
 	}
-	public void addItems(ObjectNode node) {
-		getAnswer().putAll(node);
+	/**
+	 * 
+	 * @param filter the filter used in multi get
+	 */
+	public void addFilter(ObjectNode filter) {
+		getAnswer().putObject(DATAMODEL.JSON_FILTER.field).putAll(filter);
+	}
+	/**
+	 * 
+	 * @return the filter used in multi get
+	 */
+	public ObjectNode getFilter() {
+		return (ObjectNode) getAnswer().path(DATAMODEL.JSON_FILTER.field);
+	}
+	/**
+	 * 
+	 * @return the array of results (in DataModel multi get)
+	 */
+	public ArrayNode getResults() {
+		JsonNode node = getAnswer().path(DATAMODEL.JSON_RESULTS.field);
+		if (node == null || node.isMissingNode()) {
+			node = getAnswer().putArray(DATAMODEL.JSON_RESULTS.field);
+		}
+		return (ArrayNode) node;
+	}
+	/**
+	 * 
+	 * @param result added to the array of results (in DataModel multi get)
+	 */
+	public void addResult(ObjectNode result) {
+		getResults().add(result);
+	}
+	/**
+	 * 
+	 * @param count added to answer if > 0
+	 * @param limit added to answer
+	 */
+	public void addCountLimit(long count, long limit) {
+		ObjectNode node = getAnswer();
+		if (count >= 0) {
+			node.put(DATAMODEL.JSON_COUNT.field, count);
+		}
+		node.put(DATAMODEL.JSON_LIMIT.field, limit);
+	}
+	/**
+	 * 
+	 * @return the count of element (-1 if not found)
+	 */
+	public long getCount() {
+		return getAnswer().path(DATAMODEL.JSON_COUNT.field).asLong(-1);
+	}
+	public long getLimit() {
+		return getAnswer().path(DATAMODEL.JSON_LIMIT.field).asLong(100);
+	}
+	/**
+	 * Add options in answer
+	 * @param allow
+	 * @param path
+	 * @param detailedAllow
+	 */
+	public void addOptions(String allow, String path, ArrayNode detailedAllow) {
+		ObjectNode node = getAnswer();
+		node.put(HttpHeaders.Names.ALLOW, allow);
+		node.put(REST_FIELD.X_ALLOW_URIS.field, path);
+		if (detailedAllow != null) {
+			node.putArray(REST_FIELD.X_DETAILED_ALLOW.field).addAll(detailedAllow);
+		}
+	}
+	public String getAllowOption() {
+		return getAnswer().path(HttpHeaders.Names.ALLOW).asText();
+	}
+	public String getAllowUrisOption() {
+		return getAnswer().path(REST_FIELD.X_ALLOW_URIS.field).asText();
+	}
+	public ArrayNode getDetailedAllowOption() {
+		JsonNode node = getAnswer().path(REST_FIELD.X_DETAILED_ALLOW.field);
+		if (node.isMissingNode()) {
+			return JsonHandler.createArrayNode();
+		} else {
+			return (ArrayNode) node;
+		}
 	}
 	/**
 	 * The encoder is completed with extra necessary URI part containing ARG_X_AUTH_TIMESTAMP & ARG_X_AUTH_KEY
@@ -438,11 +648,11 @@ public class RestArgument {
 			}
 		}
 		DateTime date = new DateTime();
-		treeMap.put(ARG_X_AUTH_TIMESTAMP.toLowerCase(), date.toString());
+		treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field.toLowerCase(), date.toString());
 		try {
 			String key = computeKey(extraKey, treeMap, decoderQuery.getPath());
-			encoder.addParam(ARG_X_AUTH_TIMESTAMP, date.toString());
-			encoder.addParam(ARG_X_AUTH_KEY, key);
+			encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, date.toString());
+			encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, key);
 		} catch (Exception e) {
 			throw new HttpInvalidAuthenticationException(e);
 		}
@@ -462,37 +672,48 @@ public class RestArgument {
 	 */
 	public void checkBaseAuthent(String extraKey, long maxInterval) throws HttpInvalidAuthenticationException {
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
+		logger.warn("befCheck: "+arguments);
 		String argPath = getUri();
 		ObjectNode arguri = getUriArgs();
+		logger.warn("befCheck2: "+arguri);
 		if (arguri == null) {
 			throw new HttpInvalidAuthenticationException("Not enough argument");
 		}
-		Iterator<String> iteratorKey = arguri.fieldNames();
+		Iterator<Entry<String, JsonNode>> iterator = arguri.fields();
 		DateTime dateTime = new DateTime();
 		DateTime received = null;
-		while (iteratorKey.hasNext()) {
-			String key = iteratorKey.next();
-			if (key.equalsIgnoreCase(ARG_X_AUTH_KEY)) {
+		while (iterator.hasNext()) {
+			Entry<String, JsonNode> entry = iterator.next();
+			logger.warn("entry: "+entry.getKey()+":"+entry.getValue());
+			String key = entry.getKey();
+			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
 				continue;
 			}
-			if (key.equalsIgnoreCase(ARG_X_AUTH_TIMESTAMP)) {
-				received = DateTime.parse(arguri.get(ARG_X_AUTH_TIMESTAMP).asText());
+			JsonNode values = entry.getValue();
+			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field)) {
+				received = DateTime.parse(values.asText());
 			}
 			String keylower = key.toLowerCase();
-			ArrayNode values = (ArrayNode) arguri.get(key);
 			if (values != null && values.size() > 0) {
-				JsonNode jsonNode = values.get(values.size()-1);
-				treeMap.put(keylower, jsonNode.asText());
+				String val = null;
+				if (values.isArray()) {
+					JsonNode jsonNode = values.get(values.size()-1);
+					val = jsonNode.asText();
+				} else {
+					val = values.asText();
+				}
+				logger.warn("befCheck3: "+keylower+":"+val);
+				treeMap.put(keylower, val);
 			}
 		}
 		if (received == null) {
 			String date = getXAuthTimestamp();
 			received = DateTime.parse(date);
-			treeMap.put(ARG_X_AUTH_TIMESTAMP.toLowerCase(), date);
+			treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field.toLowerCase(), date);
 		}
 		String user = getXAuthUser();
 		if (user != null && ! user.isEmpty()) {
-			treeMap.put(ARG_X_AUTH_USER.toLowerCase(), user);
+			treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field.toLowerCase(), user);
 		}
 		if (maxInterval > 0 && received != null) {
 			Duration duration = new Duration(received, dateTime);
@@ -516,6 +737,7 @@ public class RestArgument {
 	 * @throws HttpInvalidAuthenticationException
 	 */
 	protected static String computeKey(String extraKey, TreeMap<String, String> treeMap, String argPath) throws HttpInvalidAuthenticationException {
+		logger.warn("Source: "+extraKey+":"+treeMap+":"+argPath);
 		Set<String> keys = treeMap.keySet();
 		StringBuilder builder = new StringBuilder(argPath);
 		if (! keys.isEmpty() || extraKey != null) {
@@ -536,11 +758,11 @@ public class RestArgument {
 			if (!keys.isEmpty()) {
 				builder.append("&");
 			}
-			builder.append(ARG_X_AUTH_INTERNALKEY);
+			builder.append(REST_ROOT_FIELD.ARG_X_AUTH_INTERNALKEY.field);
 			builder.append("=");
 			builder.append(extraKey);
 		}
-		logger.debug("to sign: {}", builder);
+		logger.warn("to sign: {}", builder);
 		try {
 			return hmacSha256.cryptToHex(builder.toString());
 		} catch (Exception e) {
@@ -553,4 +775,18 @@ public class RestArgument {
 		return JsonHandler.writeAsString(arguments);
 	}
 
+	public String prettyPrint() {
+		return JsonHandler.prettyPrint(arguments);
+	}
+	
+	public static ObjectNode fillDetailedAllow(METHOD method, String path, String command, ObjectNode json) {
+		ObjectNode node = JsonHandler.createObjectNode();
+		ObjectNode node2 = node.putObject(method.name());
+		node2.put(REST_FIELD.JSON_PATH.field, "/"+path);
+		node2.put(REST_ROOT_FIELD.JSON_COMMAND.field, command);
+		if (json != null) {
+			node2.putObject(RestArgument.REST_FIELD.JSON_JSON.field).putAll(json);
+		}
+		return node;
+	}
 }
