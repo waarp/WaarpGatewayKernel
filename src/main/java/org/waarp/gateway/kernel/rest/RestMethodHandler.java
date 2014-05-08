@@ -31,6 +31,8 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.multipart.FileUpload;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -48,6 +50,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  *
  */
 public abstract class RestMethodHandler {
+	/**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(RestMethodHandler.class);
+    
 	protected final String path;
 	protected final Set<METHOD> methods;
 	protected final boolean isBodyJsonDecode;
@@ -162,6 +170,7 @@ public abstract class RestMethodHandler {
 		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
 		response.setContent(buffer);
+		logger.debug("Msg ready");
 		ChannelFuture future = channel.write(response);
 		if (handler.isWillClose()) {
 			System.err.println("Will close session in RestMethodHandler");

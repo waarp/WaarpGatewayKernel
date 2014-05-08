@@ -295,7 +295,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
 		E item = getItem(handler, arguments, result, body);
 		try {
-			item.setFromJson(result.getBody(), true);
+			item.setFromJson(arguments.getBody(), true);
 		} catch (WaarpDatabaseSqlException e) {
 			throw new HttpIncorrectRequestException("Issue while using Json formatting", e);
 		}

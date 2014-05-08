@@ -21,6 +21,7 @@ package org.waarp.gateway.kernel.rest;
 
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbConstant;
+import org.waarp.common.database.DbSession;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -31,7 +32,6 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpMethodNotAllowedRequestException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
-import org.waarp.gateway.kernel.session.RestSession;
 
 import java.io.File;
 import java.io.IOException;
@@ -205,12 +205,13 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		RestArgument.initializeKey(keyFile);
 	}
 
-    protected RestSession session = null;
 	protected HttpPostRequestDecoder decoder = null;
 	protected HttpResponseStatus status = HttpResponseStatus.OK;
 
 	protected HttpRequest request = null;
 	protected RestMethodHandler handler = null;
+	
+	protected volatile DbSession dbSession = null;
 	
 	private volatile boolean willClose = false;
 
@@ -276,12 +277,13 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			decoder.cleanFiles();
 			decoder = null;
 		}
-		if (session != null) {
-			session.setLogid(DbConstant.ILLEGALVALUE);
-		}
 		handler = null;
 		cumulativeBody = null;
 		jsonObject = null;
+		if (dbSession != null) {
+			dbSession.enUseConnectionNoDisconnect();
+			dbSession = null;
+		}
 	}
 
 	/**
@@ -292,9 +294,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	protected void initialize() {
 		// clean previous FileUpload if Any
 		clean();
-        if (session == null) {
-        	session = new RestSession();
-        }
 		status = HttpResponseStatus.OK;
 		request = null;
 		setWillClose(false);
@@ -303,6 +302,13 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		response = new RestArgument(JsonHandler.createObjectNode());
 	}
 
+	/**
+	 * 
+	 * @return the DbSession associated with the current request (might be Admin dbSession if none)
+	 */
+	public DbSession getDbSession() {
+		return dbSession == null ? DbConstant.admin.session : dbSession;
+	}
 
 	/**
 	 * To be used for instance to check correctness of connection<br>
@@ -370,6 +376,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+        logger.debug("Msg Received");
 		Channel channel = ctx.getChannel();
 		try {
 			if (!readingChunks) {
@@ -393,7 +400,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 					if (! handler.isBodyJsonDecoded()) {
 						createDecoder();
 					}
-					logger.warn("to be chunk");
 					return;
 				} else {
 					if (handler.isBodyJsonDecoded()) {
@@ -521,7 +527,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			status = HttpResponseStatus.NOT_ACCEPTABLE;
 			throw new HttpIncorrectRequestException(e1);
 		}
-		logger.warn("readAll: "+ (datas != null ? datas.size() : "no element"));
 		for (InterfaceHttpData data : datas) {
 			readHttpData(data);
 		}
@@ -629,7 +634,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		HttpChunk chunk = (HttpChunk) e.getMessage();
 		if (handler.isBodyJsonDecoded()) {
 			ChannelBuffer buffer = chunk.getContent();
-			logger.warn("new chunk");
 			if (cumulativeBody != null) {
 				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, buffer);
 			} else {
@@ -670,6 +674,7 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
 		clean();
+        logger.debug("Cleaned");
 	}
 
 	/**

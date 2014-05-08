@@ -60,7 +60,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Rest object that contains all arguments or answers once all tasks are over:</br>
  * - ARG_HASBODY, ARG_METHOD, ARG_PATH, ARG_BASEPATH, ARGS_SUBPATH, ARG_X_AUTH_KEY, ARG_X_AUTH_USER, ARG_X_AUTH_TIMESTAMP, ARG_X_AUTH_ROLE: root elements (query only)</br>
- * - ARG_METHOD, ARG_PATH, ARG_BASEPATH, ARGS_SUBPATH, ARG_X_AUTH_USER, JSON_STATUSMESSAGE, JSON_STATUSCODE: root elements (answer only)</br>
+ * - ARG_METHOD, ARG_PATH, ARG_BASEPATH, ARGS_SUBPATH, ARG_X_AUTH_USER, JSON_STATUSMESSAGE, JSON_STATUSCODE, JSON_COMMAND: root elements (answer only)</br>
  * - ARGS_URI: uri elements (query only)</br>
  * - ARGS_HEADER: header elements (query only)</br>
  * - ARG_COOKIE: cookie elements</br>
@@ -319,6 +319,7 @@ public class RestArgument {
 		if (source.arguments.has(REST_GROUP.ARGS_COOKIE.group)) {
 			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
 		}
+		
 		logger.debug("DEBUG: {}\n {}", arguments, source);
 	}
 	
@@ -341,7 +342,7 @@ public class RestArgument {
 	public void addSubUriToUriArgs(String name, int rank) {
 		ObjectNode node = getUriArgs();
 		JsonNode elt = arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).get(rank);
-		if (elt == null) {
+		if (elt != null) {
 			node.put(name, elt);
 		}
 	}
@@ -394,7 +395,11 @@ public class RestArgument {
 		if (text == null || text.isEmpty()) {
 			return METHOD.TRACE;
 		}
-		return METHOD.valueOf(text);
+		try {
+			return METHOD.valueOf(text);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	
 
@@ -533,6 +538,16 @@ public class RestArgument {
 	public void setCommand(COMMAND_TYPE command) {
 		arguments.put(REST_ROOT_FIELD.JSON_COMMAND.field, command.name());
 	}
+	public void setCommand(String cmd) {
+		arguments.put(REST_ROOT_FIELD.JSON_COMMAND.field, cmd);
+	}
+	/**
+	 * 
+	 * @return the COMMAND field, to be transformed either into COMMAND_TYPE or ACTIONS_TYPE
+	 */
+	public String getCommandField() {
+		return arguments.path(REST_ROOT_FIELD.JSON_COMMAND.field).asText();
+	}
 	/**
 	 * 
 	 * @return the COMMAND_TYPE but might be null if not found
@@ -540,11 +555,16 @@ public class RestArgument {
 	public COMMAND_TYPE getCommand() {
 		String cmd = arguments.path(REST_ROOT_FIELD.JSON_COMMAND.field).asText();
 		if (cmd != null && ! cmd.isEmpty()) {
-			return COMMAND_TYPE.valueOf(cmd);
+			try {
+				return COMMAND_TYPE.valueOf(cmd);
+			} catch (Exception e) {
+				return null;
+			}
 		} else {
 			return null;
 		}
 	}
+	
 	/**
 	 * 
 	 * @param filter the filter used in multi get
@@ -631,7 +651,7 @@ public class RestArgument {
 	 * The encoder is completed with extra necessary URI part containing ARG_X_AUTH_TIMESTAMP & ARG_X_AUTH_KEY
 	 * 
 	 * @param encoder
-	 * @param extraKey
+	 * @param extraKey might be null
 	 * 
 	 * @throws HttpInvalidAuthenticationException if the computation of the authentication failed
 	 */
@@ -666,16 +686,14 @@ public class RestArgument {
      * 3) Compute an hash (SHA-1 or SHA-256)<br>
      * 4) Compare this hash with ARG_X_AUTH_KEY<br>
      * 
-     * @param extraKey will be added as ARG_X_AUTH_INTERNALKEY
+     * @param extraKey will be added as ARG_X_AUTH_INTERNALKEY might be null
      * @param maxInterval ARG_X_AUTH_TIMESTAMP will be tested if value > 0
 	 * @throws HttpInvalidAuthenticationException if the authentication failed
 	 */
 	public void checkBaseAuthent(String extraKey, long maxInterval) throws HttpInvalidAuthenticationException {
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
-		logger.warn("befCheck: "+arguments);
 		String argPath = getUri();
 		ObjectNode arguri = getUriArgs();
-		logger.warn("befCheck2: "+arguri);
 		if (arguri == null) {
 			throw new HttpInvalidAuthenticationException("Not enough argument");
 		}
@@ -684,7 +702,6 @@ public class RestArgument {
 		DateTime received = null;
 		while (iterator.hasNext()) {
 			Entry<String, JsonNode> entry = iterator.next();
-			logger.warn("entry: "+entry.getKey()+":"+entry.getValue());
 			String key = entry.getKey();
 			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
 				continue;
@@ -694,7 +711,7 @@ public class RestArgument {
 				received = DateTime.parse(values.asText());
 			}
 			String keylower = key.toLowerCase();
-			if (values != null && values.size() > 0) {
+			if (values != null) {
 				String val = null;
 				if (values.isArray()) {
 					JsonNode jsonNode = values.get(values.size()-1);
@@ -702,7 +719,6 @@ public class RestArgument {
 				} else {
 					val = values.asText();
 				}
-				logger.warn("befCheck3: "+keylower+":"+val);
 				treeMap.put(keylower, val);
 			}
 		}
@@ -731,13 +747,12 @@ public class RestArgument {
 	}
 
 	/**
-	 * @param extraKey
+	 * @param extraKey might be null
 	 * @param treeMap
 	 * @param argPath
 	 * @throws HttpInvalidAuthenticationException
 	 */
 	protected static String computeKey(String extraKey, TreeMap<String, String> treeMap, String argPath) throws HttpInvalidAuthenticationException {
-		logger.warn("Source: "+extraKey+":"+treeMap+":"+argPath);
 		Set<String> keys = treeMap.keySet();
 		StringBuilder builder = new StringBuilder(argPath);
 		if (! keys.isEmpty() || extraKey != null) {
@@ -762,7 +777,6 @@ public class RestArgument {
 			builder.append("=");
 			builder.append(extraKey);
 		}
-		logger.warn("to sign: {}", builder);
 		try {
 			return hmacSha256.cryptToHex(builder.toString());
 		} catch (Exception e) {
