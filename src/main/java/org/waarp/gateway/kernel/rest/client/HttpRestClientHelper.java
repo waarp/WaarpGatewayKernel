@@ -151,7 +151,7 @@ public class HttpRestClientHelper {
 	 * @param user user to use in authenticated Rest procedure (might be null)
 	 * @param pwd password to use in authenticated Rest procedure (might be null)
 	 * @param uriArgs arguments for Uri if any (might be null)
-	 * @param json json to send as body in the request (might be null)
+	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
 	 * @return the RestFuture associated with this request
 	 */
 	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {

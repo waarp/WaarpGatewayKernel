@@ -429,6 +429,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.BAD_REQUEST;
 			}
 			logger.warn("Error", e1);
+			if (response.getDetail().isEmpty()) {
+				response.setDetail(e1.getMessage());
+			}
 			if (handler != null) {
 				finalizeSend(channel);
 			} else {
@@ -442,6 +445,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.METHOD_NOT_ALLOWED;
 			}
 			logger.warn("Error", e1);
+			if (response.getDetail().isEmpty()) {
+				response.setDetail(e1.getMessage());
+			}
 			if (handler != null) {
 				finalizeSend(channel);
 			} else {
@@ -455,6 +461,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.FORBIDDEN;
 			}
 			logger.warn("Error", e1);
+			if (response.getDetail().isEmpty()) {
+				response.setDetail(e1.getMessage());
+			}
 			if (handler != null) {
 				finalizeSend(channel);
 			} else {
@@ -468,6 +477,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.UNAUTHORIZED;
 			}
 			logger.warn("Error", e1);
+			if (response.getDetail().isEmpty()) {
+				response.setDetail(e1.getMessage());
+			}
 			if (handler != null) {
 				finalizeSend(channel);
 			} else {
@@ -481,6 +493,9 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 				status = HttpResponseStatus.NOT_FOUND;
 			}
 			logger.warn("Error", e1);
+			if (response.getDetail().isEmpty()) {
+				response.setDetail(e1.getMessage());
+			}
 			if (handler != null) {
 				finalizeSend(channel);
 			} else {

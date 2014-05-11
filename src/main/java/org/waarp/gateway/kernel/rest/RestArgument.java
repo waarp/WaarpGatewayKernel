@@ -161,7 +161,7 @@ public class RestArgument {
     public static enum REST_FIELD {
     	JSON_RESULT("result"),
     	JSON_PATH("path"),
-    	JSON_JSON("json"),
+    	JSON_JSON("body"),
     	X_DETAILED_ALLOW("DetailedAllow"),
     	X_ALLOW_URIS("UriAllowed"),
 		JSON_ID("_id");
@@ -793,13 +793,16 @@ public class RestArgument {
 		return JsonHandler.prettyPrint(arguments);
 	}
 	
-	public static ObjectNode fillDetailedAllow(METHOD method, String path, String command, ObjectNode json) {
+	public static ObjectNode fillDetailedAllow(METHOD method, String path, String command, ObjectNode body, JsonNode result) {
 		ObjectNode node = JsonHandler.createObjectNode();
 		ObjectNode node2 = node.putObject(method.name());
 		node2.put(REST_FIELD.JSON_PATH.field, "/"+path);
 		node2.put(REST_ROOT_FIELD.JSON_COMMAND.field, command);
-		if (json != null) {
-			node2.putObject(RestArgument.REST_FIELD.JSON_JSON.field).putAll(json);
+		if (body != null) {
+			node2.set(RestArgument.REST_FIELD.JSON_JSON.field, body);
+		}
+		if (result != null) {
+			node2.set(RestArgument.REST_GROUP.ARGS_ANSWER.group, result);
 		}
 		return node;
 	}
