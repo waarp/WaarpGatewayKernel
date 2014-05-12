@@ -170,11 +170,9 @@ public class HttpRestClientHelper {
 				encoder.addParam(elt.getKey(), elt.getValue());
 			}
         }
-        if (user != null) {
-        	encoder.addParam(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
-        }
+        String [] result = null;
         try {
-			RestArgument.getBaseAuthent(encoder, pwd);
+			result = RestArgument.getBaseAuthent(encoder, user, pwd);
 			logger.debug("Authent encoded");
 		} catch (HttpInvalidAuthenticationException e) {
 			logger.error(e.getMessage(), e);
@@ -196,6 +194,11 @@ public class HttpRestClientHelper {
         // it is legal to add directly header or cookie into the request until finalize
         request.headers().add(this.headers);
         request.headers().set(HttpHeaders.Names.HOST, host);
+        if (user != null) {
+            request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+        }
+        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
+        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
         if (json != null) {
     		logger.debug("Add body");
         	ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));

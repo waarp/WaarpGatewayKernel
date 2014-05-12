@@ -189,15 +189,28 @@ public class RestArgument {
 	 *
 	 */
 	protected static final HmacSha256 hmacSha256 = new HmacSha256();
+	/**
+	 * Set Key from String directly
+	 * @param authentKey
+	 */
 	public static void initializeKey(String authentKey) {
 		hmacSha256.setSecretKey(authentKey.getBytes(WaarpStringUtils.UTF8));
 	}
+	/**
+	 * Set Key from file
+	 * @param authentKey
+	 * @throws CryptoException
+	 * @throws IOException
+	 */
 	public static void initializeKey(File authentKey) throws CryptoException, IOException {
 		hmacSha256.setSecretKey(authentKey);
 	}
 	
 	ObjectNode arguments;
-	
+	/**
+	 * Create a RestArgument
+	 * @param emptyArgument might be null, but might be also already initialized with some values
+	 */
 	public RestArgument(ObjectNode emptyArgument) {
 		if (emptyArgument == null) {
 			arguments = JsonHandler.createObjectNode();
@@ -205,11 +218,17 @@ public class RestArgument {
 			arguments = emptyArgument;
 		}
 	}
-	
+	/**
+	 * Clean all internal values
+	 */
 	public void clean() {
 		arguments.removeAll();
 	}
 
+	/**
+	 * Set values according to the request URI
+	 * @param request
+	 */
 	public void setRequest(HttpRequest request) {
 		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
 		arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, request.getMethod().getName());
@@ -322,10 +341,17 @@ public class RestArgument {
 		
 		logger.debug("DEBUG: {}\n {}", arguments, source);
 	}
-	
+	/**
+	 * 
+	 * @return the full Path of the URI
+	 */
 	public String getUri() {
 		return arguments.path(REST_ROOT_FIELD.ARG_PATH.field).asText();
 	}
+	/**
+	 * 
+	 * @return the base Path of the URI (first item between '/')
+	 */
 	public String getBaseUri() {
 		return arguments.path(REST_ROOT_FIELD.ARG_BASEPATH.field).asText();
 	}
@@ -523,15 +549,27 @@ public class RestArgument {
 		arguments.put(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field, status.getReasonPhrase());
 		arguments.put(REST_ROOT_FIELD.JSON_STATUSCODE.field, status.getCode());
 	}
+	/**
+	 * 
+	 * @return the Http Status code
+	 */
 	public int getStatusCode() {
 		return arguments.path(REST_ROOT_FIELD.JSON_STATUSCODE.field).asInt();
 	}
+	/**
+	 * 
+	 * @return the Http Status message according to the Http Status code
+	 */
 	public String getStatusMessage() {
 		return arguments.path(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field).asText();
 	}
 	public void setDetail(String detail) {
 		arguments.put(REST_ROOT_FIELD.JSON_DETAIL.field, detail);
 	}
+	/**
+	 * 
+	 * @return the detail information on error (mainly)
+	 */
 	public String getDetail() {
 		return arguments.path(REST_ROOT_FIELD.JSON_DETAIL.field).asText();
 	}
@@ -550,7 +588,7 @@ public class RestArgument {
 	}
 	/**
 	 * 
-	 * @return the COMMAND_TYPE but might be null if not found
+	 * @return the COMMAND_TYPE but might be null if not found or if of ACTIONS_TYPE
 	 */
 	public COMMAND_TYPE getCommand() {
 		String cmd = arguments.path(REST_ROOT_FIELD.JSON_COMMAND.field).asText();
@@ -651,11 +689,12 @@ public class RestArgument {
 	 * The encoder is completed with extra necessary URI part containing ARG_X_AUTH_TIMESTAMP & ARG_X_AUTH_KEY
 	 * 
 	 * @param encoder
+	 * @param user might be null
 	 * @param extraKey might be null
-	 * 
+	 * @return an array of 2 value in order ARG_X_AUTH_TIMESTAMP and ARG_X_AUTH_KEY
 	 * @throws HttpInvalidAuthenticationException if the computation of the authentication failed
 	 */
-	public static void getBaseAuthent(QueryStringEncoder encoder, String extraKey) throws HttpInvalidAuthenticationException {
+	public static String[] getBaseAuthent(QueryStringEncoder encoder, String user, String extraKey) throws HttpInvalidAuthenticationException {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(encoder.toString());
 		Map<String, List<String>> map = decoderQuery.getParameters();
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
@@ -669,10 +708,15 @@ public class RestArgument {
 		}
 		DateTime date = new DateTime();
 		treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field.toLowerCase(), date.toString());
+		if (user != null) {
+			treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field.toLowerCase(), user);
+		}
 		try {
 			String key = computeKey(extraKey, treeMap, decoderQuery.getPath());
-			encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, date.toString());
-			encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, key);
+			String [] result = { date.toString(), key };
+			return result;
+			/* encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, date.toString());
+			encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, key); */
 		} catch (Exception e) {
 			throw new HttpInvalidAuthenticationException(e);
 		}
