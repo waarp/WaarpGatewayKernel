@@ -33,6 +33,7 @@ import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.exception.HttpMethodNotAllowedRequestException;
 import org.waarp.gateway.kernel.exception.HttpNotFoundRequestException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.HashMap;
@@ -192,8 +193,10 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * @throws IOException 
 	 * @throws CryptoException 
 	 */
-	public static void initialize(String tempPath) throws CryptoException, IOException {
+	public static void initialize(String tempPath) {
 		TempPath = tempPath;
+		File file = new File(tempPath);
+		file.mkdirs();
 		DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
 															// on exit (in normal
 															// exit)
