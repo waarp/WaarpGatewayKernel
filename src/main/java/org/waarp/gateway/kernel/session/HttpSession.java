@@ -17,13 +17,27 @@
  */
 package org.waarp.gateway.kernel.session;
 
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.waarp.common.command.exception.CommandAbstractException;
+import org.waarp.common.file.DirInterface;
+import org.waarp.common.file.FileParameterInterface;
+import org.waarp.common.file.Restart;
+import org.waarp.common.file.SessionInterface;
+import org.waarp.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
+import org.waarp.gateway.kernel.commonfile.CommonDirImpl;
+import org.waarp.gateway.kernel.commonfile.FilesystemBasedFileParameterImpl;
+import org.waarp.gateway.kernel.database.DbConstant;
 
 /**
  * @author Frederic Bregier
  * 
  */
-public class HttpSession extends RestSession {
+public class HttpSession implements SessionInterface {
+	protected HttpAuthInterface httpAuth;
+	protected long logid = DbConstant.ILLEGALVALUE;
+	protected CommonDirImpl dir;
+	HttpMethod method;
 	private String cookieSession;
 	private PageRole currentCommand;
 	protected String filename;
@@ -33,6 +47,86 @@ public class HttpSession extends RestSession {
 	public HttpSession() {
 	}
 
+	/**
+	 * @return the method
+	 */
+	public HttpMethod getMethod() {
+		return method;
+	}
+
+	/**
+	 * @param method the method to set
+	 */
+	public void setMethod(HttpMethod method) {
+		this.method = method;
+	}
+
+
+	/**
+	 * @param httpAuth
+	 *            the httpAuth to set
+	 */
+	public void setHttpAuth(HttpAuthInterface httpAuth) {
+		this.httpAuth = httpAuth;
+		dir = new CommonDirImpl(this, new FilesystemBasedOptsMLSxImpl());
+		try {
+			dir.changeDirectoryNotChecked(httpAuth.getUser());
+			dir.changeDirectoryNotChecked(httpAuth.getAccount());
+		} catch (CommandAbstractException e) {
+		}
+	}
+
+	@Override
+	public HttpAuthInterface getAuth() {
+		return this.httpAuth;
+	}
+
+	@Override
+	public void clear() {
+		if (httpAuth != null) {
+			httpAuth.clear();
+		}
+	}
+
+	@Override
+	public int getBlockSize() {
+		return 8192; // HttpChunk size
+	}
+
+	@Override
+	public FileParameterInterface getFileParameter() {
+		return FilesystemBasedFileParameterImpl.fileParameterInterface;
+	}
+
+	@Override
+	public Restart getRestart() {
+		return null;
+	}
+
+	@Override
+	public String getUniqueExtension() {
+		return ".postu";
+	}
+
+	/**
+	 * @return the logid
+	 */
+	public long getLogid() {
+		return logid;
+	}
+
+	/**
+	 * @param logid
+	 *            the logid to set
+	 */
+	public void setLogid(long logid) {
+		this.logid = logid;
+	}
+
+	@Override
+	public DirInterface getDir() {
+		return dir;
+	}
 	/**
 	 * @return the currentCommand
 	 */
@@ -80,6 +174,6 @@ public class HttpSession extends RestSession {
 
 
 	public String toString() {
-		return "Command: " + currentCommand.name() + " Filename: " + filename;
+		return "Command: " + currentCommand.name() + " Filename: " + filename+ " LogId: " + logid;
 	}
 }

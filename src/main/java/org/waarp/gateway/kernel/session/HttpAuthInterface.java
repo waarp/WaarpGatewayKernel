@@ -22,7 +22,6 @@ import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply502Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.file.AuthInterface;
-import org.waarp.gateway.kernel.exec.AbstractExecutor.CommandExecutor;
 
 /**
  * @author Frederic Bregier
@@ -52,5 +51,5 @@ public interface HttpAuthInterface extends AuthInterface {
 	 * 
 	 * @return the CommandExecutor associated with the current Auth
 	 */
-	public CommandExecutor getCommandExecutor();
+	public CommandExecutorInterface getCommandExecutor();
 }

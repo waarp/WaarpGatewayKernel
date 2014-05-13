@@ -141,10 +141,6 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()
-	 */
 	@Override
 	public void resetSequence(DbSession session, long newvalue)
 			throws WaarpDatabaseNoConnectionException {
@@ -165,10 +161,6 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 		System.out.println(action);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.model.DbModel#nextSequence()
-	 */
 	@Override
 	public synchronized long nextSequence(DbSession dbSession)
 			throws WaarpDatabaseNoConnectionException,
