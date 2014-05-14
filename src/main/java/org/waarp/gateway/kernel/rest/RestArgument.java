@@ -722,6 +722,27 @@ public class RestArgument {
 		}
 		
 	}
+	
+	/**
+	 * Check Time only
+	 * @param maxInterval
+	 * @throws HttpInvalidAuthenticationException
+	 */
+	public void checkTime(long maxInterval) throws HttpInvalidAuthenticationException {
+		DateTime dateTime = new DateTime();
+		String date = getXAuthTimestamp();
+		if (date != null && ! date.isEmpty()) {
+			DateTime received = DateTime.parse(date);
+			if (maxInterval > 0) {
+				Duration duration = new Duration(received, dateTime);
+				if (Math.abs(duration.getMillis()) >= maxInterval) {
+					throw new HttpInvalidAuthenticationException("timestamp is not compatible with the maximum delay allowed");
+				}
+			}
+		} else if (maxInterval > 0) {
+			throw new HttpInvalidAuthenticationException("timestamp absent while required");
+		}
+	}
     /**
      * This implementation of authentication is as follow: if X_AUTH is included in the URI or Header<br>
      * 0) Check that timestamp is correct (|curtime - timestamp| < maxinterval) from ARG_X_AUTH_TIMESTAMP, if maxInterval is 0, not mandatory<br>
