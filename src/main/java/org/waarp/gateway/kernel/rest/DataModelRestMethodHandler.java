@@ -70,6 +70,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		super(name, true, METHOD.GET, METHOD.PUT, METHOD.POST, METHOD.DELETE, METHOD.OPTIONS);
 		this.allowDelete = allowDelete;
 	}
+	
+	protected abstract void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
+			RestArgument result, METHOD method) throws HttpForbiddenRequestException;
 
 	/**
 	 * allowed: GET iff name or name/id, PUT iff name/id, POST iff name (no id), 
@@ -79,6 +82,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	public void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
 			RestArgument result) throws HttpForbiddenRequestException {
 		METHOD method = arguments.getMethod();
+		checkAuthorization(handler, arguments, result, method);
 		boolean hasOneExtraPathAsId = arguments.getSubUriSize() == 1;
 		boolean hasNoExtraPath = arguments.getSubUriSize() == 0;
 		if (hasOneExtraPathAsId) {
