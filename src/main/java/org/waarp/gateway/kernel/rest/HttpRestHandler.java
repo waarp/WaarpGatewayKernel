@@ -184,9 +184,6 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 
 	public static ChannelGroup group = null;
 	
-	public static HashMap<String, RestMethodHandler> restHashMap = 
-			new HashMap<String, RestMethodHandler>();
-	
 	/**
 	 * Initialize the Disk support
 	 * @param tempPath system temp directory
@@ -206,7 +203,13 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 														// exit (in normal exit)
 		DiskAttribute.baseDirectory = TempPath; // system temp directory
 	}
+	
+	public static RestConfiguration defaultConfiguration = new RestConfiguration();
 
+	public HashMap<String, RestMethodHandler> restHashMap = null;
+	public final RestConfiguration restConfiguration;
+	protected RootOptionsRestMethodHandler rootHandler;
+	
 	protected HttpPostRequestDecoder decoder = null;
 	protected HttpResponseStatus status = HttpResponseStatus.OK;
 
@@ -235,6 +238,11 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 	 * Cumulative chunks
 	 */
 	protected ChannelBuffer cumulativeBody = null;
+	
+	public HttpRestHandler(RestConfiguration config) {
+		this.restConfiguration = config;
+		rootHandler = new RootOptionsRestMethodHandler(config);
+	}
 	
 	protected static class HttpCleanChannelFutureListener implements ChannelFutureListener {
 		protected final HttpRestHandler handler;
@@ -358,15 +366,12 @@ public abstract class HttpRestHandler extends SimpleChannelUpstreamHandler {
 		RestMethodHandler handler = restHashMap.get(uri);
 		if (handler != null) {
 			handler.checkHandlerSessionCorrectness(this, arguments, response);
-			for (METHOD meth : handler.methods) {
-				if (meth == method) {
-					restFound = true;
-					break;
-				}
+			if (handler.isMethodIncluded(method)) {
+				restFound = true;
 			}
 		}
 		if (handler == null && method == METHOD.OPTIONS) {
-			handler = new RootOptionsRestMethodHandler();
+			handler = rootHandler;
 			// use Options default handler
 			restFound = true;
 		}

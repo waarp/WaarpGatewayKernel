@@ -44,8 +44,8 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 
 	public static final String ROOT = "root";
 
-	public RootOptionsRestMethodHandler() {
-		super("/", true, METHOD.OPTIONS);
+	public RootOptionsRestMethodHandler(RestConfiguration config) {
+		super(ROOT, "/", true, config, METHOD.OPTIONS);
 	}
 
 	public void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
@@ -76,7 +76,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 		result.setCommand(COMMAND_TYPE.OPTIONS);
 		METHOD [] realmethods = METHOD.values();
 		boolean []allMethods = new boolean[realmethods.length];
-		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
+		for (RestMethodHandler method : handler.restHashMap.values()) {
 			for (METHOD methoditem : method.methods) {
 				allMethods[methoditem.ordinal()] = true;
 			}
@@ -92,7 +92,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 			}
 		}
 		String allowUri = null;
-		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
+		for (RestMethodHandler method : handler.restHashMap.values()) {
 			if (allowUri == null) {
 				allowUri = method.path;
 			} else {
@@ -100,7 +100,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 			}
 		}
 		ArrayNode array = JsonHandler.createArrayNode();
-		for (RestMethodHandler method : HttpRestHandler.restHashMap.values()) {
+		for (RestMethodHandler method : handler.restHashMap.values()) {
 			ArrayNode array2 = method.getDetailedAllow();
 			if (method != this) {
 				array.addObject().putArray(method.path).addAll(array2);

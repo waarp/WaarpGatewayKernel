@@ -424,7 +424,7 @@ public class RestArgument {
 		try {
 			return METHOD.valueOf(text);
 		} catch (Exception e) {
-			return null;
+			return METHOD.TRACE;
 		}
 	}
 	

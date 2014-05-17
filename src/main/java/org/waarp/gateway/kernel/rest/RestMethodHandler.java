@@ -56,21 +56,67 @@ public abstract class RestMethodHandler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(RestMethodHandler.class);
     
+    protected final String name;
 	protected final String path;
 	protected final Set<METHOD> methods;
 	protected final boolean isBodyJsonDecode;
+	protected final RestConfiguration restConfiguration;
 	
-	public RestMethodHandler(String path, boolean isBodyJsonDecode, METHOD ...method) {
+	/**
+	 * @param name name associated with this Method Handler (to enable some HashMap or Enum classification)
+	 * @param path associated base Path
+	 * @param isBodyJsonDecode Is this method Handler using a Json as Body
+	 * @param config the associated configuration
+	 * @param method the associated methods
+	 */
+	public RestMethodHandler(String name, String path, boolean isBodyJsonDecode, RestConfiguration config, METHOD ...method) {
+		this.name = name;
 		this.path = path;
 		this.methods = new HashSet<HttpRestHandler.METHOD>();
+		setMethods(method);
+		setMethods(METHOD.OPTIONS);
+		this.isBodyJsonDecode = isBodyJsonDecode;
+		this.restConfiguration = config;
+	}
+	
+	protected void setMethods(METHOD ...method) {
 		for (METHOD method2 : method) {
 			methods.add(method2);
 		}
-		methods.add(METHOD.OPTIONS);
-		this.isBodyJsonDecode = isBodyJsonDecode;
 	}
-	
-	
+	/**
+	 * Will assign the intersection of both set of Methods
+	 * @param selectedMethods the selected Methods among available
+	 * @param validMethod the validMethod for this handler
+	 */
+	protected void setIntersectionMethods(METHOD []selectedMethods, METHOD ...validMethod) {
+		Set<METHOD> set = new HashSet<METHOD>();
+		for (METHOD method : validMethod) {
+			set.add(method);
+		}
+		Set<METHOD> set2 = new HashSet<METHOD>();
+		for (METHOD method : selectedMethods) {
+			set2.add(method);
+		}
+		set.retainAll(set2);
+		METHOD [] methodsToSet = set.toArray(new METHOD[0]);
+		setMethods(methodsToSet);
+	}
+
+	public String getName() {
+		return name;
+	}
+	public String getPath() {
+		return path;
+	}
+	/**
+	 * 
+	 * @param method
+	 * @return True if the Method is valid for this Handler
+	 */
+	public boolean isMethodIncluded(METHOD method) {
+		return methods.contains(method);
+	}
 	/**
 	 * Check the session (arguments, result) vs handler correctness, called before any BODY elements but after URI and HEADER.
 	 * 

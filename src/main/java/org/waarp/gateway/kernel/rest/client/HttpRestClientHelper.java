@@ -287,16 +287,17 @@ public class HttpRestClientHelper {
 	public static void main(String[] args) {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(HttpRestClientHelper.class);
-		if (args.length < 4) {
-			logger.error("Need more arguments: http://host:port/uri method user pwd [json]");
+		if (args.length < 5) {
+			logger.error("Need more arguments: http://host:port/uri method user pwd sign|nosign [json]");
 		}
 		String uri = args[0];
 		String meth = args[1];
 		String user = args[2];
 		String pwd = args[3];
+		boolean sign = args[4].equalsIgnoreCase("sign");
 		String json = null;
-		if (args.length > 4) {
-			json = args[4].replace("'", "\"");
+		if (args.length > 5) {
+			json = args[5].replace("'", "\"");
 		}
 		HttpMethod method = HttpMethod.valueOf(meth);
 		int port = -1;
@@ -318,7 +319,12 @@ public class HttpRestClientHelper {
 			logger.error("Cannot connect to "+host+" on port "+port);
 			return;
 		}
-		RestFuture future = client.sendQuery(channel, method, host, null, user, pwd, null, json);
+		RestFuture future = null;
+		if (sign) {
+			future = client.sendQuery(channel, method, host, null, user, pwd, null, json);
+		} else {
+			future = client.sendQuery(channel, method, host, null, user, null, json);
+		}
 		try {
 			future.await();
 		} catch (InterruptedException e) {

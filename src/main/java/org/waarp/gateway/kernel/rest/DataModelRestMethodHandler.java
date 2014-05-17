@@ -64,11 +64,9 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(DataModelRestMethodHandler.class);
 	
-    protected boolean allowDelete = false;
-    
-	public DataModelRestMethodHandler(String name, boolean allowDelete) {
-		super(name, true, METHOD.GET, METHOD.PUT, METHOD.POST, METHOD.DELETE, METHOD.OPTIONS);
-		this.allowDelete = allowDelete;
+	public DataModelRestMethodHandler(String name, RestConfiguration config, METHOD ...method) {
+		super(name, name, true, config, METHOD.OPTIONS);
+		setMethods(method);
 	}
 	
 	protected abstract void checkAuthorization(HttpRestHandler handler, RestArgument arguments,
@@ -82,6 +80,10 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	public void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
 			RestArgument result) throws HttpForbiddenRequestException {
 		METHOD method = arguments.getMethod();
+		if (! isMethodIncluded(method)) {
+			logger.warn("NotAllowed: "+method+":"+arguments.getUri()+":"+arguments.getUriArgs());
+			throw new HttpForbiddenRequestException("Unallowed Method: "+method);
+		}
 		checkAuthorization(handler, arguments, result, method);
 		boolean hasOneExtraPathAsId = arguments.getSubUriSize() == 1;
 		boolean hasNoExtraPath = arguments.getSubUriSize() == 0;
@@ -90,7 +92,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		}
 		switch (method) {
 			case DELETE:
-				if (allowDelete && hasOneExtraPathAsId) {
+				if (hasOneExtraPathAsId) {
 					return;
 				}
 				break;
