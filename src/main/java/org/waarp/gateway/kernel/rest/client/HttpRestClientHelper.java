@@ -20,6 +20,8 @@
  */
 package org.waarp.gateway.kernel.rest.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +46,9 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringEncoder;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.joda.time.DateTime;
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
+import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -144,7 +148,8 @@ public class HttpRestClientHelper {
 	}
 
 	/**
-	 * Send an HTTP query using the channel for target
+	 * Send an HTTP query using the channel for target, using signature
+	 * @param hmacSha256 SHA-256 key to create the signature
 	 * @param channel target of the query
 	 * @param method HttpMethod to use
 	 * @param host target of the query (shall be the same as for the channel)
@@ -155,7 +160,7 @@ public class HttpRestClientHelper {
 	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
 	 * @return the RestFuture associated with this request
 	 */
-	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {
+	public RestFuture sendQuery(HmacSha256 hmacSha256, Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {
 		// Prepare the HTTP request.
 		logger.debug("Prepare request: "+method+":"+addedUri+":"+json);
 		RestFuture future = ((RestFuture) channel.getAttachment());
@@ -173,7 +178,7 @@ public class HttpRestClientHelper {
         }
         String [] result = null;
         try {
-			result = RestArgument.getBaseAuthent(encoder, user, pwd);
+			result = RestArgument.getBaseAuthent(hmacSha256, encoder, user, pwd);
 			logger.debug("Authent encoded");
 		} catch (HttpInvalidAuthenticationException e) {
 			logger.error(e.getMessage(), e);
@@ -282,19 +287,34 @@ public class HttpRestClientHelper {
 	
 	/**
 	 * 
-	 * @param args as uri (http://host:port/uri user pwd [json])
+	 * @param args as uri (http://host:port/uri method user pwd sign=path|nosign [json])
 	 */
 	public static void main(String[] args) {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(HttpRestClientHelper.class);
 		if (args.length < 5) {
-			logger.error("Need more arguments: http://host:port/uri method user pwd sign|nosign [json]");
+			logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+			return;
 		}
 		String uri = args[0];
 		String meth = args[1];
 		String user = args[2];
 		String pwd = args[3];
-		boolean sign = args[4].equalsIgnoreCase("sign");
+		boolean sign = args[4].toLowerCase().contains("sign=");
+		HmacSha256 hmacSha256 = null;
+		if (sign) {
+			String file = args[4].replace("sign=", "");
+			hmacSha256 = new HmacSha256();
+			try {
+				hmacSha256.setSecretKey(new File(file));
+			} catch (CryptoException e) {
+				logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+				return;
+			} catch (IOException e) {
+				logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+				return;
+			}
+		}
 		String json = null;
 		if (args.length > 5) {
 			json = args[5].replace("'", "\"");
@@ -321,7 +341,7 @@ public class HttpRestClientHelper {
 		}
 		RestFuture future = null;
 		if (sign) {
-			future = client.sendQuery(channel, method, host, null, user, pwd, null, json);
+			future = client.sendQuery(hmacSha256, channel, method, host, null, user, pwd, null, json);
 		} else {
 			future = client.sendQuery(channel, method, host, null, user, null, json);
 		}

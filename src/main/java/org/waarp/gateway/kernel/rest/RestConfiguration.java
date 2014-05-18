@@ -20,8 +20,14 @@
  */
 package org.waarp.gateway.kernel.rest;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
+import org.waarp.common.crypto.HmacSha256;
+import org.waarp.common.exception.CryptoException;
+import org.waarp.common.utility.WaarpStringUtils;
 
 /**
  * General RestConfiguration model
@@ -70,6 +76,11 @@ public class RestConfiguration {
 	 */
 	public boolean REST_SIGNATURE = true;
 	/**
+	 * Key for signature in SHA-256
+	 *
+	 */
+	public HmacSha256 hmacSha256 = null;
+	/**
 	 * SERVER REST interface allowing one Handler and associated CRUD (or equivalent POST, GET, PUT, DELETE) methods 
 	 * (2^0 for active, 2^1 as Create/POST, 2^2 as Read/GET, 2^3 as Update/PUT, 2^4 as Delete/DELETE)
 	 */
@@ -79,6 +90,25 @@ public class RestConfiguration {
 	 * Associated RestMethod Handlers
 	 */
 	public HashMap<String, RestMethodHandler> restHashMap = new HashMap<String, RestMethodHandler>();
+	
+	/**
+	 * Set Key from String directly
+	 * @param authentKey
+	 */
+	public void initializeKey(String authentKey) {
+		hmacSha256 = new HmacSha256();
+		hmacSha256.setSecretKey(authentKey.getBytes(WaarpStringUtils.UTF8));
+	}
+	/**
+	 * Set Key from file
+	 * @param authentKey
+	 * @throws CryptoException
+	 * @throws IOException
+	 */
+	public void initializeKey(File authentKey) throws CryptoException, IOException {
+		hmacSha256 = new HmacSha256();
+		hmacSha256.setSecretKey(authentKey);
+	}
 	
 	public String toString() {
 		String result = "{address: "+REST_ADDRESS+", port: "+REST_PORT+", ssl: "+REST_SSL+", time: "+REST_TIME_LIMIT+

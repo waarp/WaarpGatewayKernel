@@ -20,8 +20,6 @@
  */
 package org.waarp.gateway.kernel.rest;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -41,13 +39,11 @@ import org.jboss.netty.handler.codec.http.QueryStringEncoder;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.waarp.common.crypto.HmacSha256;
-import org.waarp.common.exception.CryptoException;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
@@ -182,28 +178,6 @@ public class RestArgument {
 		DATAMODEL(String field) {
 			this.field = field;
 		}
-	}
-
-	/**
-	 * Key for authentication in SHA-256
-	 *
-	 */
-	protected static final HmacSha256 hmacSha256 = new HmacSha256();
-	/**
-	 * Set Key from String directly
-	 * @param authentKey
-	 */
-	public static void initializeKey(String authentKey) {
-		hmacSha256.setSecretKey(authentKey.getBytes(WaarpStringUtils.UTF8));
-	}
-	/**
-	 * Set Key from file
-	 * @param authentKey
-	 * @throws CryptoException
-	 * @throws IOException
-	 */
-	public static void initializeKey(File authentKey) throws CryptoException, IOException {
-		hmacSha256.setSecretKey(authentKey);
 	}
 	
 	ObjectNode arguments;
@@ -688,13 +662,14 @@ public class RestArgument {
 	/**
 	 * The encoder is completed with extra necessary URI part containing ARG_X_AUTH_TIMESTAMP & ARG_X_AUTH_KEY
 	 * 
+	 * @param hmacSha256 SHA-256 key to create the signature
 	 * @param encoder
 	 * @param user might be null
 	 * @param extraKey might be null
 	 * @return an array of 2 value in order ARG_X_AUTH_TIMESTAMP and ARG_X_AUTH_KEY
 	 * @throws HttpInvalidAuthenticationException if the computation of the authentication failed
 	 */
-	public static String[] getBaseAuthent(QueryStringEncoder encoder, String user, String extraKey) throws HttpInvalidAuthenticationException {
+	public static String[] getBaseAuthent(HmacSha256 hmacSha256, QueryStringEncoder encoder, String user, String extraKey) throws HttpInvalidAuthenticationException {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(encoder.toString());
 		Map<String, List<String>> map = decoderQuery.getParameters();
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
@@ -712,7 +687,7 @@ public class RestArgument {
 			treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field.toLowerCase(), user);
 		}
 		try {
-			String key = computeKey(extraKey, treeMap, decoderQuery.getPath());
+			String key = computeKey(hmacSha256, extraKey, treeMap, decoderQuery.getPath());
 			String [] result = { date.toString(), key };
 			return result;
 			/* encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, date.toString());
@@ -724,7 +699,7 @@ public class RestArgument {
 	}
 	
 	/**
-	 * Check Time only
+	 * Check Time only (no signature)
 	 * @param maxInterval
 	 * @throws HttpInvalidAuthenticationException
 	 */
@@ -751,11 +726,12 @@ public class RestArgument {
      * 3) Compute an hash (SHA-1 or SHA-256)<br>
      * 4) Compare this hash with ARG_X_AUTH_KEY<br>
      * 
+	 * @param hmacSha256 SHA-256 key to create the signature
      * @param extraKey will be added as ARG_X_AUTH_INTERNALKEY might be null
      * @param maxInterval ARG_X_AUTH_TIMESTAMP will be tested if value > 0
 	 * @throws HttpInvalidAuthenticationException if the authentication failed
 	 */
-	public void checkBaseAuthent(String extraKey, long maxInterval) throws HttpInvalidAuthenticationException {
+	public void checkBaseAuthent(HmacSha256 hmacSha256, String extraKey, long maxInterval) throws HttpInvalidAuthenticationException {
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
 		String argPath = getUri();
 		ObjectNode arguri = getUriArgs();
@@ -804,7 +780,7 @@ public class RestArgument {
 		} else if (maxInterval > 0) {
 			throw new HttpInvalidAuthenticationException("timestamp absent while required");
 		}
-		String key = computeKey(extraKey, treeMap, argPath);
+		String key = computeKey(hmacSha256, extraKey, treeMap, argPath);
 		if (! key.equalsIgnoreCase(getXAuthKey())) {
 			throw new HttpInvalidAuthenticationException("Invalid Authentication Key");
 		}
@@ -812,12 +788,13 @@ public class RestArgument {
 	}
 
 	/**
+	 * @param hmacSha256 SHA-256 key to create the signature
 	 * @param extraKey might be null
 	 * @param treeMap
 	 * @param argPath
 	 * @throws HttpInvalidAuthenticationException
 	 */
-	protected static String computeKey(String extraKey, TreeMap<String, String> treeMap, String argPath) throws HttpInvalidAuthenticationException {
+	protected static String computeKey(HmacSha256 hmacSha256, String extraKey, TreeMap<String, String> treeMap, String argPath) throws HttpInvalidAuthenticationException {
 		Set<String> keys = treeMap.keySet();
 		StringBuilder builder = new StringBuilder(argPath);
 		if (! keys.isEmpty() || extraKey != null) {
