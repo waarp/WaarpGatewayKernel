@@ -20,6 +20,8 @@
  */
 package org.waarp.gateway.kernel.rest.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,7 +45,10 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringEncoder;
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.joda.time.DateTime;
+import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
+import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -143,7 +148,8 @@ public class HttpRestClientHelper {
 	}
 
 	/**
-	 * Send an HTTP query using the channel for target
+	 * Send an HTTP query using the channel for target, using signature
+	 * @param hmacSha256 SHA-256 key to create the signature
 	 * @param channel target of the query
 	 * @param method HttpMethod to use
 	 * @param host target of the query (shall be the same as for the channel)
@@ -154,7 +160,7 @@ public class HttpRestClientHelper {
 	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
 	 * @return the RestFuture associated with this request
 	 */
-	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {
+	public RestFuture sendQuery(HmacSha256 hmacSha256, Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {
 		// Prepare the HTTP request.
 		logger.debug("Prepare request: "+method+":"+addedUri+":"+json);
 		RestFuture future = ((RestFuture) channel.getAttachment());
@@ -172,7 +178,7 @@ public class HttpRestClientHelper {
         }
         String [] result = null;
         try {
-			result = RestArgument.getBaseAuthent(encoder, user, pwd);
+			result = RestArgument.getBaseAuthent(hmacSha256, encoder, user, pwd);
 			logger.debug("Authent encoded");
 		} catch (HttpInvalidAuthenticationException e) {
 			logger.error(e.getMessage(), e);
@@ -213,6 +219,65 @@ public class HttpRestClientHelper {
 	}
 
 	/**
+	 * Send an HTTP query using the channel for target, but without any Signature
+	 * @param channel target of the query
+	 * @param method HttpMethod to use
+	 * @param host target of the query (shall be the same as for the channel)
+	 * @param addedUri additional uri, added to baseUri (shall include also extra arguments) (might be null)
+	 * @param user user to use in authenticated Rest procedure (might be null)
+	 * @param uriArgs arguments for Uri if any (might be null)
+	 * @param json json to send as body in the request (might be null); Useful in PUT, POST but should not in GET, DELETE, OPTIONS
+	 * @return the RestFuture associated with this request
+	 */
+	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri, String user, Map<String, String> uriArgs, String json) {
+		// Prepare the HTTP request.
+		logger.debug("Prepare request: "+method+":"+addedUri+":"+json);
+		RestFuture future = ((RestFuture) channel.getAttachment());
+        QueryStringEncoder encoder = null;
+        if (addedUri != null) {
+        	encoder = new QueryStringEncoder(baseUri+addedUri);
+        } else {
+        	encoder = new QueryStringEncoder(baseUri);
+        }
+        // add Form attribute
+        if (uriArgs != null) {
+        	for (Entry<String, String> elt : uriArgs.entrySet()) {
+				encoder.addParam(elt.getKey(), elt.getValue());
+			}
+        }
+        URI uri;
+		try {
+			uri = encoder.toUri();
+		} catch (URISyntaxException e) {
+            logger.error(e.getMessage());
+            future.setFailure(e);
+            return future;
+        }
+		logger.debug("Uri ready: "+uri.toASCIIString());
+
+        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
+                method, uri.toASCIIString());
+        // it is legal to add directly header or cookie into the request until finalize
+        request.headers().add(this.headers);
+        request.headers().set(HttpHeaders.Names.HOST, host);
+        if (user != null) {
+            request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+        }
+        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, new DateTime().toString());
+        if (json != null) {
+    		logger.debug("Add body");
+        	ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
+            request.setContent(buffer);
+            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        }
+        // send request
+		logger.debug("Send request");
+		channel.write(request);
+		logger.debug("Request sent");
+		return future;
+	}
+
+	/**
 	 * Finalize the HttpRestClientHelper
 	 */
 	public void closeAll() {
@@ -222,21 +287,37 @@ public class HttpRestClientHelper {
 	
 	/**
 	 * 
-	 * @param args as uri (http://host:port/uri user pwd [json])
+	 * @param args as uri (http://host:port/uri method user pwd sign=path|nosign [json])
 	 */
 	public static void main(String[] args) {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(HttpRestClientHelper.class);
-		if (args.length < 4) {
-			logger.error("Need more arguments: http://host:port/uri method user pwd [json]");
+		if (args.length < 5) {
+			logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+			return;
 		}
 		String uri = args[0];
 		String meth = args[1];
 		String user = args[2];
 		String pwd = args[3];
+		boolean sign = args[4].toLowerCase().contains("sign=");
+		HmacSha256 hmacSha256 = null;
+		if (sign) {
+			String file = args[4].replace("sign=", "");
+			hmacSha256 = new HmacSha256();
+			try {
+				hmacSha256.setSecretKey(new File(file));
+			} catch (CryptoException e) {
+				logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+				return;
+			} catch (IOException e) {
+				logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
+				return;
+			}
+		}
 		String json = null;
-		if (args.length > 4) {
-			json = args[4].replace("'", "\"");
+		if (args.length > 5) {
+			json = args[5].replace("'", "\"");
 		}
 		HttpMethod method = HttpMethod.valueOf(meth);
 		int port = -1;
@@ -258,7 +339,12 @@ public class HttpRestClientHelper {
 			logger.error("Cannot connect to "+host+" on port "+port);
 			return;
 		}
-		RestFuture future = client.sendQuery(channel, method, host, null, user, pwd, null, json);
+		RestFuture future = null;
+		if (sign) {
+			future = client.sendQuery(hmacSha256, channel, method, host, null, user, pwd, null, json);
+		} else {
+			future = client.sendQuery(channel, method, host, null, user, null, json);
+		}
 		try {
 			future.await();
 		} catch (InterruptedException e) {
