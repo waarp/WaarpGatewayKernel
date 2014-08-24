@@ -24,13 +24,16 @@ import org.waarp.common.file.DataBlock;
 import org.waarp.common.file.FileInterface;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRetrieveException;
 
-import org.jboss.netty.handler.stream.ChunkedInput;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.stream.ChunkedInput;
 
 /**
  * @author Frederic Bregier
  * 
  */
-public class CommonFileChunkedInput implements ChunkedInput {
+public class CommonFileChunkedInput implements ChunkedInput<ByteBuf> {
 
 	private FileInterface document = null;
 
@@ -52,31 +55,40 @@ public class CommonFileChunkedInput implements ChunkedInput {
 		}
 	}
 
-	@Override
-	public boolean hasNextChunk() {
-		return (!lastChunkAlready);
-	}
+    @Override
+    public ByteBuf readChunk(ChannelHandlerContext ctx) throws Exception {
+        // Document
+        DataBlock block;
+        try {
+            block = this.document.readDataBlock();
+        } catch (FileEndOfTransferException e) {
+            lastChunkAlready = true;
+            return Unpooled.EMPTY_BUFFER;
+        } catch (FileTransferException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+        lastChunkAlready = block.isEOF();
+        offset += block.getByteCount();
+        return block.getBlock();
+    }
 
-	@Override
-	public Object nextChunk() throws HttpIncorrectRetrieveException {
-		// Document
-		DataBlock block;
-		try {
-			block = this.document.readDataBlock();
-		} catch (FileEndOfTransferException e) {
-			lastChunkAlready = true;
-			return null;
-		} catch (FileTransferException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-		lastChunkAlready = block.isEOF();
-		offset += block.getByteCount();
-		return block.getBlock();
-	}
+    @Override
+    public long length() {
+        try {
+            return this.document.length();
+        } catch (CommandAbstractException e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public long progress() {
+        return offset;
+    }
 
 	@Override
 	public boolean isEndOfInput() {
-		return (lastChunkAlready);
+		return lastChunkAlready;
 	}
 
 	@Override
@@ -90,12 +102,4 @@ public class CommonFileChunkedInput implements ChunkedInput {
 		}
 		lastChunkAlready = true;
 	}
-
-	/**
-	 * Returns the number of transferred bytes.
-	 */
-	public long getTransferredBytes() {
-		return offset;
-	}
-
 }

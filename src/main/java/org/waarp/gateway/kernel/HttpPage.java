@@ -20,11 +20,11 @@ package org.waarp.gateway.kernel;
 import java.net.SocketAddress;
 import java.util.LinkedHashMap;
 
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -37,7 +37,7 @@ public class HttpPage {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(HttpPage.class);
 
 	public static enum PageRole {

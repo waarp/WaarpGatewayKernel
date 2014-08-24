@@ -30,27 +30,26 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringEncoder;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringEncoder;
+
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.exception.CryptoException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.common.utility.WaarpThreadFactory;
@@ -63,7 +62,7 @@ import org.waarp.gateway.kernel.rest.RestArgument;
  *
  */
 public class HttpRestClientHelper {
-	private static WaarpInternalLogger logger = null;
+	private static WaarpLogger logger = null;
 
 	/**
 	 * ExecutorService Server Boss
@@ -79,7 +78,7 @@ public class HttpRestClientHelper {
 
 	private final ChannelFactory channelClientFactory;
 	
-	private final ClientBootstrap clientBootstrap;
+	private final Bootstrap Bootstrap;
 	
 	private final HttpHeaders headers;
 
@@ -89,11 +88,11 @@ public class HttpRestClientHelper {
 	 * @param baseUri base of all URI, in general simply "/" (default if null)
 	 * @param nbclient max number of client connected at once
 	 * @param timeout timeout used in connection
-	 * @param pipelineFactory the associated client pipeline factory
+	 * @param Initializer the associated client pipeline factory
 	 */
-	public HttpRestClientHelper(String baseUri, int nbclient, long timeout, ChannelPipelineFactory pipelineFactory) {
+	public HttpRestClientHelper(String baseUri, int nbclient, long timeout, ChannelInitializer<SocketChannel> Initializer) {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(HttpRestClientHelper.class);
+			logger = WaarpLoggerFactory.getLogger(HttpRestClientHelper.class);
 		}
 		if (baseUri != null) {
 			this.baseUri = baseUri;
@@ -102,11 +101,11 @@ public class HttpRestClientHelper {
 				execServerBoss,
 				execServerWorker,
 				nbclient);
-		clientBootstrap = new ClientBootstrap(channelClientFactory);
-		clientBootstrap.setPipelineFactory(pipelineFactory);
-		clientBootstrap.setOption("tcpNoDelay", true);
-		clientBootstrap.setOption("reuseAddress", true);
-		clientBootstrap.setOption("connectTimeoutMillis", timeout);
+		Bootstrap = new Bootstrap(channelClientFactory);
+		Bootstrap.setInitializer(Initializer);
+		Bootstrap.setOption("tcpNoDelay", true);
+		Bootstrap.setOption("reuseAddress", true);
+		Bootstrap.setOption("connectTimeoutMillis", timeout);
 		// will ignore real request
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                 HttpMethod.GET, baseUri);
@@ -137,7 +136,7 @@ public class HttpRestClientHelper {
 	 */
 	public Channel getChannel(String host, int port) {
 		 // Start the connection attempt.
-        ChannelFuture future = clientBootstrap.connect(new InetSocketAddress(host, port));
+        ChannelFuture future = Bootstrap.connect(new InetSocketAddress(host, port));
         // Wait until the connection attempt succeeds or fails.
         Channel channel = WaarpSslUtility.waitforChannelReady(future);
         if (channel != null) {
@@ -207,13 +206,13 @@ public class HttpRestClientHelper {
         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
         if (json != null) {
     		logger.debug("Add body");
-        	ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
+        	ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
             request.setContent(buffer);
             request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
         }
         // send request
 		logger.debug("Send request");
-		channel.write(request);
+		channel.writeAndFlush(request);
 		logger.debug("Request sent");
 		return future;
 	}
@@ -266,13 +265,13 @@ public class HttpRestClientHelper {
         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, new DateTime().toString());
         if (json != null) {
     		logger.debug("Add body");
-        	ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
+        	ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
             request.setContent(buffer);
             request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
         }
         // send request
 		logger.debug("Send request");
-		channel.write(request);
+		channel.writeAndFlush(request);
 		logger.debug("Request sent");
 		return future;
 	}
@@ -281,7 +280,7 @@ public class HttpRestClientHelper {
 	 * Finalize the HttpRestClientHelper
 	 */
 	public void closeAll() {
-		clientBootstrap.releaseExternalResources();
+		Bootstrap.releaseExternalResources();
 		channelClientFactory.releaseExternalResources();
 	}
 	
@@ -290,8 +289,8 @@ public class HttpRestClientHelper {
 	 * @param args as uri (http://host:port/uri method user pwd sign=path|nosign [json])
 	 */
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
-        final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(HttpRestClientHelper.class);
+		WaarpLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+        final WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpRestClientHelper.class);
 		if (args.length < 5) {
 			logger.error("Need more arguments: http://host:port/uri method user pwd sign=path|nosign [json]");
 			return;
@@ -332,7 +331,7 @@ public class HttpRestClientHelper {
 			logger.error("Error", e);
 			return;
 		}
-		HttpRestClientHelper client = new HttpRestClientHelper(path, 1, 30000, new HttpRestClientSimplePipelineFactory());
+		HttpRestClientHelper client = new HttpRestClientHelper(path, 1, 30000, new HttpRestClientSimpleInitializer());
 		Channel channel = client.getChannel(host, port);
 		if (channel == null) {
 			client.closeAll();

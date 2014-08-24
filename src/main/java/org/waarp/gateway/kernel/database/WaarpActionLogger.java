@@ -16,12 +16,12 @@
  */
 package org.waarp.gateway.kernel.database;
 
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
 import org.waarp.gateway.kernel.database.data.DbTransferLog;
 import org.waarp.gateway.kernel.session.HttpSession;
@@ -36,7 +36,7 @@ public class WaarpActionLogger {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(WaarpActionLogger.class);
 
 	/**
@@ -161,7 +161,7 @@ public class WaarpActionLogger {
 			String message, HttpResponseStatus rcode) {
 		String sessionContexte = session.toString();
 		long specialId = session.getLogid();
-		logger.error(rcode.getCode() + ":" + message + " " + sessionContexte);
+		logger.error(rcode.code() + ":" + message + " " + sessionContexte);
 		logger.warn("To Change to debug Log",
 				new Exception("Log"));
 		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
@@ -189,7 +189,7 @@ public class WaarpActionLogger {
 								session.getAuth().getAccount(), specialId);
 				log.changeUpdatedInfo(info);
 				log.setInfotransf(message);
-				if (rcode.getCode() < 400) {
+				if (rcode.code() < 400) {
 					log.setReplyCodeExecutionStatus(HttpResponseStatus.BAD_REQUEST);
 				} else {
 					log.setReplyCodeExecutionStatus(rcode);

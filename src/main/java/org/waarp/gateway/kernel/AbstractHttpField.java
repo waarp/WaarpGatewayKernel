@@ -17,7 +17,7 @@
  */
 package org.waarp.gateway.kernel;
 
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 
 /**

@@ -15,22 +15,21 @@
  */
 package org.waarp.gateway.kernel.rest.client;
 
-import static org.jboss.netty.channel.Channels.*;
-
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http.HttpClientCodec;
-import org.jboss.netty.handler.codec.http.HttpContentDecompressor;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * Basic HttpClientPipeline
  */
-public class HttpRestClientSimplePipelineFactory implements ChannelPipelineFactory {
+public class HttpRestClientSimpleInitializer extends ChannelInitializer<SocketChannel> {
 
-    public ChannelPipeline getPipeline() throws Exception {
+    protected void initChannel(SocketChannel ch) throws Exception {
         // Create a default pipeline implementation.
-        ChannelPipeline pipeline = pipeline();
+        ChannelPipeline pipeline = ch.pipeline();
 
         pipeline.addLast("codec", new HttpClientCodec());
         // Remove the following line if you don't want automatic content
@@ -41,6 +40,5 @@ public class HttpRestClientSimplePipelineFactory implements ChannelPipelineFacto
         pipeline.addLast("streamer", new ChunkedWriteHandler());
 
         pipeline.addLast("handler", new HttpRestClientSimpleResponseHandler());
-        return pipeline;
     }
 }

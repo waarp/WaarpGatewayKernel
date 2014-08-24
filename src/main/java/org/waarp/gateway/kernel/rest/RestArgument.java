@@ -28,20 +28,21 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.QueryStringEncoder;
+
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.waarp.common.crypto.HmacSha256;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -70,7 +71,7 @@ public class RestArgument {
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory.getLogger(RestArgument.class);
+    private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(RestArgument.class);
     
     public static enum REST_GROUP {
     	/**
@@ -204,10 +205,10 @@ public class RestArgument {
 	 * @param request
 	 */
 	public void setRequest(HttpRequest request) {
-		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (request.isChunked() || request.getContent() != ChannelBuffers.EMPTY_BUFFER));
-		arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, request.getMethod().getName());
-		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
-		String path = decoderQuery.getPath();
+		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (HttpHeaders.isTransferEncodingChunked(request) || request.getContent() != Unpooled.EMPTY_BUFFER));
+		arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, request.method().name());
+		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri());
+		String path = decoderQuery.path();
 		arguments.put(REST_ROOT_FIELD.ARG_PATH.field, path);
 		// compute path main uri
 		String basepath = path;
@@ -257,7 +258,7 @@ public class RestArgument {
 				}
 			}
 		}
-		Map<String, List<String>> map = decoderQuery.getParameters();
+		Map<String, List<String>> map = decoderQuery.parameters();
 		ObjectNode node = arguments.putObject(REST_GROUP.ARGS_URI.group);
 		for (String key : map.keySet()) {
 			if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
@@ -307,10 +308,10 @@ public class RestArgument {
 			arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field).addAll((ArrayNode) source.arguments.get(REST_ROOT_FIELD.ARGS_SUBPATH.field));
 		}
 		if (source.arguments.has(REST_GROUP.ARGS_URI.group)) {
-			arguments.putObject(REST_GROUP.ARGS_URI.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_URI.group));
+			arguments.putObject(REST_GROUP.ARGS_URI.group).setAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_URI.group));
 		}
 		if (source.arguments.has(REST_GROUP.ARGS_COOKIE.group)) {
-			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
+			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).setAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
 		}
 		
 		logger.debug("DEBUG: {}\n {}", arguments, source);
@@ -343,7 +344,7 @@ public class RestArgument {
 		ObjectNode node = getUriArgs();
 		JsonNode elt = arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).get(rank);
 		if (elt != null) {
-			node.put(name, elt);
+			node.set(name, elt);
 		}
 	}
 	public void addIdToUriArgs() {
@@ -473,13 +474,12 @@ public class RestArgument {
 		if (cookieString == null) {
 			cookies = Collections.emptySet();
 		} else {
-			CookieDecoder decoder = new CookieDecoder();
-			cookies = decoder.decode(cookieString);
+			cookies = CookieDecoder.decode(cookieString);
 		}
 		if (!cookies.isEmpty()) {
 			ObjectNode node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
 			for (Cookie cookie : cookies) {
-				node.put(cookie.getName(), cookie.getValue());
+				node.put(cookie.name(), cookie.value());
 			}
 		}
 	}
@@ -517,11 +517,11 @@ public class RestArgument {
 		return (ObjectNode) node;
 	}
 	public void addAnswer(ObjectNode node) {
-		getAnswer().putAll(node);
+		getAnswer().setAll(node);
 	}
 	public void setResult(HttpResponseStatus status) {
-		arguments.put(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field, status.getReasonPhrase());
-		arguments.put(REST_ROOT_FIELD.JSON_STATUSCODE.field, status.getCode());
+		arguments.put(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field, status.reasonPhrase());
+		arguments.put(REST_ROOT_FIELD.JSON_STATUSCODE.field, status.code());
 	}
 	/**
 	 * 
@@ -582,7 +582,7 @@ public class RestArgument {
 	 * @param filter the filter used in multi get
 	 */
 	public void addFilter(ObjectNode filter) {
-		getAnswer().putObject(DATAMODEL.JSON_FILTER.field).putAll(filter);
+		getAnswer().putObject(DATAMODEL.JSON_FILTER.field).setAll(filter);
 	}
 	/**
 	 * 
@@ -671,7 +671,7 @@ public class RestArgument {
 	 */
 	public static String[] getBaseAuthent(HmacSha256 hmacSha256, QueryStringEncoder encoder, String user, String extraKey) throws HttpInvalidAuthenticationException {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(encoder.toString());
-		Map<String, List<String>> map = decoderQuery.getParameters();
+		Map<String, List<String>> map = decoderQuery.parameters();
 		TreeMap<String, String> treeMap = new TreeMap<String, String>();
 		for (Entry<String, List<String>> entry : map.entrySet()) {
 			String keylower = entry.getKey().toLowerCase();
@@ -687,7 +687,7 @@ public class RestArgument {
 			treeMap.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field.toLowerCase(), user);
 		}
 		try {
-			String key = computeKey(hmacSha256, extraKey, treeMap, decoderQuery.getPath());
+			String key = computeKey(hmacSha256, extraKey, treeMap, decoderQuery.path());
 			String [] result = { date.toString(), key };
 			return result;
 			/* encoder.addParam(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, date.toString());

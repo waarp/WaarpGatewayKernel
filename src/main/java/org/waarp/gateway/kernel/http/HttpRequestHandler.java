@@ -26,41 +26,39 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpChunk;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.codec.http.multipart.Attribute;
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder.NotEnoughDataDecoderException;
-import org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.NotEnoughDataDecoderException;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
+import io.netty.util.CharsetUtil;
+
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.AbstractHttpBusinessRequest;
 import org.waarp.gateway.kernel.AbstractHttpField;
@@ -80,11 +78,11 @@ import org.waarp.gateway.kernel.session.HttpSession;
  * @author "Frederic Bregier"
  * 
  */
-public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
+public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Object> {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(HttpRequestHandler.class);
 
 	private static final Random random = new Random(System.currentTimeMillis());
@@ -161,8 +159,8 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected void getUriArgs() throws HttpIncorrectRequestException {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(
-				request.getUri());
-		Map<String, List<String>> uriAttributes = decoderQuery.getParameters();
+				request.uri());
+		Map<String, List<String>> uriAttributes = decoderQuery.parameters();
 		Set<String> attributes = uriAttributes.keySet();
 		for (String name : attributes) {
 			List<String> values = uriAttributes.get(name);
@@ -226,13 +224,12 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
-			CookieDecoder decoder = new CookieDecoder();
-			cookies = decoder.decode(value);
+			cookies = CookieDecoder.decode(value);
 		}
 		if (!cookies.isEmpty()) {
 			for (Cookie cookie : cookies) {
 				if (isCookieValid(cookie)) {
-					httpPage.setValue(businessRequest, cookie.getName(), cookie.getValue(),
+					httpPage.setValue(businessRequest, cookie.name(), cookie.value(),
 							FieldPosition.COOKIE);
 				}
 			}
@@ -255,20 +252,20 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 */
 	protected abstract void error(Channel channel);
 
-	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-		Channel channel = ctx.getChannel();
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+		Channel channel = ctx.channel();
 		try {
-			if (!readingChunks) {
-				initialize();
-				this.request = (HttpRequest) e.getMessage();
-				method = this.request.getMethod();
-				QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-				String uriRequest = queryStringDecoder.getPath();
+		    if (msg instanceof HttpRequest) {
+                initialize();
+	            this.request = (HttpRequest) msg;
+				method = this.request.method();
+				QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
+				String uriRequest = queryStringDecoder.path();
 				HttpPage httpPageTemp;
 				try {
 					httpPageTemp = httpPageHandler.getHttpPage(uriRequest,
-							method.getName(), session);
+							method.name(), session);
 				} catch (HttpIncorrectRequestException e1) {
 					// real error => 400
 					status = HttpResponseStatus.BAD_REQUEST;
@@ -280,7 +277,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				if (httpPageTemp == null) {
 					// if Get => standard Get
 					if (method == HttpMethod.GET) {
-						logger.debug("simple get: " + this.request.getUri());
+						logger.debug("simple get: " + this.request.uri());
 						// send content (image for instance)
 						HttpWriteCacheEnable.writeFile(request, channel,
 								baseStaticPath + uriRequest, cookieSession);
@@ -302,7 +299,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 					error(channel);
 					clean();
 					// order is important: first clean, then create new businessRequest
-					this.businessRequest = httpPage.newRequest(channel.getRemoteAddress());
+					this.businessRequest = httpPage.newRequest(channel.remoteAddress());
 					willClose = true;
 					writeSimplePage(channel);
 					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
@@ -310,7 +307,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 					return;
 					// end of task
 				}
-				this.businessRequest = httpPage.newRequest(channel.getRemoteAddress());
+				this.businessRequest = httpPage.newRequest(channel.remoteAddress());
 				getUriArgs();
 				getHeaderArgs();
 				getCookieArgs();
@@ -318,7 +315,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				switch (httpPage.pagerole) {
 					case DELETE:
 						// no body element
-						delete(e);
+						delete(ctx);
 						return;
 					case GETDOWNLOAD:
 						// no body element
@@ -333,7 +330,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 					case POST:
 					case POSTUPLOAD:
 					case PUT:
-						post(e);
+						post(ctx);
 						return;
 					default:
 						// real error => 400
@@ -343,7 +340,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				}
 			} else {
 				// New chunk is received: only for Put, Post or PostMulti!
-				postChunk(e);
+				postChunk(ctx, (HttpContent) msg);
 			}
 		} catch (HttpIncorrectRequestException e1) {
 			// real error => 400
@@ -370,7 +367,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			// really really bad !
 			return;
 		}
-		errorMesg = status.getReasonPhrase() + " / " + message;
+		errorMesg = status.reasonPhrase() + " / " + message;
 		throw new HttpIncorrectRequestException(errorMesg);
 	}
 
@@ -381,11 +378,11 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * @return True if initialized
 	 */
 	protected boolean setErrorPage(Channel channel) {
-		httpPage = httpPageHandler.getHttpPage(status.getCode());
+		httpPage = httpPageHandler.getHttpPage(status.code());
 		if (httpPage == null) {
 			return false;
 		}
-		this.businessRequest = httpPage.newRequest(channel.getRemoteAddress());
+		this.businessRequest = httpPage.newRequest(channel.remoteAddress());
 		return true;
 	}
 
@@ -422,14 +419,13 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		if (status == HttpResponseStatus.OK) {
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		}
-		if (channel.isConnected()) {
+		if (channel.isActive()) {
 			willClose = true;
-			HttpResponse response = getResponse();
+            String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
+			FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
-			String answer = "<html><body>Error " + status.getReasonPhrase() + "</body></html>";
-			response.setContent(ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
-			ChannelFuture future = channel.write(response);
+			response.headers().set(HttpHeaders.Names.REFERER, request.uri());
+			ChannelFuture future = channel.writeAndFlush(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
@@ -456,14 +452,13 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		String answer = httpPage.getHtmlPage(this.businessRequest);
-		HttpResponse response = getResponse();
 		int length = 0;
-		// Convert the response content to a ChannelBuffer.
-		ChannelBuffer buf = ChannelBuffers.wrappedBuffer(answer.getBytes(CharsetUtil.UTF_8));
+		// Convert the response content to a ByteBuf.
+		ByteBuf buf = Unpooled.wrappedBuffer(answer.getBytes(CharsetUtil.UTF_8));
+        FullHttpResponse response = getResponse(buf);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, this.businessRequest.getContentType());
-		response.headers().set(HttpHeaders.Names.REFERER, request.getUri());
+		response.headers().set(HttpHeaders.Names.REFERER, request.uri());
 		length = buf.readableBytes();
-		response.setContent(buf);
 		if (!willClose) {
 			// There's no need to add 'Content-Length' header
 			// if this is the last response.
@@ -471,7 +466,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 					String.valueOf(length));
 		}
 		// Write the response.
-		ChannelFuture future = channel.write(response);
+		ChannelFuture future = channel.writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (willClose) {
 			logger.debug("Will close");
@@ -495,13 +490,10 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * @param response
 	 * @param cookieNames
 	 */
-	protected void addBusinessCookie(HttpResponse response, Set<String> cookieNames) {
+	protected void addBusinessCookie(FullHttpResponse response, Set<String> cookieNames) {
 		for (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
 			if (field.fieldcookieset && !cookieNames.contains(field.fieldname)) {
-				Cookie cookie = new DefaultCookie(field.fieldname, field.fieldvalue);
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
-				cookieEncoder.addCookie(cookie);
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(field.fieldname, field.fieldvalue));
 			}
 		}
 	}
@@ -511,14 +503,13 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @param response
 	 */
-	protected void setCookieEncoder(HttpResponse response) {
+	protected void setCookieEncoder(FullHttpResponse response) {
 		Set<Cookie> cookies;
 		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			cookies = Collections.emptySet();
 		} else {
-			CookieDecoder decoder = new CookieDecoder();
-			cookies = decoder.decode(value);
+			cookies = CookieDecoder.decode(value);
 		}
 		boolean foundCookieSession = false;
 		Set<String> cookiesName = new HashSet<String>();
@@ -526,22 +517,17 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			// Reset the cookies if necessary.
 			for (Cookie cookie : cookies) {
 				if (isCookieValid(cookie)) {
-					CookieEncoder cookieEncoder = new CookieEncoder(true);
-					cookieEncoder.addCookie(cookie);
-					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-					if (cookie.getName().equals(cookieSession)) {
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+					if (cookie.name().equals(cookieSession)) {
 						foundCookieSession = true;
 					}
-					cookiesName.add(cookie.getName());
+					cookiesName.add(cookie.name());
 				}
 			}
 		}
 		if (!foundCookieSession) {
-			CookieEncoder cookieEncoder = new CookieEncoder(true);
-			Cookie cookie = new DefaultCookie(cookieSession, session.getCookieSession());
-			cookieEncoder.addCookie(cookie);
-			response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-			cookiesName.add(cookie.getName());
+			response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookieSession, session.getCookieSession()));
+			cookiesName.add(cookieSession);
 		}
 		addBusinessCookie(response, cookiesName);
 		cookiesName.clear();
@@ -549,14 +535,20 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	/**
-	 * 
+	 * @param buf might be null
 	 * @return the Http Response according to the status
 	 */
-	protected HttpResponse getResponse() {
+	protected FullHttpResponse getResponse(ByteBuf buf) {
 		// Decide whether to close the connection or not.
+	    FullHttpResponse response = null;
 		if (request == null) {
-			HttpResponse response = new DefaultHttpResponse(
-					HttpVersion.HTTP_1_0, status);
+		    if (buf != null) {
+		        response = new DefaultFullHttpResponse(
+					HttpVersion.HTTP_1_0, status, buf);
+		    } else {
+		        response = new DefaultFullHttpResponse(
+	                    HttpVersion.HTTP_1_0, status);
+		    }
 			setCookieEncoder(response);
 			willClose = true;
 			return response;
@@ -566,14 +558,19 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				status != HttpResponseStatus.OK ||
 				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
 						.headers().get(HttpHeaders.Names.CONNECTION)) ||
-				request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
+				request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
 				!keepAlive;
 		if (willClose) {
 			keepAlive = false;
 		}
 		// Build the response object.
-		HttpResponse response = new DefaultHttpResponse(
-				request.getProtocolVersion(), status);
+        if (buf != null) {
+            response = new DefaultFullHttpResponse(
+                    request.protocolVersion(), status, buf);
+        } else {
+            response = new DefaultFullHttpResponse(
+                    request.protocolVersion(), status);
+        }
 		if (keepAlive) {
 			response.headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
@@ -711,21 +708,21 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Method that get delete data
 	 * 
-	 * @param e
+	 * @param ctx
 	 */
-	protected void delete(MessageEvent e) throws HttpIncorrectRequestException {
-		finalData(e.getChannel());
-		writeSimplePage(e.getChannel());
+	protected void delete(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
+		finalData(ctx.channel());
+		writeSimplePage(ctx.channel());
 		clean();
 	}
 
 	/**
 	 * Method that get post data
 	 * 
-	 * @param e
+     * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void post(MessageEvent e) throws HttpIncorrectRequestException {
+	protected void post(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
 		try {
 			decoder = new HttpPostRequestDecoder(HttpBusinessFactory.factory, request);
 		} catch (ErrorDataDecoderException e1) {
@@ -738,14 +735,14 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			throw new HttpIncorrectRequestException(e1);
 		}
 
-		if (request.isChunked()) {
+		if (HttpHeaders.isTransferEncodingChunked(request)) {
 			// Chunk version
 			readingChunks = true;
 		} else {
 			// Not chunk version
-			readHttpDataAllReceive(e.getChannel());
-			finalData(e.getChannel());
-			writeSimplePage(e.getChannel());
+			readHttpDataAllReceive(ctx.channel());
+			finalData(ctx.channel());
+			writeSimplePage(ctx.channel());
 			clean();
 		}
 	}
@@ -753,12 +750,12 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Method that get a chunk of data
 	 * 
-	 * @param e
+     * @param ctx
+     * @param msg
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void postChunk(MessageEvent e) throws HttpIncorrectRequestException {
+	protected void postChunk(ChannelHandlerContext ctx, HttpContent chunk) throws HttpIncorrectRequestException {
 		// New chunk is received: only for Post!
-		HttpChunk chunk = (HttpChunk) e.getMessage();
 		try {
 			decoder.offer(chunk);
 		} catch (ErrorDataDecoderException e1) {
@@ -767,20 +764,20 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 		}
 		// example of reading chunk by chunk (minimize memory usage due to
 		// Factory)
-		readHttpDataChunkByChunk(e.getChannel());
+		readHttpDataChunkByChunk(ctx.channel());
 		// example of reading only if at the end
-		if (chunk.isLast()) {
+		if (chunk instanceof LastHttpContent) {
 			readingChunks = false;
-			finalData(e.getChannel());
-			writeSimplePage(e.getChannel());
+			finalData(ctx.channel());
+			writeSimplePage(ctx.channel());
 			clean();
 		}
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable e)
 			throws Exception {
-		if (e.getChannel().isConnected()) {
+		if (ctx.channel().isActive()) {
 			if (e.getCause() != null && e.getCause().getMessage() != null) {
 				logger.warn("Exception {}", e.getCause().getMessage(),
 						e.getCause());
@@ -791,14 +788,13 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 				return;
 			}
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-			writeErrorPage(e.getChannel());
+			writeErrorPage(ctx.channel());
 		}
 	}
 
-	@Override
-	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
-			throws Exception {
-		super.channelClosed(ctx, e);
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
 		clean();
 	}
 
@@ -901,17 +897,17 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 	 * 
 	 * @param e
 	 */
-	protected void createNewSessionAtConnection(ChannelStateEvent e) {
+	protected void createNewSessionAtConnection(ChannelHandlerContext ctx) {
 		this.session = new HttpSession();
 		this.session.setHttpAuth(new DefaultHttpAuth(session));
 		this.session.setCookieSession(getNewCookieSession());
 		this.session.setCurrentCommand(PageRole.HTML);
 	}
 
-	@Override
-	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-		super.channelConnected(ctx, e);
-		createNewSessionAtConnection(e);
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+		createNewSessionAtConnection(ctx);
 	}
 
 }

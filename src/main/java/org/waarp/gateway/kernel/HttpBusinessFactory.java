@@ -20,11 +20,11 @@ package org.waarp.gateway.kernel;
 import java.net.SocketAddress;
 import java.util.LinkedHashMap;
 
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
-import org.jboss.netty.handler.codec.http.multipart.DiskAttribute;
-import org.jboss.netty.handler.codec.http.multipart.DiskFileUpload;
-import org.jboss.netty.handler.codec.http.multipart.HttpDataFactory;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.DiskAttribute;
+import io.netty.handler.codec.http.multipart.DiskFileUpload;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
@@ -104,7 +104,7 @@ public abstract class HttpBusinessFactory {
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
 			fieldname = AbstractHttpField.ERRORINFO;
 			fieldinfo = "Error information";
-			fieldvalue = HttpResponseStatus.BAD_REQUEST.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.BAD_REQUEST.reasonPhrase();
 			fieldRole = FieldRole.BUSINESS_INPUT_TEXT;
 			fieldvisibility = true;
 			fieldmandatory = false;
@@ -122,7 +122,7 @@ public abstract class HttpBusinessFactory {
 			pagename = "401";
 			uri = "401";
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.UNAUTHORIZED.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.UNAUTHORIZED.reasonPhrase();
 			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
 					fieldvalue,
 					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
@@ -134,7 +134,7 @@ public abstract class HttpBusinessFactory {
 			pagename = "403";
 			uri = "403";
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.FORBIDDEN.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.FORBIDDEN.reasonPhrase();
 			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
 					fieldvalue,
 					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
@@ -146,7 +146,7 @@ public abstract class HttpBusinessFactory {
 			pagename = "404";
 			uri = "404";
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.NOT_FOUND.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.NOT_FOUND.reasonPhrase();
 			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
 					fieldvalue,
 					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
@@ -158,7 +158,7 @@ public abstract class HttpBusinessFactory {
 			pagename = "406";
 			uri = "406";
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.NOT_ACCEPTABLE.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase();
 			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
 					fieldvalue,
 					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
@@ -170,7 +170,7 @@ public abstract class HttpBusinessFactory {
 			pagename = "500";
 			uri = "500";
 			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
+			fieldvalue = HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase();
 			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
 					fieldvalue,
 					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,

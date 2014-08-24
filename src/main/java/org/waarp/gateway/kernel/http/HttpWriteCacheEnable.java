@@ -30,17 +30,17 @@ import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.stream.ChunkedNioFile;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.stream.ChunkedNioFile;
 
 /**
  * 
@@ -92,14 +92,14 @@ public class HttpWriteCacheEnable {
 	 */
 	public static void writeFile(HttpRequest request, Channel channel, String filename,
 			String cookieNameToRemove) {
-		// Convert the response content to a ChannelBuffer.
+		// Convert the response content to a ByteBuf.
         HttpResponse response;
         File file = new File(filename);
         if (!file.isFile() || !file.canRead()) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
             handleCookies(request, response, cookieNameToRemove);
-            channel.write(response);
+            channel.writeAndFlush(response);
             return;
         }
         DateFormat rfc1123Format = new SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
@@ -113,7 +113,7 @@ public class HttpWriteCacheEnable {
 		            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
 		                    HttpResponseStatus.NOT_MODIFIED);
 		            handleCookies(request, response, cookieNameToRemove);
-		            channel.write(response);
+		            channel.writeAndFlush(response);
 		            return;
 				}
 			} catch (ParseException e) {
@@ -127,7 +127,7 @@ public class HttpWriteCacheEnable {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
             handleCookies(request, response, cookieNameToRemove);
-            channel.write(response);
+            channel.writeAndFlush(response);
             return;
 		}
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
@@ -146,7 +146,7 @@ public class HttpWriteCacheEnable {
         handleCookies(request, response, cookieNameToRemove);
         // Write the response.
         channel.write(response);
-        channel.write(nioFile);
+        channel.writeAndFlush(nioFile);
 	}
 
 	/**
@@ -160,18 +160,14 @@ public class HttpWriteCacheEnable {
 			String cookieNameToRemove) {
 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
-			CookieDecoder cookieDecoder = new CookieDecoder();
-			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			Set<Cookie> cookies = CookieDecoder.decode(cookieString);
 			if (!cookies.isEmpty()) {
 				// Reset the sessions if necessary.
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				// Remove all Session for images
 				for (Cookie cookie : cookies) {
-					if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {
+					if (cookie.name().equalsIgnoreCase(cookieNameToRemove)) {
 					} else {
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
 					}
 				}
 			}

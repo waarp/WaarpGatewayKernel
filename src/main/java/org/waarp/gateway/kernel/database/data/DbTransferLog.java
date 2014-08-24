@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.dom4j.Document;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
@@ -38,8 +38,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.xml.XmlDecl;
 import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
@@ -59,7 +59,7 @@ public class DbTransferLog extends AbstractDbData {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(DbTransferLog.class);
 
 	public static enum Columns {
@@ -222,7 +222,7 @@ public class DbTransferLog extends AbstractDbData {
 				new DbValue(start, Columns.STARTTRANS.name()),
 				new DbValue(stop, Columns.STOPTRANS.name()),
 				new DbValue(infotransf, Columns.TRANSINFO.name()),
-				new DbValue(HttpResponseStatus.OK.getCode(),
+				new DbValue(HttpResponseStatus.OK.code(),
 						Columns.INFOSTATUS.name()), // infostatus.getCode()
 				new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 		allFields = new DbValue[] {
@@ -263,7 +263,7 @@ public class DbTransferLog extends AbstractDbData {
 		stop = new Timestamp(System.currentTimeMillis());
 		allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
 		allFields[Columns.TRANSINFO.ordinal()].setValue(infotransf);
-		allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
+		allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.code());
 		allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
 		allFields[Columns.USERID.ordinal()].setValue(user);
 		allFields[Columns.ACCOUNTID.ordinal()].setValue(account);
@@ -500,7 +500,7 @@ public class DbTransferLog extends AbstractDbData {
 		String request = "SELECT " + selectAllFields + " FROM " + table;
 		if (status != null) {
 			request += " WHERE " + Columns.INFOSTATUS.name() + " = " +
-					status.getCode() + " AND " + getLimitWhereCondition();
+					status.code() + " AND " + getLimitWhereCondition();
 		} else {
 			request += " WHERE " + getLimitWhereCondition();
 		}
@@ -658,7 +658,7 @@ public class DbTransferLog extends AbstractDbData {
 		long result = 0;
 		try {
 			finishSelectOrCountPrepareStatement(pstt, time);
-			pstt.getPreparedStatement().setInt(2, error.getCode());
+			pstt.getPreparedStatement().setInt(2, error.code());
 			pstt.executeQuery();
 			if (pstt.getNext()) {
 				result = pstt.getResultSet().getLong(1);
@@ -808,7 +808,7 @@ public class DbTransferLog extends AbstractDbData {
 	public void setReplyCodeExecutionStatus(HttpResponseStatus code) {
 		if (infostatus != code) {
 			infostatus = code;
-			allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
+			allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.code());
 			isSaved = false;
 		}
 	}
@@ -1005,7 +1005,7 @@ public class DbTransferLog extends AbstractDbData {
 			values[2].setFromString(account);
 			values[3].setFromString(filename);
 			values[4].setFromString(mode);
-			values[5].setFromString(getErrorInfo().getReasonPhrase());
+			values[5].setFromString(getErrorInfo().reasonPhrase());
 			values[6].setFromString(infotransf);
 			values[7].setFromString(getUpdatedInfo().name());
 			values[8].setFromString(start.toString());

@@ -20,11 +20,11 @@
  */
 package org.waarp.gateway.kernel.rest;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.multipart.FileUpload;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -56,7 +56,7 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 			RestArgument result) throws HttpIncorrectRequestException {
 	}
 
-	public Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
+	public Object getBody(HttpRestHandler handler, ByteBuf body, RestArgument arguments,
 			RestArgument result) throws HttpIncorrectRequestException {
 		return null;
 	}

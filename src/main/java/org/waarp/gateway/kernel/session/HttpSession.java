@@ -17,7 +17,7 @@
  */
 package org.waarp.gateway.kernel.session;
 
-import org.jboss.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpMethod;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.FileParameterInterface;

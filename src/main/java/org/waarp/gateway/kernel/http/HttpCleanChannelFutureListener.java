@@ -17,8 +17,8 @@
  */
 package org.waarp.gateway.kernel.http;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 
 /**
  * @author Frederic Bregier

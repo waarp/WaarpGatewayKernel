@@ -26,8 +26,8 @@ import java.util.List;
 
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldPosition;
 import org.waarp.gateway.kernel.AbstractHttpField.FieldRole;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
@@ -45,7 +45,7 @@ public class HttpJsonDefinition {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+	private static final WaarpLogger logger = WaarpLoggerFactory
 			.getLogger(HttpJsonDefinition.class);
 
 	/*

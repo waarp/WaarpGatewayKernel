@@ -22,14 +22,15 @@ package org.waarp.gateway.kernel.rest;
 
 import java.nio.charset.UnsupportedCharsetException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.multipart.FileUpload;
+
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -37,8 +38,8 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.json.JsonHandler;
-import org.waarp.common.logging.WaarpInternalLogger;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpLogger;
+import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -61,7 +62,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	/**
      * Internal Logger
      */
-    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+    private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(DataModelRestMethodHandler.class);
 	
 	public DataModelRestMethodHandler(String name, RestConfiguration config, METHOD ...method) {
@@ -122,7 +123,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 		throw new HttpIncorrectRequestException("File Upload not allowed");
 	}
 
-	public Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
+	public Object getBody(HttpRestHandler handler, ByteBuf body, RestArgument arguments,
 			RestArgument result) throws HttpIncorrectRequestException {
 		// get the Json equivalent of the Body
 		ObjectNode node = null;
@@ -134,7 +135,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			throw new HttpIncorrectRequestException(e);
 		}
 		if (node != null) {
-			arguments.getBody().putAll(node);
+			arguments.getBody().setAll(node);
 		}
 		return node;
 	}
@@ -366,17 +367,17 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status) {
 		HttpResponse response = handler.getResponse();
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.write(response);
+			ChannelFuture future = channel.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
 		String answer = result.toString();
-		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+		ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
 		response.setContent(buffer);
 		logger.debug("Will write: {}", body);
-		ChannelFuture future = channel.write(response);
+		ChannelFuture future = channel.writeAndFlush(response);
 		if (handler.isWillClose()) {
 			System.err.println("Will close session in DataModelRestMethodHandler");
 			return future;
