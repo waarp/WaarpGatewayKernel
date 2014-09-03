@@ -35,10 +35,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -78,7 +80,7 @@ import org.waarp.gateway.kernel.session.HttpSession;
  * @author "Frederic Bregier"
  * 
  */
-public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Object> {
+public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 	/**
 	 * Internal Logger
 	 */
@@ -115,8 +117,6 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 	protected HttpMethod method;
 
 	protected volatile boolean willClose = false;
-
-	protected volatile boolean readingChunks = false;
 
 	/**
 	 * Clean method
@@ -253,7 +253,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 	protected abstract void error(Channel channel);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
 		Channel channel = ctx.channel();
 		try {
 		    if (msg instanceof HttpRequest) {
@@ -543,11 +543,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 	    FullHttpResponse response = null;
 		if (request == null) {
 		    if (buf != null) {
-		        response = new DefaultFullHttpResponse(
-					HttpVersion.HTTP_1_0, status, buf);
+		        response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, buf);
+                response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
 		    } else {
-		        response = new DefaultFullHttpResponse(
-	                    HttpVersion.HTTP_1_0, status);
+		        response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
 		    }
 			setCookieEncoder(response);
 			willClose = true;
@@ -565,8 +564,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 		}
 		// Build the response object.
         if (buf != null) {
-            response = new DefaultFullHttpResponse(
-                    request.protocolVersion(), status, buf);
+            response = new DefaultFullHttpResponse(request.protocolVersion(), status, buf);
+            response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
         } else {
             response = new DefaultFullHttpResponse(
                     request.protocolVersion(), status);
@@ -735,10 +734,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 			throw new HttpIncorrectRequestException(e1);
 		}
 
-		if (HttpHeaders.isTransferEncodingChunked(request)) {
-			// Chunk version
-			readingChunks = true;
-		} else {
+		if (request instanceof FullHttpRequest) {
 			// Not chunk version
 			readHttpDataAllReceive(ctx.channel());
 			finalData(ctx.channel());
@@ -767,7 +763,6 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 		readHttpDataChunkByChunk(ctx.channel());
 		// example of reading only if at the end
 		if (chunk instanceof LastHttpContent) {
-			readingChunks = false;
 			finalData(ctx.channel());
 			writeSimplePage(ctx.channel());
 			clean();
@@ -775,16 +770,15 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Obj
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable e)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
 		if (ctx.channel().isActive()) {
-			if (e.getCause() != null && e.getCause().getMessage() != null) {
-				logger.warn("Exception {}", e.getCause().getMessage(),
-						e.getCause());
+			if (cause != null && cause.getMessage() != null) {
+				logger.warn("Exception {}", cause.getMessage(), cause);
 			} else {
-				logger.warn("Exception Received", e.getCause());
+				logger.warn("Exception Received", cause);
 			}
-			if (e.getCause() instanceof ClosedChannelException) {
+			if (cause instanceof ClosedChannelException) {
 				return;
 			}
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;

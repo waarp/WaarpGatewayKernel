@@ -204,19 +204,17 @@ public abstract class RestMethodHandler {
 	public abstract ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status);
 
 	protected ChannelFuture sendOptionsResponse(HttpRestHandler handler, Channel channel, RestArgument result, HttpResponseStatus status) {
-		HttpResponse response = handler.getResponse();
+        String list = result.getAllowOption();
+        String answer = result.toString();
+        ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+		HttpResponse response = handler.getResponse(buffer);
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
 			ChannelFuture future = channel.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
-		String list = result.getAllowOption();
 		response.headers().add(HttpHeaders.Names.ALLOW, list);
-		String answer = result.toString();
-		ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
-		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-		response.setContent(buffer);
 		logger.debug("Msg ready");
 		ChannelFuture future = channel.writeAndFlush(response);
 		if (handler.isWillClose()) {

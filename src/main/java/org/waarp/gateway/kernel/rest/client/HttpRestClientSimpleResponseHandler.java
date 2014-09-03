@@ -17,16 +17,19 @@ package org.waarp.gateway.kernel.rest.client;
 
 import java.net.ConnectException;
 import java.nio.channels.ClosedChannelException;
-import java.nio.charset.UnsupportedCharsetException;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.AttributeKey;
 
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.json.JsonHandler;
@@ -43,36 +46,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * 
  * @author Frederic Bregier
  */
-public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHandler<Object> {
+public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 	/**
      * Internal Logger
      */
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestClientSimpleResponseHandler.class);
     
-    private volatile boolean readingChunks;
+    public static final AttributeKey<RestFuture> RESTARGUMENT = AttributeKey.valueOf("RestClient.Argument");
+    
     private ByteBuf cumulativeBody = null;
     protected JsonNode jsonObject = null;
-    
-    protected void addContent(HttpResponse response) throws HttpIncorrectRequestException {
-    	ByteBuf content = response.getContent();
-        if (content != null && content.isReadable()) {
-            if (cumulativeBody != null) {
-				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
-			} else {
-				cumulativeBody = content;
-			}
-            // get the Json equivalent of the Body
-    		try {
-    			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
-    			jsonObject = JsonHandler.getFromString(json);
-    		} catch (UnsupportedCharsetException e2) {
-    			logger.warn("Error", e2);
-    			throw new HttpIncorrectRequestException(e2);
-    		}
-			cumulativeBody = null;
-        }
-    }
     
     protected void actionFromResponse(Channel channel) {
     	RestArgument ra = new RestArgument((ObjectNode) jsonObject);
@@ -81,12 +65,13 @@ public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHan
     	} else {
     		logger.warn(ra.prettyPrint());
     	}
-    	((RestFuture) channel.getAttachment()).setRestArgument(ra);
+    	RestFuture restFuture = channel.attr(RESTARGUMENT).get();
+    	restFuture.setRestArgument(ra);
     	if (ra.getStatusCode() == HttpResponseStatus.OK.code()) {
-    		((RestFuture) channel.getAttachment()).setSuccess();
+    	    restFuture.setSuccess();
     	} else {
             logger.error("Error: "+ra.getStatusMessage());
-    		((RestFuture) channel.getAttachment()).cancel();
+            restFuture.cancel();
             if (channel.isActive()) {
             	WaarpSslUtility.closingSslChannel(channel);
             }
@@ -94,25 +79,17 @@ public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHan
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!readingChunks && (msg instanceof HttpResponse)) {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+        if (msg instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) msg;
             HttpResponseStatus status = response.status();
             logger.debug(HttpHeaders.Names.REFERER+": "+response.headers().get(HttpHeaders.Names.REFERER) +
                     " STATUS: " + status);
-
-            if (response.status().code() == 200 && HttpHeaders.isTransferEncodingChunked(response)) {
-                readingChunks = true;
-            } else {
-                addContent(response);
-                actionFromResponse(e.channel());
-            }
-        } else {
-            readingChunks = true;
-            HttpChunk chunk = (HttpChunk) msg;
-            if (chunk.isLast()) {
-                readingChunks = false;
-                ByteBuf content = chunk.getContent();
+        }
+        if (msg instanceof HttpContent) {
+            HttpContent chunk = (HttpContent) msg;
+            if (chunk instanceof LastHttpContent) {
+                ByteBuf content = chunk.content();
                 if (content != null && content.isReadable()) {
                     if (cumulativeBody != null) {
         				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
@@ -135,7 +112,7 @@ public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHan
                 }                
                 actionFromResponse(ctx.channel());
             } else {
-            	ByteBuf content = chunk.getContent();
+            	ByteBuf content = chunk.content();
                 if (content != null && content.isReadable()) {
                     if (cumulativeBody != null) {
         				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, content);
@@ -150,19 +127,20 @@ public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHan
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
+        RestFuture restFuture = ctx.channel().attr(RESTARGUMENT).get();
         if (cause instanceof ClosedChannelException) {
-        	((RestFuture) ctx.channel().getAttachment()).setFailure(cause);
+            restFuture.setFailure(cause);
         	logger.debug("Close before ending");
             return;
         } else if (cause instanceof ConnectException) {
-        	((RestFuture) ctx.channel().getAttachment()).setFailure(cause);
+            restFuture.setFailure(cause);
             if (ctx.channel().isActive()) {
             	logger.debug("Will close");
-            	WaarpSslUtility.closingSslChannel(e.channel());
+            	WaarpSslUtility.closingSslChannel(ctx.channel());
             }
             return;
         }
-    	((RestFuture) ctx.channel().getAttachment()).setFailure(cause);
+        restFuture.setFailure(cause);
     	logger.error("Error", cause);
         WaarpSslUtility.closingSslChannel(ctx.channel());
     }

@@ -365,17 +365,15 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 	
 	public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel,
 			RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status) {
-		HttpResponse response = handler.getResponse();
+        String answer = result.toString();
+        ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+		HttpResponse response = handler.getResponse(buffer);
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
 			ChannelFuture future = channel.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
-		String answer = result.toString();
-		ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
-		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-		response.setContent(buffer);
+		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
 		logger.debug("Will write: {}", body);
 		ChannelFuture future = channel.writeAndFlush(response);
 		if (handler.isWillClose()) {

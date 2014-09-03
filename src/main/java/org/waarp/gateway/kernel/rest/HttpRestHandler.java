@@ -50,10 +50,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -81,7 +83,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Frederic Bregier
  * 
  */
-public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object> {
+public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpObject> {
 	/**
      * Internal Logger
      */
@@ -218,8 +220,6 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 	
 	private volatile boolean willClose = false;
 
-	protected volatile boolean readingChunks = false;
-
 	/**
 	 * Arguments received
 	 */
@@ -304,7 +304,6 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 		status = HttpResponseStatus.OK;
 		request = null;
 		setWillClose(false);
-		readingChunks = false;
 		arguments = new RestArgument(JsonHandler.createObjectNode());
 		response = new RestArgument(JsonHandler.createObjectNode());
 	}
@@ -377,11 +376,11 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 	}
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         logger.debug("Msg Received");
 		Channel channel = ctx.channel();
 		try {
-			if (!readingChunks) {
+			if (msg instanceof HttpRequest) {
 				initialize();
 				this.request = (HttpRequest) msg;
 				arguments.setRequest(request);
@@ -396,31 +395,29 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 					finalizeSend(channel);
 					return;
 				}
-				if (HttpHeaders.isTransferEncodingChunked(request)) {
-					// no body yet
-					readingChunks = true;
-					if (! handler.isBodyJsonDecoded()) {
-						createDecoder();
-					}
-					return;
-				} else {
-					if (handler.isBodyJsonDecoded()) {
-						ByteBuf buffer = request.getContent();
-						jsonObject = getBodyJsonArgs(buffer);
-					} else {
-						// decoder for 1 chunk
-						createDecoder();
-						// Not chunk version
-						readAllHttpData();
-					}
-					response.setFromArgument(arguments);
-					handler.endParsingRequest(this, arguments, response, jsonObject);
-					finalizeSend(channel);
-					return;
-				}
+                if (request instanceof FullHttpRequest) {
+                    if (handler.isBodyJsonDecoded()) {
+                        ByteBuf buffer = ((FullHttpRequest) request).content();
+                        jsonObject = getBodyJsonArgs(buffer);
+                    } else {
+                        // decoder for 1 chunk
+                        createDecoder();
+                        // Not chunk version
+                        readAllHttpData();
+                    }
+                    response.setFromArgument(arguments);
+                    handler.endParsingRequest(this, arguments, response, jsonObject);
+                    finalizeSend(channel);
+                    return;
+                }
+                // no body yet
+                if (! handler.isBodyJsonDecoded()) {
+                    createDecoder();
+                }
+                return;
 			} else {
 				// New chunk is received
-				bodyChunk(ctx, msg);
+				bodyChunk(ctx, (HttpContent) msg);
 			}
 		} catch (HttpIncorrectRequestException e1) {
 			// real error => 400
@@ -591,11 +588,10 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 		}
 		if (channel.isActive()) {
 			setWillClose(true);
-			FullHttpResponse response = getResponse();
+            String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
+			FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.headers().set(HttpHeaders.Names.REFERER, request.uri());
-			String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
-			response.setContent(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			ChannelFuture future = channel.writeAndFlush(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -605,17 +601,22 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 
 
 	/**
-	 * 
-	 * @return the Http Response according to the status
+	 * @param content
+	 * @return the Http Response according to the status and the content if not null (setting the CONTENT_LENGTH)
 	 */
-	public FullHttpResponse getResponse() {
+	public FullHttpResponse getResponse(ByteBuf content) {
 		// Decide whether to close the connection or not.
 		if (request == null) {
-			FullHttpResponse response = new DefaultFullHttpResponse(
-					HttpVersion.HTTP_1_0, status);
-			setCookies(response);
-			setWillClose(true);
-			return response;
+		    FullHttpResponse response;
+		    if (content == null) {
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
+		    } else {
+    			response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
+    			response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
+		    }
+            setCookies(response);
+            setWillClose(true);
+            return response;
 		}
 		boolean keepAlive = HttpHeaders.isKeepAlive(request);
 		setWillClose(isWillClose() ||
@@ -628,11 +629,15 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 			keepAlive = false;
 		}
 		// Build the response object.
-		FullHttpResponse response = new DefaultFullHttpResponse(
-				request.protocolVersion(), status);
+		FullHttpResponse response;
+		if (content != null) {
+		    response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
+            response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
+		} else {
+		    response = new DefaultFullHttpResponse(request.protocolVersion(), status);
+		}
 		if (keepAlive) {
-			response.headers().set(HttpHeaders.Names.CONNECTION,
-					HttpHeaders.Values.KEEP_ALIVE);
+			response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		}
 		setCookies(response);
 		return response;
@@ -652,7 +657,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 		if (handler.isBodyJsonDecoded()) {
 			ByteBuf buffer = chunk.content();
 			if (cumulativeBody != null) {
-				cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, buffer);
+			    if (buffer.isReadable()) {
+			        cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, buffer);
+			    }
 			} else {
 				cumulativeBody = buffer;
 			}
@@ -669,7 +676,6 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 		}
 		// example of reading only if at the end
 		if (chunk instanceof LastHttpContent) {
-			readingChunks = false;
 			if (handler.isBodyJsonDecoded()) {
 				jsonObject = getBodyJsonArgs(cumulativeBody);
 				cumulativeBody = null;
@@ -727,29 +733,28 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<Object
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cuase)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
-		if (e.channel().isActive()) {
-			if (e.getCause() != null && e.getCause().getMessage() != null) {
-				logger.warn("Exception {}", e.getCause().getMessage(),
-						e.getCause());
+		if (ctx.channel().isActive()) {
+			if (cause != null && cause.getMessage() != null) {
+				logger.warn("Exception {}", cause.getMessage(), cause);
 			} else {
-				logger.warn("Exception Received", e.getCause());
+				logger.warn("Exception Received", cause);
 			}
-			Throwable thro = e.getCause();
+			Throwable thro = cause;
 			if (thro instanceof ClosedChannelException || thro instanceof IOException) {
 				return;
 			}
 			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, (Exception) e.getCause());
+				status = handler.handleException(this, arguments, response, jsonObject, (Exception) cause);
 			}
 			if (status == HttpResponseStatus.OK) {
 				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 			}
 			if (handler != null) {
-				finalizeSend(e.channel());
+				finalizeSend(ctx.channel());
 			} else {
-				forceClosing(e.channel());
+				forceClosing(ctx.channel());
 			}
 		}
 	}

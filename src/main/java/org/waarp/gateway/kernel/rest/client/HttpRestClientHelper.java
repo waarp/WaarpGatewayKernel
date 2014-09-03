@@ -27,8 +27,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -36,8 +34,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -51,6 +53,7 @@ import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpLogger;
 import org.waarp.common.logging.WaarpLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.WaarpNettyUtil;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
@@ -65,20 +68,11 @@ public class HttpRestClientHelper {
 	private static WaarpLogger logger = null;
 
 	/**
-	 * ExecutorService Server Boss
+	 * ExecutorService Worker Boss
 	 */
-	private final ExecutorService execServerBoss = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerBossRetrieve"));
-
-	/**
-	 * ExecutorService Server Worker
-	 */
-	private final ExecutorService execServerWorker = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerWorkerRetrieve"));
-
-	private final ChannelFactory channelClientFactory;
-	
-	private final Bootstrap Bootstrap;
+    private final EventLoopGroup workerGroup;
+    
+	private final Bootstrap bootstrap;
 	
 	private final HttpHeaders headers;
 
@@ -97,15 +91,13 @@ public class HttpRestClientHelper {
 		if (baseUri != null) {
 			this.baseUri = baseUri;
 		}
-		channelClientFactory = new NioClientSocketChannelFactory(
-				execServerBoss,
-				execServerWorker,
-				nbclient);
-		Bootstrap = new Bootstrap(channelClientFactory);
-		Bootstrap.setInitializer(Initializer);
-		Bootstrap.setOption("tcpNoDelay", true);
-		Bootstrap.setOption("reuseAddress", true);
-		Bootstrap.setOption("connectTimeoutMillis", timeout);
+        // Configure the client.
+        bootstrap = new Bootstrap();
+        workerGroup = new NioEventLoopGroup(nbclient, new WaarpThreadFactory("Rest_"+baseUri+"_"));
+        WaarpNettyUtil.setBootstrap(bootstrap, workerGroup, 30000);
+        // Configure the pipeline factory.
+        bootstrap.handler(Initializer);
+        
 		// will ignore real request
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                 HttpMethod.GET, baseUri);
@@ -136,12 +128,12 @@ public class HttpRestClientHelper {
 	 */
 	public Channel getChannel(String host, int port) {
 		 // Start the connection attempt.
-        ChannelFuture future = Bootstrap.connect(new InetSocketAddress(host, port));
+        ChannelFuture future = bootstrap.connect(new InetSocketAddress(host, port));
         // Wait until the connection attempt succeeds or fails.
         Channel channel = WaarpSslUtility.waitforChannelReady(future);
         if (channel != null) {
         	RestFuture futureChannel = new RestFuture(true);
-        	channel.setAttachment(futureChannel);
+        	channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).set(futureChannel);
         }
         return channel;
 	}
@@ -162,7 +154,7 @@ public class HttpRestClientHelper {
 	public RestFuture sendQuery(HmacSha256 hmacSha256, Channel channel, HttpMethod method, String host, String addedUri, String user, String pwd, Map<String, String> uriArgs, String json) {
 		// Prepare the HTTP request.
 		logger.debug("Prepare request: "+method+":"+addedUri+":"+json);
-		RestFuture future = ((RestFuture) channel.getAttachment());
+		RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
         QueryStringEncoder encoder = null;
         if (addedUri != null) {
         	encoder = new QueryStringEncoder(baseUri+addedUri);
@@ -194,8 +186,15 @@ public class HttpRestClientHelper {
         }
 		logger.debug("Uri ready: "+uri.toASCIIString());
 
-        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
-                method, uri.toASCIIString());
+		FullHttpRequest request;
+        if (json != null) {
+            logger.debug("Add body");
+            ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
+            request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString(), buffer);
+            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        } else {
+            request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString());
+        }
         // it is legal to add directly header or cookie into the request until finalize
         request.headers().add(this.headers);
         request.headers().set(HttpHeaders.Names.HOST, host);
@@ -204,12 +203,6 @@ public class HttpRestClientHelper {
         }
         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
-        if (json != null) {
-    		logger.debug("Add body");
-        	ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
-            request.setContent(buffer);
-            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-        }
         // send request
 		logger.debug("Send request");
 		channel.writeAndFlush(request);
@@ -231,7 +224,7 @@ public class HttpRestClientHelper {
 	public RestFuture sendQuery(Channel channel, HttpMethod method, String host, String addedUri, String user, Map<String, String> uriArgs, String json) {
 		// Prepare the HTTP request.
 		logger.debug("Prepare request: "+method+":"+addedUri+":"+json);
-		RestFuture future = ((RestFuture) channel.getAttachment());
+        RestFuture future = channel.attr(HttpRestClientSimpleResponseHandler.RESTARGUMENT).get();
         QueryStringEncoder encoder = null;
         if (addedUri != null) {
         	encoder = new QueryStringEncoder(baseUri+addedUri);
@@ -254,8 +247,16 @@ public class HttpRestClientHelper {
         }
 		logger.debug("Uri ready: "+uri.toASCIIString());
 
-        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
-                method, uri.toASCIIString());
+        FullHttpRequest request;
+        if (json != null) {
+            logger.debug("Add body");
+            ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
+            request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString(), buffer);
+            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        } else {
+            request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString());
+        }
+
         // it is legal to add directly header or cookie into the request until finalize
         request.headers().add(this.headers);
         request.headers().set(HttpHeaders.Names.HOST, host);
@@ -263,12 +264,6 @@ public class HttpRestClientHelper {
             request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
         }
         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, new DateTime().toString());
-        if (json != null) {
-    		logger.debug("Add body");
-        	ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
-            request.setContent(buffer);
-            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-        }
         // send request
 		logger.debug("Send request");
 		channel.writeAndFlush(request);
@@ -280,8 +275,7 @@ public class HttpRestClientHelper {
 	 * Finalize the HttpRestClientHelper
 	 */
 	public void closeAll() {
-		Bootstrap.releaseExternalResources();
-		channelClientFactory.releaseExternalResources();
+		bootstrap.group().shutdownGracefully();
 	}
 	
 	/**

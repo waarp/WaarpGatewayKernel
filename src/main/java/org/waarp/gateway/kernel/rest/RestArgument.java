@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -205,7 +206,7 @@ public class RestArgument {
 	 * @param request
 	 */
 	public void setRequest(HttpRequest request) {
-		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (HttpHeaders.isTransferEncodingChunked(request) || request.getContent() != Unpooled.EMPTY_BUFFER));
+		arguments.put(REST_ROOT_FIELD.ARG_HASBODY.field, (request instanceof FullHttpRequest && ((FullHttpRequest) request).content() != Unpooled.EMPTY_BUFFER));
 		arguments.put(REST_ROOT_FIELD.ARG_METHOD.field, request.method().name());
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri());
 		String path = decoderQuery.path();

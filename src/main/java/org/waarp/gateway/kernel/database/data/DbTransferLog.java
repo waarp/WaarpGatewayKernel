@@ -462,7 +462,7 @@ public class DbTransferLog extends AbstractDbData {
 	 * 
 	 * @param session
 	 */
-	private DbTransferLog(DbSession dBsession) {
+	public DbTransferLog(DbSession dBsession) {
 		super(dBsession);
 	}
 
@@ -510,6 +510,51 @@ public class DbTransferLog extends AbstractDbData {
 		}
 		return new DbPreparedStatement(session, request);
 	}
+	
+	public static DbPreparedStatement getFilterPrepareStament(
+            DbSession session, String modetrans, String accountid, String userid, String filename, String status)
+            throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        String where = null;
+        if (status != null) {
+            where = " WHERE " + Columns.INFOSTATUS.name() + " = " + status;
+        }
+        if (modetrans != null) {
+            if (where == null) {
+                where = " WHERE " + Columns.MODETRANS.name() + " = " + modetrans;
+            } else {
+                where = " AND " + Columns.MODETRANS.name() + " = " + modetrans;
+            }
+        }
+        if (accountid != null) {
+            if (where == null) {
+                where = " WHERE " + Columns.ACCOUNTID.name() + " = " + accountid;
+            } else {
+                where = " AND " + Columns.ACCOUNTID.name() + " = " + accountid;
+            }
+        }
+        if (userid != null) {
+            if (where == null) {
+                where = " WHERE " + Columns.USERID.name() + " = " + userid;
+            } else {
+                where = " AND " + Columns.USERID.name() + " = " + userid;
+            }
+        }
+        if (filename != null) {
+            if (where == null) {
+                where = " WHERE " + Columns.FILENAME.name() + " = " + filename;
+            } else {
+                where = " AND " + Columns.FILENAME.name() + " = " + filename;
+            }
+        }
+        if (where == null) {
+            request += " WHERE " + getLimitWhereCondition();
+        } else {
+            request += where + " " + getLimitWhereCondition();
+        }
+        request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+        return new DbPreparedStatement(session, request);
+    }
 
 	/**
 	 * 
