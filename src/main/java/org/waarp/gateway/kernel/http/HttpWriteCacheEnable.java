@@ -30,15 +30,19 @@ import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedNioFile;
 
@@ -86,11 +90,11 @@ public class HttpWriteCacheEnable {
 	 * Write a file, taking into account cache enabled and removing session cookie
 	 * 
 	 * @param request
-	 * @param channel
+	 * @param ctx
 	 * @param filename
 	 * @param cookieNameToRemove
 	 */
-	public static void writeFile(HttpRequest request, Channel channel, String filename,
+	public static void writeFile(HttpRequest request, ChannelHandlerContext ctx, String filename,
 			String cookieNameToRemove) {
 		// Convert the response content to a ByteBuf.
         HttpResponse response;
@@ -99,7 +103,7 @@ public class HttpWriteCacheEnable {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
             handleCookies(request, response, cookieNameToRemove);
-            channel.writeAndFlush(response);
+            ctx.writeAndFlush(response);
             return;
         }
         DateFormat rfc1123Format = new SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
@@ -113,7 +117,7 @@ public class HttpWriteCacheEnable {
 		            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
 		                    HttpResponseStatus.NOT_MODIFIED);
 		            handleCookies(request, response, cookieNameToRemove);
-		            channel.writeAndFlush(response);
+		            ctx.writeAndFlush(response);
 		            return;
 				}
 			} catch (ParseException e) {
@@ -127,7 +131,7 @@ public class HttpWriteCacheEnable {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
             handleCookies(request, response, cookieNameToRemove);
-            channel.writeAndFlush(response);
+            ctx.writeAndFlush(response);
             return;
 		}
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
@@ -145,8 +149,13 @@ public class HttpWriteCacheEnable {
                 rfc1123Format.format(lastModifDate));
         handleCookies(request, response, cookieNameToRemove);
         // Write the response.
-        channel.write(response);
-        channel.writeAndFlush(nioFile);
+        ctx.write(response);
+        ctx.write(new HttpChunkedInput(nioFile));
+        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if (!HttpHeaders.isKeepAlive(request)) {
+            // Close the connection when the whole content is written out.
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
 	}
 
 	/**

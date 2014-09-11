@@ -21,10 +21,11 @@
 package org.waarp.gateway.kernel.rest;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.FileUpload;
+
 import org.waarp.common.json.JsonHandler;
 import org.waarp.gateway.kernel.exception.HttpForbiddenRequestException;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
@@ -66,9 +67,9 @@ public class RootOptionsRestMethodHandler extends RestMethodHandler {
 			HttpInvalidAuthenticationException {
 	}
 
-	public ChannelFuture sendResponse(HttpRestHandler handler, Channel channel,
+	public ChannelFuture sendResponse(HttpRestHandler handler, ChannelHandlerContext ctx,
 			RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status) {
-		return sendOptionsResponse(handler, channel, result, status);
+		return sendOptionsResponse(handler, ctx, result, status);
 	}
 
 	@Override

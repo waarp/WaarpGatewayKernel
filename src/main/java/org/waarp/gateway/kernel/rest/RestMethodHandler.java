@@ -25,8 +25,8 @@ import java.util.Set;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -194,29 +194,29 @@ public abstract class RestMethodHandler {
 	/**
 	 * Send a response (correct or not)
 	 * @param handler
-	 * @param channel
+	 * @param ctx
 	 * @param arguments
 	 * @param result
 	 * @param body
 	 * @param status
 	 * @return The ChannelFuture if this response will need the channel to be closed, else null
 	 */
-	public abstract ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status);
+	public abstract ChannelFuture sendResponse(HttpRestHandler handler, ChannelHandlerContext ctx, RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status);
 
-	protected ChannelFuture sendOptionsResponse(HttpRestHandler handler, Channel channel, RestArgument result, HttpResponseStatus status) {
+	protected ChannelFuture sendOptionsResponse(HttpRestHandler handler, ChannelHandlerContext ctx, RestArgument result, HttpResponseStatus status) {
         String list = result.getAllowOption();
         String answer = result.toString();
         ByteBuf buffer = Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
 		HttpResponse response = handler.getResponse(buffer);
 		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.writeAndFlush(response);
+			ChannelFuture future = ctx.writeAndFlush(response);
 			return future;
 		}
 		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
 		response.headers().add(HttpHeaders.Names.ALLOW, list);
 		logger.debug("Msg ready");
-		ChannelFuture future = channel.writeAndFlush(response);
+		ChannelFuture future = ctx.writeAndFlush(response);
 		if (handler.isWillClose()) {
 			System.err.println("Will close session in RestMethodHandler");
 			return future;

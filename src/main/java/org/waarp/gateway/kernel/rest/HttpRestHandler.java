@@ -43,7 +43,6 @@ import java.util.Map.Entry;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -321,10 +320,10 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 	 * Note that ARG_METHOD is only set from current request. 
 	 * It might be also set from URI or HEADER 
 	 * and therefore should be done in this method.
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpInvalidAuthenticationException
 	 */
-    protected abstract void checkConnection(Channel channel) throws HttpInvalidAuthenticationException;
+    protected abstract void checkConnection(ChannelHandlerContext ctx) throws HttpInvalidAuthenticationException;
     
 	/**
 	 * Method to set Cookies in httpResponse from response ObjectNode
@@ -378,7 +377,6 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         logger.debug("Msg Received");
-		Channel channel = ctx.channel();
 		try {
 			if (msg instanceof HttpRequest) {
 				initialize();
@@ -387,12 +385,12 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				arguments.setHeaderArgs(request.headers().entries());
 				arguments.setCookieArgs(request.headers().get(HttpHeaders.Names.COOKIE));
 				logger.debug("DEBUG: {}", arguments);
-				checkConnection(channel);
+				checkConnection(ctx);
 				handler = getHandler();
 				if (arguments.getMethod() == METHOD.OPTIONS) {
 					response.setFromArgument(arguments);
 					handler.optionsCommand(this, arguments, response);
-					finalizeSend(channel);
+					finalizeSend(ctx);
 					return;
 				}
                 if (request instanceof FullHttpRequest) {
@@ -407,7 +405,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                     }
                     response.setFromArgument(arguments);
                     handler.endParsingRequest(this, arguments, response, jsonObject);
-                    finalizeSend(channel);
+                    finalizeSend(ctx);
                     return;
                 }
                 // no body yet
@@ -432,9 +430,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				response.setDetail(e1.getMessage());
 			}
 			if (handler != null) {
-				finalizeSend(channel);
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		} catch (HttpMethodNotAllowedRequestException e1) {
 			if (handler != null) {
@@ -448,9 +446,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				response.setDetail(e1.getMessage());
 			}
 			if (handler != null) {
-				finalizeSend(channel);
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		} catch (HttpForbiddenRequestException e1) {
 			if (handler != null) {
@@ -464,9 +462,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				response.setDetail(e1.getMessage());
 			}
 			if (handler != null) {
-				finalizeSend(channel);
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		} catch (HttpInvalidAuthenticationException e1) {
 			if (handler != null) {
@@ -480,9 +478,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				response.setDetail(e1.getMessage());
 			}
 			if (handler != null) {
-				finalizeSend(channel);
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		} catch (HttpNotFoundRequestException e1) {
 			if (handler != null) {
@@ -496,9 +494,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				response.setDetail(e1.getMessage());
 			}
 			if (handler != null) {
-				finalizeSend(channel);
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		}
 	}
@@ -580,19 +578,19 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 	/**
 	 * To allow quick answer even if in very bad shape
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected void forceClosing(Channel channel) {
+	protected void forceClosing(ChannelHandlerContext ctx) {
 		if (status == HttpResponseStatus.OK) {
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		}
-		if (channel.isActive()) {
+		if (ctx.channel().isActive()) {
 			setWillClose(true);
             String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
 			FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.headers().set(HttpHeaders.Names.REFERER, request.uri());
-			ChannelFuture future = channel.writeAndFlush(response);
+			ChannelFuture future = ctx.writeAndFlush(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
@@ -682,16 +680,16 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 			}
 			response.setFromArgument(arguments);
 			handler.endParsingRequest(this, arguments, response, jsonObject);
-			finalizeSend(ctx.channel());
+			finalizeSend(ctx);
 		}
 	}
 	
-	protected void finalizeSend(Channel channel) {
+	protected void finalizeSend(ChannelHandlerContext ctx) {
 		ChannelFuture future = null;
 		if (arguments.getMethod() == METHOD.OPTIONS) {
-			future = handler.sendOptionsResponse(this, channel, response, status);
+			future = handler.sendOptionsResponse(this, ctx, response, status);
 		} else {
-			future = handler.sendResponse(this, channel, arguments, response, jsonObject, status);
+			future = handler.sendResponse(this, ctx, arguments, response, jsonObject, status);
 		}
 		if (future != null) {
 			future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -752,9 +750,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
 				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 			}
 			if (handler != null) {
-				finalizeSend(ctx.channel());
+				finalizeSend(ctx);
 			} else {
-				forceClosing(ctx.channel());
+				forceClosing(ctx);
 			}
 		}
 	}

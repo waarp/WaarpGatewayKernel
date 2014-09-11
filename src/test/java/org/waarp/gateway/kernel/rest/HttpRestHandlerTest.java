@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
@@ -112,7 +112,7 @@ public class HttpRestHandlerTest extends HttpRestHandler {
     }
 
     @Override
-    protected void checkConnection(Channel channel) throws HttpInvalidAuthenticationException {
+    protected void checkConnection(ChannelHandlerContext ctx) throws HttpInvalidAuthenticationException {
         arguments.methodFromUri();
         arguments.methodFromHeader();
     }

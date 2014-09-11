@@ -28,7 +28,6 @@ import java.util.Set;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -241,20 +240,19 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * To be used for instance to check correctness of connection
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void checkConnection(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void checkConnection(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Called when an error is raised. Note that clean() will be called just after.
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void error(Channel channel);
+	protected abstract void error(ChannelHandlerContext ctx);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-		Channel channel = ctx.channel();
 		try {
 		    if (msg instanceof HttpRequest) {
                 initialize();
@@ -270,7 +268,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 					// real error => 400
 					status = HttpResponseStatus.BAD_REQUEST;
 					errorMesg = e1.getMessage();
-					writeErrorPage(channel);
+					writeErrorPage(ctx);
 					return;
 					// end of task
 				}
@@ -279,14 +277,14 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 					if (method == HttpMethod.GET) {
 						logger.debug("simple get: " + this.request.uri());
 						// send content (image for instance)
-						HttpWriteCacheEnable.writeFile(request, channel,
+						HttpWriteCacheEnable.writeFile(request, ctx,
 								baseStaticPath + uriRequest, cookieSession);
 						return;
 						// end of task
 					} else {
 						// real error => 404
 						status = HttpResponseStatus.NOT_FOUND;
-						writeErrorPage(channel);
+						writeErrorPage(ctx);
 						return;
 					}
 				}
@@ -296,22 +294,22 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 						+ httpPage.pagename, session);
 				if (httpPageTemp.pagerole == PageRole.ERROR) {
 					status = HttpResponseStatus.BAD_REQUEST;
-					error(channel);
+					error(ctx);
 					clean();
 					// order is important: first clean, then create new businessRequest
-					this.businessRequest = httpPage.newRequest(channel.remoteAddress());
+					this.businessRequest = httpPage.newRequest(ctx.channel().remoteAddress());
 					willClose = true;
-					writeSimplePage(channel);
+					writeSimplePage(ctx);
 					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
 							"Error: " + httpPage.pagename, status);
 					return;
 					// end of task
 				}
-				this.businessRequest = httpPage.newRequest(channel.remoteAddress());
+				this.businessRequest = httpPage.newRequest(ctx.channel().remoteAddress());
 				getUriArgs();
 				getHeaderArgs();
 				getCookieArgs();
-				checkConnection(channel);
+				checkConnection(ctx);
 				switch (httpPage.pagerole) {
 					case DELETE:
 						// no body element
@@ -319,13 +317,13 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 						return;
 					case GETDOWNLOAD:
 						// no body element
-						getFile(channel);
+						getFile(ctx);
 						return;
 					case HTML:
 					case MENU:
 						// no body element
-						beforeSimplePage(channel);
-						writeSimplePage(channel);
+						beforeSimplePage(ctx);
+						writeSimplePage(ctx);
 						return;
 					case POST:
 					case POSTUPLOAD:
@@ -335,7 +333,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 					default:
 						// real error => 400
 						status = HttpResponseStatus.BAD_REQUEST;
-						writeErrorPage(channel);
+						writeErrorPage(ctx);
 						return;
 				}
 			} else {
@@ -349,21 +347,21 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 			}
 			errorMesg = e1.getMessage();
 			logger.warn("Error", e1);
-			writeErrorPage(channel);
+			writeErrorPage(ctx);
 		}
 	}
 
 	/**
 	 * Utility to prepare error
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @param message
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void prepareError(Channel channel, String message)
+	protected void prepareError(ChannelHandlerContext ctx, String message)
 			throws HttpIncorrectRequestException {
 		logger.debug("Debug " + message);
-		if (!setErrorPage(channel)) {
+		if (!setErrorPage(ctx)) {
 			// really really bad !
 			return;
 		}
@@ -374,58 +372,58 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * Instantiate the page and the businessRequest handler
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @return True if initialized
 	 */
-	protected boolean setErrorPage(Channel channel) {
+	protected boolean setErrorPage(ChannelHandlerContext ctx) {
 		httpPage = httpPageHandler.getHttpPage(status.code());
 		if (httpPage == null) {
 			return false;
 		}
-		this.businessRequest = httpPage.newRequest(channel.remoteAddress());
+		this.businessRequest = httpPage.newRequest(ctx.channel().remoteAddress());
 		return true;
 	}
 
 	/**
 	 * Write an error page
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected void writeErrorPage(Channel channel) {
+	protected void writeErrorPage(ChannelHandlerContext ctx) {
 		WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
 				"Error: " + (httpPage == null ? "no page" : httpPage.pagename), status);
-		error(channel);
+		error(ctx);
 		clean();
 		willClose = true;
-		if (!setErrorPage(channel)) {
+		if (!setErrorPage(ctx)) {
 			// really really bad !
-			forceClosing(channel);
+			forceClosing(ctx);
 			return;
 		}
 		try {
-			writeSimplePage(channel);
+			writeSimplePage(ctx);
 		} catch (HttpIncorrectRequestException e) {
 			// force channel closing
-			forceClosing(channel);
+			forceClosing(ctx);
 		}
 	}
 
 	/**
 	 * To allow quick answer even if in very bad shape
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected void forceClosing(Channel channel) {
+	protected void forceClosing(ChannelHandlerContext ctx) {
 		if (status == HttpResponseStatus.OK) {
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		}
-		if (channel.isActive()) {
+		if (ctx.channel().isActive()) {
 			willClose = true;
             String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
 			FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.headers().set(HttpHeaders.Names.REFERER, request.uri());
-			ChannelFuture future = channel.writeAndFlush(response);
+			ChannelFuture future = ctx.writeAndFlush(response);
 			logger.debug("Will close");
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
@@ -436,10 +434,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * Write a simple page from current httpPage and businessRequest
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void writeSimplePage(Channel channel) throws HttpIncorrectRequestException {
+	protected void writeSimplePage(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
 		logger.debug("HttpPage: " + (httpPage != null ? httpPage.pagename : "no page") +
 				" businessRequest: "
 				+ (businessRequest != null ? businessRequest.getClass().getName() : "no BR"));
@@ -466,7 +464,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 					String.valueOf(length));
 		}
 		// Write the response.
-		ChannelFuture future = channel.writeAndFlush(response);
+		ChannelFuture future = ctx.writeAndFlush(response);
 		// Close the connection after the write operation is done if necessary.
 		if (willClose) {
 			logger.debug("Will close");
@@ -587,47 +585,47 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * Called before simple Page is called (Menu or HTML)
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected abstract void beforeSimplePage(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void beforeSimplePage(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that will use the result and send back the result
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void finalData(Channel channel) throws HttpIncorrectRequestException {
+	protected void finalData(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
 		try {
-			businessValidRequestAfterAllDataReceived(channel);
+			businessValidRequestAfterAllDataReceived(ctx);
 			if (!httpPage.isRequestValid(businessRequest)) {
 				throw new HttpIncorrectRequestException("Request unvalid");
 			}
 			switch (httpPage.pagerole) {
 				case DELETE:
 					session.setFilename(getFilename());
-					finalDelete(channel);
+					finalDelete(ctx);
 					WaarpActionLogger.logAction(DbConstant.admin.session, session,
 							"Delete OK", status, UpdatedInfo.DONE);
 					break;
 				case GETDOWNLOAD:
-					finalGet(channel);
+					finalGet(ctx);
 					WaarpActionLogger.logAction(DbConstant.admin.session, session,
 							"Download OK", status, UpdatedInfo.DONE);
 					break;
 				case POST:
-					finalPost(channel);
+					finalPost(ctx);
 					WaarpActionLogger.logAction(DbConstant.admin.session, session,
 							"Post OK", status, UpdatedInfo.DONE);
 					break;
 				case POSTUPLOAD:
-					finalPostUpload(channel);
+					finalPostUpload(ctx);
 					WaarpActionLogger.logAction(DbConstant.admin.session, session,
 							"PostUpload OK", status, UpdatedInfo.DONE);
 					break;
 				case PUT:
-					finalPut(channel);
+					finalPut(ctx);
 					WaarpActionLogger.logAction(DbConstant.admin.session, session,
 							"Put OK", status, UpdatedInfo.DONE);
 					break;
@@ -648,9 +646,9 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * Method that will use the uploaded file and prepare the result
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void finalDelete(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void finalDelete(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that will use the uploaded file and send back the result <br>
@@ -661,47 +659,47 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	 * automatically called. The usage of a HttpCleanChannelFutureListener on the last write might
 	 * be useful.)
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void finalGet(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void finalGet(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that will use the uploaded file and prepare the result
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void finalPostUpload(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void finalPostUpload(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that will use the post result and prepare the result
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void finalPost(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void finalPost(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that will use the put result and prepare the result
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected abstract void finalPut(Channel channel) throws HttpIncorrectRequestException;
+	protected abstract void finalPut(ChannelHandlerContext ctx) throws HttpIncorrectRequestException;
 
 	/**
 	 * Validate all data as they should be all received (done before the isRequestValid)
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	public abstract void businessValidRequestAfterAllDataReceived(Channel channel)
+	public abstract void businessValidRequestAfterAllDataReceived(ChannelHandlerContext ctx)
 			throws HttpIncorrectRequestException;
 
 	/**
 	 * Method that get "get" data, answer has to be written in the business part finalGet
 	 * 
-	 * @param channel
+	 * @param ctx
 	 */
-	protected void getFile(Channel channel) throws HttpIncorrectRequestException {
-		finalData(channel);
+	protected void getFile(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
+		finalData(ctx);
 	}
 
 	/**
@@ -710,8 +708,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	 * @param ctx
 	 */
 	protected void delete(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
-		finalData(ctx.channel());
-		writeSimplePage(ctx.channel());
+		finalData(ctx);
+		writeSimplePage(ctx);
 		clean();
 	}
 
@@ -736,9 +734,9 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 
 		if (request instanceof FullHttpRequest) {
 			// Not chunk version
-			readHttpDataAllReceive(ctx.channel());
-			finalData(ctx.channel());
-			writeSimplePage(ctx.channel());
+			readHttpDataAllReceive(ctx);
+			finalData(ctx);
+			writeSimplePage(ctx);
 			clean();
 		}
 	}
@@ -760,11 +758,11 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 		}
 		// example of reading chunk by chunk (minimize memory usage due to
 		// Factory)
-		readHttpDataChunkByChunk(ctx.channel());
+		readHttpDataChunkByChunk(ctx);
 		// example of reading only if at the end
 		if (chunk instanceof LastHttpContent) {
-			finalData(ctx.channel());
-			writeSimplePage(ctx.channel());
+			finalData(ctx);
+			writeSimplePage(ctx);
 			clean();
 		}
 	}
@@ -782,7 +780,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 				return;
 			}
 			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-			writeErrorPage(ctx.channel());
+			writeErrorPage(ctx);
 		}
 	}
 
@@ -795,10 +793,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	/**
 	 * Read all InterfaceHttpData from finished transfer
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void readHttpDataAllReceive(Channel channel) throws HttpIncorrectRequestException {
+	protected void readHttpDataAllReceive(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
 		List<InterfaceHttpData> datas = null;
 		try {
 			datas = decoder.getBodyHttpDatas();
@@ -809,23 +807,23 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 			throw new HttpIncorrectRequestException(e1);
 		}
 		for (InterfaceHttpData data : datas) {
-			readHttpData(data, channel);
+			readHttpData(data, ctx);
 		}
 	}
 
 	/**
 	 * Read request by chunk and getting values from chunk to chunk
 	 * 
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void readHttpDataChunkByChunk(Channel channel) throws HttpIncorrectRequestException {
+	protected void readHttpDataChunkByChunk(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
 		try {
 			while (decoder.hasNext()) {
 				InterfaceHttpData data = decoder.next();
 				if (data != null) {
 					// new value
-					readHttpData(data, channel);
+					readHttpData(data, ctx);
 				}
 			}
 		} catch (EndOfDataDecoderException e1) {
@@ -838,10 +836,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
 	 * Read one Data
 	 * 
 	 * @param data
-	 * @param channel
+	 * @param ctx
 	 * @throws HttpIncorrectRequestException
 	 */
-	protected void readHttpData(InterfaceHttpData data, Channel channel)
+	protected void readHttpData(InterfaceHttpData data, ChannelHandlerContext ctx)
 			throws HttpIncorrectRequestException {
 		if (data.getHttpDataType() == HttpDataType.Attribute) {
 			Attribute attribute = (Attribute) data;
