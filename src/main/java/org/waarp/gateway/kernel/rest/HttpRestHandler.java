@@ -415,7 +415,9 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 return;
 			} else {
 				// New chunk is received
-				bodyChunk(ctx, (HttpContent) msg);
+			    if (handler != null) {
+			        bodyChunk(ctx, (HttpContent) msg);
+			    }
 			}
 		} catch (HttpIncorrectRequestException e1) {
 			// real error => 400
