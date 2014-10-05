@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpGatewayKernel</artifactId>
   <name>GoldenGate Gateway Kernel</name>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <description>Waarp Gateway contains the kernel for Http Gateway</description>
     <inceptionYear>2009</inceptionYear>
   <parent>
@@ -232,7 +232,7 @@
   	<dependency>
   	    <groupId>Waarp</groupId>
   	    <artifactId>WaarpCommon</artifactId>
-  	    <version>1.2.25</version>
+  	    <version>1.2.26</version>
   	</dependency>
   	<dependency>
   	    <groupId>ch.qos.logback</groupId>
