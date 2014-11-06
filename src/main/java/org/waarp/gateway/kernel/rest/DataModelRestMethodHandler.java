@@ -134,7 +134,7 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
 			throw new HttpIncorrectRequestException(e);
 		}
 		if (node != null) {
-			arguments.getBody().putAll(node);
+			arguments.getBody().setAll(node);
 		}
 		return node;
 	}

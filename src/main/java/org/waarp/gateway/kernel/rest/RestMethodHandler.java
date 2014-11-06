@@ -219,7 +219,7 @@ public abstract class RestMethodHandler {
 		logger.debug("Msg ready");
 		ChannelFuture future = channel.write(response);
 		if (handler.isWillClose()) {
-			System.err.println("Will close session in RestMethodHandler");
+			logger.warn("Will close session in RestMethodHandler");
 			return future;
 		}
 		return null;

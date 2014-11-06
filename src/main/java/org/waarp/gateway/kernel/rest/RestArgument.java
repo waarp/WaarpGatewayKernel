@@ -307,10 +307,10 @@ public class RestArgument {
 			arguments.putArray(REST_ROOT_FIELD.ARGS_SUBPATH.field).addAll((ArrayNode) source.arguments.get(REST_ROOT_FIELD.ARGS_SUBPATH.field));
 		}
 		if (source.arguments.has(REST_GROUP.ARGS_URI.group)) {
-			arguments.putObject(REST_GROUP.ARGS_URI.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_URI.group));
+			arguments.putObject(REST_GROUP.ARGS_URI.group).setAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_URI.group));
 		}
 		if (source.arguments.has(REST_GROUP.ARGS_COOKIE.group)) {
-			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).putAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
+			arguments.putObject(REST_GROUP.ARGS_COOKIE.group).setAll((ObjectNode) source.arguments.get(REST_GROUP.ARGS_COOKIE.group));
 		}
 		
 		logger.debug("DEBUG: {}\n {}", arguments, source);
@@ -343,7 +343,7 @@ public class RestArgument {
 		ObjectNode node = getUriArgs();
 		JsonNode elt = arguments.path(REST_ROOT_FIELD.ARGS_SUBPATH.field).get(rank);
 		if (elt != null) {
-			node.put(name, elt);
+			node.set(name, elt);
 		}
 	}
 	public void addIdToUriArgs() {
@@ -517,7 +517,7 @@ public class RestArgument {
 		return (ObjectNode) node;
 	}
 	public void addAnswer(ObjectNode node) {
-		getAnswer().putAll(node);
+		getAnswer().setAll(node);
 	}
 	public void setResult(HttpResponseStatus status) {
 		arguments.put(REST_ROOT_FIELD.JSON_STATUSMESSAGE.field, status.getReasonPhrase());
@@ -582,7 +582,7 @@ public class RestArgument {
 	 * @param filter the filter used in multi get
 	 */
 	public void addFilter(ObjectNode filter) {
-		getAnswer().putObject(DATAMODEL.JSON_FILTER.field).putAll(filter);
+		getAnswer().putObject(DATAMODEL.JSON_FILTER.field).setAll(filter);
 	}
 	/**
 	 * 
