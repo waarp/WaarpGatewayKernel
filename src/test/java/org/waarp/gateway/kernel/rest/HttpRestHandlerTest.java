@@ -40,17 +40,19 @@ public class HttpRestHandlerTest extends HttpRestHandler {
     private static final WaarpLogger logger = WaarpLoggerFactory.getLogger(HttpRestHandlerTest.class);
 
     public static enum RESTHANDLERS {
-        DbTransferLog(DbTransferLogDataModelRestMethodHandler.BASEURI, org.waarp.gateway.kernel.database.data.DbTransferLog.class);
-        
+        DbTransferLog(DbTransferLogDataModelRestMethodHandler.BASEURI,
+                org.waarp.gateway.kernel.database.data.DbTransferLog.class);
+
         public String uri;
         @SuppressWarnings("rawtypes")
         public Class clasz;
+
         @SuppressWarnings("rawtypes")
         RESTHANDLERS(String uri, Class clasz) {
             this.uri = uri;
             this.clasz = clasz;
         }
-        
+
         public static RESTHANDLERS getRESTHANDLER(String baseUri) {
             for (RESTHANDLERS resthandler : RESTHANDLERS.values()) {
                 if (resthandler.uri.equals(baseUri)) {
@@ -60,7 +62,7 @@ public class HttpRestHandlerTest extends HttpRestHandler {
             return null;
         }
     }
-    
+
     /**
      * To be called once to ensure default is built
      */
@@ -72,13 +74,13 @@ public class HttpRestHandlerTest extends HttpRestHandler {
                 for (int i = 0; i < defaultConfiguration.RESTHANDLERS_CRUD.length; i++) {
                     defaultConfiguration.RESTHANDLERS_CRUD[i] = 0x0F;
                 }
-                METHOD [] methods = METHOD.values();
-                defaultConfiguration.restHashMap.put(RESTHANDLERS.DbTransferLog.uri, new DbTransferLogDataModelRestMethodHandler(defaultConfiguration, methods));
+                METHOD[] methods = METHOD.values();
+                defaultConfiguration.restHashMap.put(RESTHANDLERS.DbTransferLog.uri,
+                        new DbTransferLogDataModelRestMethodHandler(defaultConfiguration, methods));
             }
         }
     }
 
-        
     public HttpRestHandlerTest(RestConfiguration config) {
         super(config);
         restHashMap = config.restHashMap;
@@ -105,10 +107,11 @@ public class HttpRestHandlerTest extends HttpRestHandler {
         defaultHandlers();
         byte check = restConfiguration.RESTHANDLERS_CRUD[RESTHANDLERS.DbTransferLog.ordinal()];
         if (check != 0) {
-            METHOD [] methods = getMethods(check);
-            restConfiguration.restHashMap.put(RESTHANDLERS.DbTransferLog.uri, new DbTransferLogDataModelRestMethodHandler(restConfiguration, methods));
+            METHOD[] methods = getMethods(check);
+            restConfiguration.restHashMap.put(RESTHANDLERS.DbTransferLog.uri,
+                    new DbTransferLogDataModelRestMethodHandler(restConfiguration, methods));
         }
-        logger.debug("Initialized handler: "+RESTHANDLERS.values().length);
+        logger.debug("Initialized handler: " + RESTHANDLERS.values().length);
     }
 
     @Override
@@ -116,8 +119,10 @@ public class HttpRestHandlerTest extends HttpRestHandler {
         arguments.methodFromUri();
         arguments.methodFromHeader();
     }
+
     /**
      * Initialize the REST service (server side) for one restConfiguration
+     * 
      * @param restConfiguration
      */
     public static void initializeService(RestConfiguration restConfiguration) {
@@ -132,8 +137,9 @@ public class HttpRestHandlerTest extends HttpRestHandler {
         httpBootstrap.childHandler(new HttpRestInitializer(restConfiguration));
         // Bind and start to accept incoming connections.
         ChannelFuture future = null;
-        if (restConfiguration != null && ! restConfiguration.REST_ADDRESS.isEmpty()) {
-            future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_ADDRESS, restConfiguration.REST_PORT));
+        if (restConfiguration != null && !restConfiguration.REST_ADDRESS.isEmpty()) {
+            future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_ADDRESS,
+                    restConfiguration.REST_PORT));
         } else {
             future = httpBootstrap.bind(new InetSocketAddress(restConfiguration.REST_PORT));
         }
@@ -145,6 +151,7 @@ public class HttpRestHandlerTest extends HttpRestHandler {
             e.printStackTrace();
         }
     }
+
     /**
      * @param args
      */

@@ -38,89 +38,90 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * RestMethod handler to implement Root Options handler
+ * 
  * @author "Frederic Bregier"
  *
  */
 public class RootOptionsRestMethodHandler extends RestMethodHandler {
 
-	public static final String ROOT = "root";
+    public static final String ROOT = "root";
 
-	public RootOptionsRestMethodHandler(RestConfiguration config) {
-		super(ROOT, "/", true, config, METHOD.OPTIONS);
-	}
+    public RootOptionsRestMethodHandler(RestConfiguration config) {
+        super(ROOT, "/", true, config, METHOD.OPTIONS);
+    }
 
-	public void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result) throws HttpForbiddenRequestException {
-	}
+    public void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result) throws HttpForbiddenRequestException {
+    }
 
-	public void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments,
-			RestArgument result) throws HttpIncorrectRequestException {
-	}
+    public void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException {
+    }
 
-	public Object getBody(HttpRestHandler handler, ByteBuf body, RestArgument arguments,
-			RestArgument result) throws HttpIncorrectRequestException {
-		return null;
-	}
+    public Object getBody(HttpRestHandler handler, ByteBuf body, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException {
+        return null;
+    }
 
-	public void endParsingRequest(HttpRestHandler handler, RestArgument arguments,
-			RestArgument result, Object body) throws HttpIncorrectRequestException,
-			HttpInvalidAuthenticationException {
-	}
+    public void endParsingRequest(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result, Object body) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException {
+    }
 
-	public ChannelFuture sendResponse(HttpRestHandler handler, ChannelHandlerContext ctx,
-			RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status) {
-		return sendOptionsResponse(handler, ctx, result, status);
-	}
+    public ChannelFuture sendResponse(HttpRestHandler handler, ChannelHandlerContext ctx,
+            RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status) {
+        return sendOptionsResponse(handler, ctx, result, status);
+    }
 
-	@Override
-	public void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
-		result.setCommand(COMMAND_TYPE.OPTIONS);
-		METHOD [] realmethods = METHOD.values();
-		boolean []allMethods = new boolean[realmethods.length];
-		for (RestMethodHandler method : handler.restHashMap.values()) {
-			for (METHOD methoditem : method.methods) {
-				allMethods[methoditem.ordinal()] = true;
-			}
-		}
-		String allow = null;
-		for (int i = 0; i < allMethods.length; i++) {
-			if (allMethods[i]) {
-				if (allow == null) {
-					allow = realmethods[i].name();
-				} else {
-					allow += "," + realmethods[i].name();
-				}
-			}
-		}
-		String allowUri = null;
-		for (RestMethodHandler method : handler.restHashMap.values()) {
-			if (allowUri == null) {
-				allowUri = method.path;
-			} else {
-				allowUri += ","+method.path;
-			}
-		}
-		ArrayNode array = JsonHandler.createArrayNode();
-		for (RestMethodHandler method : handler.restHashMap.values()) {
-			ArrayNode array2 = method.getDetailedAllow();
-			if (method != this) {
-				array.addObject().putArray(method.path).addAll(array2);
-			} else {
-				array.addObject().putArray(ROOT).addAll(array2);
-			}
-		}
-		result.addOptions(allow, allowUri, array);
-	}
+    @Override
+    public void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
+        result.setCommand(COMMAND_TYPE.OPTIONS);
+        METHOD[] realmethods = METHOD.values();
+        boolean[] allMethods = new boolean[realmethods.length];
+        for (RestMethodHandler method : handler.restHashMap.values()) {
+            for (METHOD methoditem : method.methods) {
+                allMethods[methoditem.ordinal()] = true;
+            }
+        }
+        String allow = null;
+        for (int i = 0; i < allMethods.length; i++) {
+            if (allMethods[i]) {
+                if (allow == null) {
+                    allow = realmethods[i].name();
+                } else {
+                    allow += "," + realmethods[i].name();
+                }
+            }
+        }
+        String allowUri = null;
+        for (RestMethodHandler method : handler.restHashMap.values()) {
+            if (allowUri == null) {
+                allowUri = method.path;
+            } else {
+                allowUri += "," + method.path;
+            }
+        }
+        ArrayNode array = JsonHandler.createArrayNode();
+        for (RestMethodHandler method : handler.restHashMap.values()) {
+            ArrayNode array2 = method.getDetailedAllow();
+            if (method != this) {
+                array.addObject().putArray(method.path).addAll(array2);
+            } else {
+                array.addObject().putArray(ROOT).addAll(array2);
+            }
+        }
+        result.addOptions(allow, allowUri, array);
+    }
 
-	@Override
-	protected ArrayNode getDetailedAllow() {
-		ArrayNode node = JsonHandler.createArrayNode();
-		
-		ObjectNode node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.REST_FIELD.JSON_PATH.field, this.path);
-		node2.put(RestArgument.REST_ROOT_FIELD.JSON_COMMAND.field, COMMAND_TYPE.OPTIONS.name());
+    @Override
+    protected ArrayNode getDetailedAllow() {
+        ArrayNode node = JsonHandler.createArrayNode();
 
-		return node;
-	}
+        ObjectNode node2 = node.addObject().putObject(METHOD.OPTIONS.name());
+        node2.put(RestArgument.REST_FIELD.JSON_PATH.field, this.path);
+        node2.put(RestArgument.REST_ROOT_FIELD.JSON_COMMAND.field, COMMAND_TYPE.OPTIONS.name());
+
+        return node;
+    }
 
 }

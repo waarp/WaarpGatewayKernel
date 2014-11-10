@@ -49,8 +49,9 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
         USERID("USER id information subtext"),
         FILENAME("FILENAME information subtext"),
         INFOSTATUS("Info status information subtext");
-        
+
         public String type;
+
         FILTER_ARGS(String type) {
             this.type = type;
         }
@@ -58,6 +59,7 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
 
     public String user;
     public String account;
+
     /**
      * @param name
      * @param config
@@ -89,7 +91,7 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
             }
             return new DbTransferLog(handler.getDbSession(), user, account, id);
         } catch (WaarpDatabaseException e) {
-            throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
+            throw new HttpNotFoundRequestException("Issue while reading from database " + arg, e);
         }
     }
 
@@ -101,7 +103,8 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
         try {
             DbTransferLog newlog = new DbTransferLog(handler.getDbSession());
             newlog.setFromJson(arg, false);
-            if (newlog.getAccount() == null || newlog.getUser() == null || newlog.getSpecialId() == DbConstant.ILLEGALVALUE) {
+            if (newlog.getAccount() == null || newlog.getUser() == null
+                    || newlog.getSpecialId() == DbConstant.ILLEGALVALUE) {
                 throw new WaarpDatabaseSqlException("Not enough argument to create the object");
             }
             newlog.insert();
@@ -167,19 +170,23 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
     @Override
     protected ArrayNode getDetailedAllow() {
         ArrayNode node = JsonHandler.createArrayNode();
-        
+
         ObjectNode node1 = JsonHandler.createObjectNode();
         node1.put(DbTransferLog.JSON_MODEL, DbTransferLog.class.getSimpleName());
         DbTransferLog empty = new DbTransferLog(null);
-        DbValue []values = empty.getAllFields();
+        DbValue[] values = empty.getAllFields();
         for (DbValue dbValue : values) {
             node1.put(dbValue.column, dbValue.getType());
         }
-        
+
         ObjectNode node2, node3;
         if (this.methods.contains(METHOD.GET)) {
-            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-                    JsonHandler.createObjectNode().put(DbTransferLog.Columns.SPECIALID.name(), "SPECIALID as Long in URI as "+this.path+"/id"),
+            node2 = RestArgument.fillDetailedAllow(
+                    METHOD.GET,
+                    this.path + "/id",
+                    COMMAND_TYPE.GET.name(),
+                    JsonHandler.createObjectNode().put(DbTransferLog.Columns.SPECIALID.name(),
+                            "SPECIALID as Long in URI as " + this.path + "/id"),
                     node1);
             node.add(node2);
 
@@ -187,27 +194,27 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
             for (FILTER_ARGS arg : FILTER_ARGS.values()) {
                 node3.put(arg.name(), arg.type);
             }
-            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
+            node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(),
                     node3, JsonHandler.createArrayNode().add(node1));
             node.add(node2);
         }
         if (this.methods.contains(METHOD.PUT)) {
             node3 = JsonHandler.createObjectNode();
-            node3.put(DbTransferLog.Columns.HOSTID.name(), "SPECIALID as Long in URI as "+this.path+"/id");
+            node3.put(DbTransferLog.Columns.HOSTID.name(), "SPECIALID as Long in URI as " + this.path + "/id");
             for (DbValue dbValue : values) {
                 if (dbValue.column.equalsIgnoreCase(DbTransferLog.Columns.SPECIALID.name())) {
                     continue;
                 }
                 node3.put(dbValue.column, dbValue.getType());
             }
-            node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
+            node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
                     node3, node1);
             node.add(node2);
         }
         if (this.methods.contains(METHOD.DELETE)) {
             node3 = JsonHandler.createObjectNode();
-            node3.put(DbTransferLog.Columns.SPECIALID.name(), "SPECIALID as Long in URI as "+this.path+"/id"); 
-            node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
+            node3.put(DbTransferLog.Columns.SPECIALID.name(), "SPECIALID as Long in URI as " + this.path + "/id");
+            node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path + "/id", COMMAND_TYPE.DELETE.name(),
                     node3, node1);
             node.add(node2);
         }
@@ -216,7 +223,7 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
             for (DbValue dbValue : values) {
                 node3.put(dbValue.column, dbValue.getType());
             }
-            node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
+            node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
                     node3, node1);
             node.add(node2);
         }

@@ -34,6 +34,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class HttpRestInitializer extends ChannelInitializer<SocketChannel> {
     private final RestConfiguration restConfiguration;
     private static final EventExecutorGroup executor = new NioEventLoopGroup(10, new WaarpThreadFactory("Handler"));
+
     /**
      * @param restConfiguration
      */
@@ -43,7 +44,7 @@ public class HttpRestInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-     // Create a default pipeline implementation.
+        // Create a default pipeline implementation.
         ChannelPipeline pipeline = ch.pipeline();
 
         pipeline.addLast("codec", new HttpServerCodec());

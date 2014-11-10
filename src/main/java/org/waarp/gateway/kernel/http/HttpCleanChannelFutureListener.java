@@ -25,18 +25,18 @@ import io.netty.channel.ChannelFutureListener;
  * 
  */
 public class HttpCleanChannelFutureListener implements ChannelFutureListener {
-	protected final HttpRequestHandler handler;
+    protected final HttpRequestHandler handler;
 
-	/**
-	 * @param handler
-	 */
-	public HttpCleanChannelFutureListener(HttpRequestHandler handler) {
-		this.handler = handler;
-	}
+    /**
+     * @param handler
+     */
+    public HttpCleanChannelFutureListener(HttpRequestHandler handler) {
+        this.handler = handler;
+    }
 
-	@Override
-	public void operationComplete(ChannelFuture future) throws Exception {
-		handler.clean();
-	}
+    @Override
+    public void operationComplete(ChannelFuture future) throws Exception {
+        handler.clean();
+    }
 
 }

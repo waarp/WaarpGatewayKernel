@@ -34,155 +34,155 @@ import org.waarp.gateway.kernel.HttpPage.PageRole;
  * 
  */
 public abstract class HttpBusinessFactory {
-	public static final HttpDataFactory factory = new DefaultHttpDataFactory(
-			DefaultHttpDataFactory.MINSIZE); // Disk if size exceed MINSIZE =
-	// 16K
-	// Disk if size exceed MINSIZE = 16K, but for FileUpload from Ark directly
-	// XXX FIXME TODO to setup outside !
-	public static String TempPath = "J:/GG/ARK/TMP"; // "C:/Temp/Java/GG/ARK/TMP";
+    public static final HttpDataFactory factory = new DefaultHttpDataFactory(
+            DefaultHttpDataFactory.MINSIZE); // Disk if size exceed MINSIZE =
+    // 16K
+    // Disk if size exceed MINSIZE = 16K, but for FileUpload from Ark directly
+    // XXX FIXME TODO to setup outside !
+    public static String TempPath = "J:/GG/ARK/TMP"; // "C:/Temp/Java/GG/ARK/TMP";
 
-	/**
-	 * Initialize the Disk support
-	 */
-	public static void initialize(String tempPath) {
-		TempPath = tempPath;
-		DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
-															// on exit (in normal
-															// exit)
-		DiskFileUpload.baseDirectory = TempPath; // system temp
-													// directory
-		DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
-														// exit (in normal exit)
-		DiskAttribute.baseDirectory = TempPath; // system temp directory
-	}
+    /**
+     * Initialize the Disk support
+     */
+    public static void initialize(String tempPath) {
+        TempPath = tempPath;
+        DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
+                                                         // on exit (in normal
+                                                         // exit)
+        DiskFileUpload.baseDirectory = TempPath; // system temp
+                                                 // directory
+        DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
+                                                        // exit (in normal exit)
+        DiskAttribute.baseDirectory = TempPath; // system temp directory
+    }
 
-	/**
-	 * It returns the AbstractHttpBusinessRequest to use during a new request.
-	 * 
-	 * Note that fields given in parameter should be updated according to their values if needed.
-	 * 
-	 * @param remoteAddress
-	 *            the remote SocketAddress in use
-	 * @param fields
-	 *            the fields linked hashmap (to preserver order) to set for the new request
-	 * @param page
-	 *            source HttpPage
-	 * @return the AbstractHttpBusinessRequest to use during a new request
-	 */
-	public abstract AbstractHttpBusinessRequest getNewHttpBusinessRequest(
-			SocketAddress remoteAddress,
-			LinkedHashMap<String, AbstractHttpField> fields, HttpPage page);
+    /**
+     * It returns the AbstractHttpBusinessRequest to use during a new request.
+     * 
+     * Note that fields given in parameter should be updated according to their values if needed.
+     * 
+     * @param remoteAddress
+     *            the remote SocketAddress in use
+     * @param fields
+     *            the fields linked hashmap (to preserver order) to set for the new request
+     * @param page
+     *            source HttpPage
+     * @return the AbstractHttpBusinessRequest to use during a new request
+     */
+    public abstract AbstractHttpBusinessRequest getNewHttpBusinessRequest(
+            SocketAddress remoteAddress,
+            LinkedHashMap<String, AbstractHttpField> fields, HttpPage page);
 
-	/**
-	 * 
-	 * @param pages
-	 * @param title
-	 * @param clasz
-	 * @return True if the default error pages are correctly added
-	 */
-	public static boolean addDefaultErrorPages(HttpPageHandler pages, String title, Class<?> clasz) {
-		String pagename, header, footer, beginform, endform, nextinform, uri, errorpage, classname;
-		PageRole pageRole;
-		LinkedHashMap<String, AbstractHttpField> linkedHashMap;
-		String fieldname, fieldinfo, fieldvalue;
-		FieldRole fieldRole;
-		boolean fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate;
-		int fieldrank;
+    /**
+     * 
+     * @param pages
+     * @param title
+     * @param clasz
+     * @return True if the default error pages are correctly added
+     */
+    public static boolean addDefaultErrorPages(HttpPageHandler pages, String title, Class<?> clasz) {
+        String pagename, header, footer, beginform, endform, nextinform, uri, errorpage, classname;
+        PageRole pageRole;
+        LinkedHashMap<String, AbstractHttpField> linkedHashMap;
+        String fieldname, fieldinfo, fieldvalue;
+        FieldRole fieldRole;
+        boolean fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate;
+        int fieldrank;
 
-		// Need as default error pages: 400, 401, 403, 404, 406, 500
-		try {
-			pageRole = PageRole.ERROR;
-			pagename = "400";
-			uri = "400";
-			header = "<HTML><HEAD><TITLE>" + title + "</TITLE></HEAD><BODY>";
-			footer = "</BODY></HTML>";
-			beginform = "<table border=\"0\"><tr><td><h1>" + title + "</h1>";
-			endform = "</td></tr></table><br><CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>";
-			nextinform = "</td></tr><tr><td>";
-			classname = clasz.getName();
-			errorpage = null;
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldname = AbstractHttpField.ERRORINFO;
-			fieldinfo = "Error information";
-			fieldvalue = HttpResponseStatus.BAD_REQUEST.reasonPhrase();
-			fieldRole = FieldRole.BUSINESS_INPUT_TEXT;
-			fieldvisibility = true;
-			fieldmandatory = false;
-			fieldcookieset = false;
-			fieldtovalidate = false;
-			fieldrank = 1;
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
+        // Need as default error pages: 400, 401, 403, 404, 406, 500
+        try {
+            pageRole = PageRole.ERROR;
+            pagename = "400";
+            uri = "400";
+            header = "<HTML><HEAD><TITLE>" + title + "</TITLE></HEAD><BODY>";
+            footer = "</BODY></HTML>";
+            beginform = "<table border=\"0\"><tr><td><h1>" + title + "</h1>";
+            endform = "</td></tr></table><br><CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>";
+            nextinform = "</td></tr><tr><td>";
+            classname = clasz.getName();
+            errorpage = null;
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldname = AbstractHttpField.ERRORINFO;
+            fieldinfo = "Error information";
+            fieldvalue = HttpResponseStatus.BAD_REQUEST.reasonPhrase();
+            fieldRole = FieldRole.BUSINESS_INPUT_TEXT;
+            fieldvisibility = true;
+            fieldmandatory = false;
+            fieldcookieset = false;
+            fieldtovalidate = false;
+            fieldrank = 1;
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
 
-			pagename = "401";
-			uri = "401";
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.UNAUTHORIZED.reasonPhrase();
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
+            pagename = "401";
+            uri = "401";
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldvalue = HttpResponseStatus.UNAUTHORIZED.reasonPhrase();
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
 
-			pagename = "403";
-			uri = "403";
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.FORBIDDEN.reasonPhrase();
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
+            pagename = "403";
+            uri = "403";
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldvalue = HttpResponseStatus.FORBIDDEN.reasonPhrase();
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
 
-			pagename = "404";
-			uri = "404";
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.NOT_FOUND.reasonPhrase();
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
+            pagename = "404";
+            uri = "404";
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldvalue = HttpResponseStatus.NOT_FOUND.reasonPhrase();
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
 
-			pagename = "406";
-			uri = "406";
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase();
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
+            pagename = "406";
+            uri = "406";
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldvalue = HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase();
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
 
-			pagename = "500";
-			uri = "500";
-			linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
-			fieldvalue = HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase();
-			linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
-					fieldvalue,
-					fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
-					FieldPosition.BODY, fieldrank));
-			pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
-					nextinform,
-					uri, pageRole, errorpage, classname, linkedHashMap));
-			return true;
-		} catch (ClassNotFoundException e) {
-		} catch (InstantiationException e) {
-		} catch (IllegalAccessException e) {
-		}
-		return false;
-	}
+            pagename = "500";
+            uri = "500";
+            linkedHashMap = new LinkedHashMap<String, AbstractHttpField>();
+            fieldvalue = HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase();
+            linkedHashMap.put(fieldname, new DefaultHttpField(fieldname, fieldRole, fieldinfo,
+                    fieldvalue,
+                    fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
+                    FieldPosition.BODY, fieldrank));
+            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+                    nextinform,
+                    uri, pageRole, errorpage, classname, linkedHashMap));
+            return true;
+        } catch (ClassNotFoundException e) {
+        } catch (InstantiationException e) {
+        } catch (IllegalAccessException e) {
+        }
+        return false;
+    }
 }

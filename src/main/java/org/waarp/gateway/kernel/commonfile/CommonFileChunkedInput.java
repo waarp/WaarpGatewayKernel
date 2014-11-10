@@ -35,25 +35,25 @@ import io.netty.handler.stream.ChunkedInput;
  */
 public class CommonFileChunkedInput implements ChunkedInput<ByteBuf> {
 
-	private FileInterface document = null;
+    private FileInterface document = null;
 
-	private boolean lastChunkAlready = false;
+    private boolean lastChunkAlready = false;
 
-	private long offset = 0;
+    private long offset = 0;
 
-	/**
-	 * @param document
-	 * @throws HttpIncorrectRetrieveException
-	 */
-	public CommonFileChunkedInput(FileInterface document)
-			throws HttpIncorrectRetrieveException {
-		this.document = document;
-		try {
-			this.document.retrieve();
-		} catch (CommandAbstractException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-	}
+    /**
+     * @param document
+     * @throws HttpIncorrectRetrieveException
+     */
+    public CommonFileChunkedInput(FileInterface document)
+            throws HttpIncorrectRetrieveException {
+        this.document = document;
+        try {
+            this.document.retrieve();
+        } catch (CommandAbstractException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+    }
 
     @Override
     public ByteBuf readChunk(ChannelHandlerContext ctx) throws Exception {
@@ -86,20 +86,20 @@ public class CommonFileChunkedInput implements ChunkedInput<ByteBuf> {
         return offset;
     }
 
-	@Override
-	public boolean isEndOfInput() {
-		return lastChunkAlready;
-	}
+    @Override
+    public boolean isEndOfInput() {
+        return lastChunkAlready;
+    }
 
-	@Override
-	public void close() throws HttpIncorrectRetrieveException {
-		try {
-			if (this.document.isInReading()) {
-				this.document.abortFile();
-			}
-		} catch (CommandAbstractException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-		lastChunkAlready = true;
-	}
+    @Override
+    public void close() throws HttpIncorrectRetrieveException {
+        try {
+            if (this.document.isInReading()) {
+                this.document.abortFile();
+            }
+        } catch (CommandAbstractException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+        lastChunkAlready = true;
+    }
 }

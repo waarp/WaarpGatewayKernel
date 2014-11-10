@@ -19,21 +19,22 @@ package org.waarp.gateway.kernel.session;
 
 /**
  * Interface for CommandExecutor (defined in WaarpR66 module since dependency)
+ * 
  * @author "Frederic Bregier"
  *
  */
 public interface CommandExecutorInterface {
 
-	/**
-	 * Check if the given operation is allowed
-	 * 
-	 * @param isStore
-	 * @return True if allowed, else False
-	 */
-	public abstract boolean isValidOperation(boolean isStore);
+    /**
+     * Check if the given operation is allowed
+     * 
+     * @param isStore
+     * @return True if allowed, else False
+     */
+    public abstract boolean isValidOperation(boolean isStore);
 
-	public abstract String getRetrType();
+    public abstract String getRetrType();
 
-	public abstract String getStorType();
+    public abstract String getStorType();
 
 }

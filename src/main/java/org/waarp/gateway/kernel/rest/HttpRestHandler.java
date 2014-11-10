@@ -83,179 +83,182 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * 
  */
 public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpObject> {
-	/**
+    /**
      * Internal Logger
      */
     private static final WaarpLogger logger = WaarpLoggerFactory
             .getLogger(HttpRestHandler.class);
-    
+
     /*
      * Note:
      * Presence de BODY dans toutes les requetes/responses = Content-Length ou Transfer-Encoding
      * HEAD: response pas de BODY
      * 
      */
-    
+
     public static enum METHOD {
-    	/**
-    	 * REST: Standard GET item
-    	 * 
-    	 * The GET method means retrieve whatever information (in the form of an entity) 
-    	 * is identified by the Request-URI. If the Request-URI refers to a 
-    	 * data-producing process, it is the produced data which shall be returned as 
-    	 * the entity in the response and not the source text of the process, unless 
-    	 * that text happens to be the output of the process.
-    	 */
-    	GET(HttpMethod.GET),
-    	/**
-    	 * REST: Update existing item
-    	 * 
-    	 * The PUT method requests that the enclosed entity be stored under the 
-    	 * supplied Request-URI.
-    	 */
-    	PUT(HttpMethod.PUT),
-    	/**
-    	 * REST: Create a new item
-    	 * 
-    	 * The POST method is used to request that the origin server accept the 
-    	 * entity enclosed in the request as a new subordinate of the resource 
-    	 * identified by the Request-URI in the Request-Line.
-    	 */
-    	POST(HttpMethod.POST), 
-    	/**
-    	 * REST: Delete existing item
-    	 * 
-    	 * The DELETE method requests that the origin server delete the resource 
-    	 * identified by the Request-URI.
-    	 */
-    	DELETE(HttpMethod.DELETE), 
-    	/**
-    	 * REST: what options are supported for the URI
-    	 * 
-    	 * The OPTIONS method represents a request for information about 
-    	 * the communication options available on the request/response chain 
-    	 * identified by the Request-URI. This method allows the client to 
-    	 * determine the options and/or requirements associated with a resource, 
-    	 * or the capabilities of a server, without implying a resource action 
-    	 * or initiating a resource retrieval.
-    	 */
-    	OPTIONS(HttpMethod.OPTIONS), 
-    	/**
-    	 * REST: as GET but no BODY (existence ? metadata ?)
-    	 * 
-    	 * The HEAD method is identical to GET except that the server MUST NOT 
-    	 * return a message-body in the response.
-    	 */
-    	HEAD(HttpMethod.HEAD),
-    	/**
-    	 * REST: should not be used, use POST instead
-    	 * 
-    	 * The PATCH method requests that a set of changes described in the 
-    	 * request entity be applied to the resource identified by the Request-URI.
-    	 */
-    	PATCH(HttpMethod.PATCH),
-    	/**
-    	 * REST: unknown usage
-    	 * 
-    	 * The TRACE method is used to invoke a remote, application-layer 
-    	 * loop-back of the request message.
-    	 */
-    	TRACE(HttpMethod.TRACE),
-    	/**
-    	 * REST: unknown
-    	 * 
-    	 * This specification reserves the method name CONNECT for use with 
-    	 * a proxy that can dynamically switch to being a tunnel
-    	 */
-    	CONNECT(HttpMethod.CONNECT);
-    	
-    	public final HttpMethod method;
-    	private METHOD(HttpMethod method) {
-    		this.method = method;
-    	}
+        /**
+         * REST: Standard GET item
+         * 
+         * The GET method means retrieve whatever information (in the form of an entity)
+         * is identified by the Request-URI. If the Request-URI refers to a
+         * data-producing process, it is the produced data which shall be returned as
+         * the entity in the response and not the source text of the process, unless
+         * that text happens to be the output of the process.
+         */
+        GET(HttpMethod.GET),
+        /**
+         * REST: Update existing item
+         * 
+         * The PUT method requests that the enclosed entity be stored under the
+         * supplied Request-URI.
+         */
+        PUT(HttpMethod.PUT),
+        /**
+         * REST: Create a new item
+         * 
+         * The POST method is used to request that the origin server accept the
+         * entity enclosed in the request as a new subordinate of the resource
+         * identified by the Request-URI in the Request-Line.
+         */
+        POST(HttpMethod.POST),
+        /**
+         * REST: Delete existing item
+         * 
+         * The DELETE method requests that the origin server delete the resource
+         * identified by the Request-URI.
+         */
+        DELETE(HttpMethod.DELETE),
+        /**
+         * REST: what options are supported for the URI
+         * 
+         * The OPTIONS method represents a request for information about
+         * the communication options available on the request/response chain
+         * identified by the Request-URI. This method allows the client to
+         * determine the options and/or requirements associated with a resource,
+         * or the capabilities of a server, without implying a resource action
+         * or initiating a resource retrieval.
+         */
+        OPTIONS(HttpMethod.OPTIONS),
+        /**
+         * REST: as GET but no BODY (existence ? metadata ?)
+         * 
+         * The HEAD method is identical to GET except that the server MUST NOT
+         * return a message-body in the response.
+         */
+        HEAD(HttpMethod.HEAD),
+        /**
+         * REST: should not be used, use POST instead
+         * 
+         * The PATCH method requests that a set of changes described in the
+         * request entity be applied to the resource identified by the Request-URI.
+         */
+        PATCH(HttpMethod.PATCH),
+        /**
+         * REST: unknown usage
+         * 
+         * The TRACE method is used to invoke a remote, application-layer
+         * loop-back of the request message.
+         */
+        TRACE(HttpMethod.TRACE),
+        /**
+         * REST: unknown
+         * 
+         * This specification reserves the method name CONNECT for use with
+         * a proxy that can dynamically switch to being a tunnel
+         */
+        CONNECT(HttpMethod.CONNECT);
+
+        public final HttpMethod method;
+
+        private METHOD(HttpMethod method) {
+            this.method = method;
+        }
     }
-    
+
     public static final HttpDataFactory factory = new DefaultHttpDataFactory(
-			DefaultHttpDataFactory.MINSIZE); 
+            DefaultHttpDataFactory.MINSIZE);
     // Disk if size exceed MINSIZE = 16K
-	// XXX FIXME TODO to setup outside !
-	public static String TempPath = "J:/GG/ARK/TMP"; // "C:/Temp/Java/GG/ARK/TMP";
+    // XXX FIXME TODO to setup outside !
+    public static String TempPath = "J:/GG/ARK/TMP"; // "C:/Temp/Java/GG/ARK/TMP";
 
-	public static ChannelGroup group = null;
-	
-	/**
-	 * Initialize the Disk support
-	 * @param tempPath system temp directory
-	 * @throws IOException 
-	 * @throws CryptoException 
-	 */
-	public static void initialize(String tempPath) {
-		TempPath = tempPath;
-		File file = new File(tempPath);
-		file.mkdirs();
-		DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
-															// on exit (in normal
-															// exit)
-		DiskFileUpload.baseDirectory = TempPath; // system temp
-													// directory
-		DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
-														// exit (in normal exit)
-		DiskAttribute.baseDirectory = TempPath; // system temp directory
-	}
-	
-	public static RestConfiguration defaultConfiguration = new RestConfiguration();
+    public static ChannelGroup group = null;
 
-	public HashMap<String, RestMethodHandler> restHashMap = null;
-	public final RestConfiguration restConfiguration;
-	protected RootOptionsRestMethodHandler rootHandler;
-	
-	protected HttpPostRequestDecoder decoder = null;
-	protected HttpResponseStatus status = HttpResponseStatus.OK;
+    /**
+     * Initialize the Disk support
+     * 
+     * @param tempPath
+     *            system temp directory
+     * @throws IOException
+     * @throws CryptoException
+     */
+    public static void initialize(String tempPath) {
+        TempPath = tempPath;
+        File file = new File(tempPath);
+        file.mkdirs();
+        DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
+                                                         // on exit (in normal
+                                                         // exit)
+        DiskFileUpload.baseDirectory = TempPath; // system temp
+                                                 // directory
+        DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
+                                                        // exit (in normal exit)
+        DiskAttribute.baseDirectory = TempPath; // system temp directory
+    }
 
-	protected HttpRequest request = null;
-	protected RestMethodHandler handler = null;
-	
-	protected volatile DbSession dbSession = null;
-	
-	private volatile boolean willClose = false;
+    public static RestConfiguration defaultConfiguration = new RestConfiguration();
 
-	/**
-	 * Arguments received
-	 */
-	protected RestArgument arguments = null;
-	/**
-	 * The only structure that might be needed is: ARGS_COOKIE (subset)
-	 */
-	protected RestArgument response = null;
-	/**
-	 * JSON decoded object
-	 */
-	protected Object jsonObject = null;
-	/**
-	 * Cumulative chunks
-	 */
-	protected ByteBuf cumulativeBody = null;
-	
-	public HttpRestHandler(RestConfiguration config) {
-		this.restConfiguration = config;
-		rootHandler = new RootOptionsRestMethodHandler(config);
-	}
-	
-	protected static class HttpCleanChannelFutureListener implements ChannelFutureListener {
-		protected final HttpRestHandler handler;
+    public HashMap<String, RestMethodHandler> restHashMap = null;
+    public final RestConfiguration restConfiguration;
+    protected RootOptionsRestMethodHandler rootHandler;
 
-		/**
-		 * @param handler
-		 */
-		public HttpCleanChannelFutureListener(HttpRestHandler handler) {
-			this.handler = handler;
-		}
+    protected HttpPostRequestDecoder decoder = null;
+    protected HttpResponseStatus status = HttpResponseStatus.OK;
 
-		@Override
-		public void operationComplete(ChannelFuture future) throws Exception {
-			handler.clean();
-		}
-	}
+    protected HttpRequest request = null;
+    protected RestMethodHandler handler = null;
+
+    protected volatile DbSession dbSession = null;
+
+    private volatile boolean willClose = false;
+
+    /**
+     * Arguments received
+     */
+    protected RestArgument arguments = null;
+    /**
+     * The only structure that might be needed is: ARGS_COOKIE (subset)
+     */
+    protected RestArgument response = null;
+    /**
+     * JSON decoded object
+     */
+    protected Object jsonObject = null;
+    /**
+     * Cumulative chunks
+     */
+    protected ByteBuf cumulativeBody = null;
+
+    public HttpRestHandler(RestConfiguration config) {
+        this.restConfiguration = config;
+        rootHandler = new RootOptionsRestMethodHandler(config);
+    }
+
+    protected static class HttpCleanChannelFutureListener implements ChannelFutureListener {
+        protected final HttpRestHandler handler;
+
+        /**
+         * @param handler
+         */
+        public HttpCleanChannelFutureListener(HttpRestHandler handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public void operationComplete(ChannelFuture future) throws Exception {
+            handler.clean();
+        }
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -264,135 +267,137 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
         }
         super.channelActive(ctx);
     }
-	
-	/**
-	 * Clean method
-	 * 
-	 * Override if needed
-	 */
-	protected void clean() {
-		if (arguments != null) {
-			arguments.clean();
-			arguments = null;
-		}
-		if (response != null) {
-			response.clean();
-			response = null;
-		}
-		if (decoder != null) {
-			decoder.cleanFiles();
-			decoder = null;
-		}
-		handler = null;
-		cumulativeBody = null;
-		jsonObject = null;
-		if (dbSession != null) {
-			dbSession.enUseConnectionNoDisconnect();
-			dbSession = null;
-		}
-	}
 
-	/**
-	 * Called at the beginning of every new request
-	 * 
-	 * Override if needed
-	 */
-	protected void initialize() {
-		// clean previous FileUpload if Any
-		clean();
-		status = HttpResponseStatus.OK;
-		request = null;
-		setWillClose(false);
-		arguments = new RestArgument(JsonHandler.createObjectNode());
-		response = new RestArgument(JsonHandler.createObjectNode());
-	}
+    /**
+     * Clean method
+     * 
+     * Override if needed
+     */
+    protected void clean() {
+        if (arguments != null) {
+            arguments.clean();
+            arguments = null;
+        }
+        if (response != null) {
+            response.clean();
+            response = null;
+        }
+        if (decoder != null) {
+            decoder.cleanFiles();
+            decoder = null;
+        }
+        handler = null;
+        cumulativeBody = null;
+        jsonObject = null;
+        if (dbSession != null) {
+            dbSession.enUseConnectionNoDisconnect();
+            dbSession = null;
+        }
+    }
 
-	/**
-	 * 
-	 * @return the DbSession associated with the current request (might be Admin dbSession if none)
-	 */
-	public DbSession getDbSession() {
-		return dbSession == null ? DbConstant.admin.session : dbSession;
-	}
+    /**
+     * Called at the beginning of every new request
+     * 
+     * Override if needed
+     */
+    protected void initialize() {
+        // clean previous FileUpload if Any
+        clean();
+        status = HttpResponseStatus.OK;
+        request = null;
+        setWillClose(false);
+        arguments = new RestArgument(JsonHandler.createObjectNode());
+        response = new RestArgument(JsonHandler.createObjectNode());
+    }
 
-	/**
-	 * To be used for instance to check correctness of connection<br>
-	 * Note that ARG_METHOD is only set from current request. 
-	 * It might be also set from URI or HEADER 
-	 * and therefore should be done in this method.
-	 * @param ctx
-	 * @throws HttpInvalidAuthenticationException
-	 */
+    /**
+     * 
+     * @return the DbSession associated with the current request (might be Admin dbSession if none)
+     */
+    public DbSession getDbSession() {
+        return dbSession == null ? DbConstant.admin.session : dbSession;
+    }
+
+    /**
+     * To be used for instance to check correctness of connection<br>
+     * Note that ARG_METHOD is only set from current request.
+     * It might be also set from URI or HEADER
+     * and therefore should be done in this method.
+     * 
+     * @param ctx
+     * @throws HttpInvalidAuthenticationException
+     */
     protected abstract void checkConnection(ChannelHandlerContext ctx) throws HttpInvalidAuthenticationException;
-    
-	/**
-	 * Method to set Cookies in httpResponse from response ObjectNode
-	 * 
-	 * @param httpResponse
-	 */
-	protected void setCookies(FullHttpResponse httpResponse) {
-		if (response == null) {
-			return;
-		}
-		ObjectNode cookieON = response.getCookieArgs();
-		if (! cookieON.isMissingNode()) {
-			Iterator<Entry<String, JsonNode>> iter = cookieON.fields();
-			while (iter.hasNext()) {
-				Entry<String, JsonNode> entry = iter.next();
-				httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(entry.getKey(), entry.getValue().asText()));
-			}
-		}
-	}
 
-	/**
-	 * Could be overwritten if necessary
-	 * 
-	 * @return RestMethodHandler associated with the current context
-	 * @throws HttpIncorrectRequestException 
-	 * @throws HttpMethodNotAllowedRequestException 
-	 * @throws HttpForbiddenRequestException 
-	 */
-	protected RestMethodHandler getHandler() throws HttpMethodNotAllowedRequestException, HttpForbiddenRequestException {
-		METHOD method = arguments.getMethod();
-		String uri = arguments.getBaseUri();
-		boolean restFound = false;
-		RestMethodHandler handler = restHashMap.get(uri);
-		if (handler != null) {
-			handler.checkHandlerSessionCorrectness(this, arguments, response);
-			if (handler.isMethodIncluded(method)) {
-				restFound = true;
-			}
-		}
-		if (handler == null && method == METHOD.OPTIONS) {
-			handler = rootHandler;
-			// use Options default handler
-			restFound = true;
-		}
-		if (! restFound){
-			throw new HttpMethodNotAllowedRequestException("No Method found for that URI: "+uri);
-		}
-		return handler;
-	}
+    /**
+     * Method to set Cookies in httpResponse from response ObjectNode
+     * 
+     * @param httpResponse
+     */
+    protected void setCookies(FullHttpResponse httpResponse) {
+        if (response == null) {
+            return;
+        }
+        ObjectNode cookieON = response.getCookieArgs();
+        if (!cookieON.isMissingNode()) {
+            Iterator<Entry<String, JsonNode>> iter = cookieON.fields();
+            while (iter.hasNext()) {
+                Entry<String, JsonNode> entry = iter.next();
+                httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE,
+                        ServerCookieEncoder.encode(entry.getKey(), entry.getValue().asText()));
+            }
+        }
+    }
+
+    /**
+     * Could be overwritten if necessary
+     * 
+     * @return RestMethodHandler associated with the current context
+     * @throws HttpIncorrectRequestException
+     * @throws HttpMethodNotAllowedRequestException
+     * @throws HttpForbiddenRequestException
+     */
+    protected RestMethodHandler getHandler() throws HttpMethodNotAllowedRequestException, HttpForbiddenRequestException {
+        METHOD method = arguments.getMethod();
+        String uri = arguments.getBaseUri();
+        boolean restFound = false;
+        RestMethodHandler handler = restHashMap.get(uri);
+        if (handler != null) {
+            handler.checkHandlerSessionCorrectness(this, arguments, response);
+            if (handler.isMethodIncluded(method)) {
+                restFound = true;
+            }
+        }
+        if (handler == null && method == METHOD.OPTIONS) {
+            handler = rootHandler;
+            // use Options default handler
+            restFound = true;
+        }
+        if (!restFound) {
+            throw new HttpMethodNotAllowedRequestException("No Method found for that URI: " + uri);
+        }
+        return handler;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         logger.debug("Msg Received");
-		try {
-			if (msg instanceof HttpRequest) {
-				initialize();
-				this.request = (HttpRequest) msg;
-				arguments.setRequest(request);
-				arguments.setHeaderArgs(request.headers().entries());
-				arguments.setCookieArgs(request.headers().get(HttpHeaders.Names.COOKIE));
-				logger.debug("DEBUG: {}", arguments);
-				checkConnection(ctx);
-				handler = getHandler();
-				if (arguments.getMethod() == METHOD.OPTIONS) {
-					response.setFromArgument(arguments);
-					handler.optionsCommand(this, arguments, response);
-					finalizeSend(ctx);
-					return;
-				}
+        try {
+            if (msg instanceof HttpRequest) {
+                initialize();
+                this.request = (HttpRequest) msg;
+                arguments.setRequest(request);
+                arguments.setHeaderArgs(request.headers().entries());
+                arguments.setCookieArgs(request.headers().get(HttpHeaders.Names.COOKIE));
+                logger.debug("DEBUG: {}", arguments);
+                checkConnection(ctx);
+                handler = getHandler();
+                if (arguments.getMethod() == METHOD.OPTIONS) {
+                    response.setFromArgument(arguments);
+                    handler.optionsCommand(this, arguments, response);
+                    finalizeSend(ctx);
+                    return;
+                }
                 if (request instanceof FullHttpRequest) {
                     if (handler.isBodyJsonDecoded()) {
                         ByteBuf buffer = ((FullHttpRequest) request).content();
@@ -409,394 +414,397 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                     return;
                 }
                 // no body yet
-                if (! handler.isBodyJsonDecoded()) {
+                if (!handler.isBodyJsonDecoded()) {
                     createDecoder();
                 }
                 return;
-			} else {
-				// New chunk is received
-			    if (handler != null) {
-			        bodyChunk(ctx, (HttpContent) msg);
-			    }
-			}
-		} catch (HttpIncorrectRequestException e1) {
-			// real error => 400
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, e1);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.BAD_REQUEST;
-			}
-			logger.warn("Error", e1);
-			if (response.getDetail().isEmpty()) {
-				response.setDetail(e1.getMessage());
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		} catch (HttpMethodNotAllowedRequestException e1) {
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, e1);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.METHOD_NOT_ALLOWED;
-			}
-			logger.warn("Error", e1);
-			if (response.getDetail().isEmpty()) {
-				response.setDetail(e1.getMessage());
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		} catch (HttpForbiddenRequestException e1) {
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, e1);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.FORBIDDEN;
-			}
-			logger.warn("Error", e1);
-			if (response.getDetail().isEmpty()) {
-				response.setDetail(e1.getMessage());
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		} catch (HttpInvalidAuthenticationException e1) {
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, e1);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.UNAUTHORIZED;
-			}
-			logger.warn("Error", e1);
-			if (response.getDetail().isEmpty()) {
-				response.setDetail(e1.getMessage());
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		} catch (HttpNotFoundRequestException e1) {
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, e1);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.NOT_FOUND;
-			}
-			logger.warn("Error", e1);
-			if (response.getDetail().isEmpty()) {
-				response.setDetail(e1.getMessage());
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		}
-	}
-	
-	/**
-	 * Create the decoder
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected void createDecoder() throws HttpIncorrectRequestException {
-		HttpMethod method = request.method();
+            } else {
+                // New chunk is received
+                if (handler != null) {
+                    bodyChunk(ctx, (HttpContent) msg);
+                }
+            }
+        } catch (HttpIncorrectRequestException e1) {
+            // real error => 400
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, e1);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.BAD_REQUEST;
+            }
+            logger.warn("Error", e1);
+            if (response.getDetail().isEmpty()) {
+                response.setDetail(e1.getMessage());
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        } catch (HttpMethodNotAllowedRequestException e1) {
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, e1);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.METHOD_NOT_ALLOWED;
+            }
+            logger.warn("Error", e1);
+            if (response.getDetail().isEmpty()) {
+                response.setDetail(e1.getMessage());
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        } catch (HttpForbiddenRequestException e1) {
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, e1);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.FORBIDDEN;
+            }
+            logger.warn("Error", e1);
+            if (response.getDetail().isEmpty()) {
+                response.setDetail(e1.getMessage());
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        } catch (HttpInvalidAuthenticationException e1) {
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, e1);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.UNAUTHORIZED;
+            }
+            logger.warn("Error", e1);
+            if (response.getDetail().isEmpty()) {
+                response.setDetail(e1.getMessage());
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        } catch (HttpNotFoundRequestException e1) {
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, e1);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.NOT_FOUND;
+            }
+            logger.warn("Error", e1);
+            if (response.getDetail().isEmpty()) {
+                response.setDetail(e1.getMessage());
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        }
+    }
+
+    /**
+     * Create the decoder
+     * 
+     * @throws HttpIncorrectRequestException
+     */
+    protected void createDecoder() throws HttpIncorrectRequestException {
+        HttpMethod method = request.method();
         if (!method.equals(HttpMethod.HEAD)) {
-        	// in order decoder allows to parse
+            // in order decoder allows to parse
             request.setMethod(HttpMethod.POST);
         }
-		try {
-			decoder = new HttpPostRequestDecoder(factory, request);
-		} catch (ErrorDataDecoderException e1) {
-			status = HttpResponseStatus.NOT_ACCEPTABLE;
-			throw new HttpIncorrectRequestException(e1);
-		} catch (Exception e1) {
-			// GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
-			// So OK but stop here
-			status = HttpResponseStatus.NOT_ACCEPTABLE;
-			throw new HttpIncorrectRequestException(e1);
-		}
-	}
+        try {
+            decoder = new HttpPostRequestDecoder(factory, request);
+        } catch (ErrorDataDecoderException e1) {
+            status = HttpResponseStatus.NOT_ACCEPTABLE;
+            throw new HttpIncorrectRequestException(e1);
+        } catch (Exception e1) {
+            // GETDOWNLOAD Method: should not try to create a HttpPostRequestDecoder
+            // So OK but stop here
+            status = HttpResponseStatus.NOT_ACCEPTABLE;
+            throw new HttpIncorrectRequestException(e1);
+        }
+    }
 
-	/**
-	 * Read all InterfaceHttpData from finished transfer
-	 * 
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected void readAllHttpData() throws HttpIncorrectRequestException {
-		List<InterfaceHttpData> datas = null;
-		try {
-			datas = decoder.getBodyHttpDatas();
-		} catch (NotEnoughDataDecoderException e1) {
-			// Should not be!
-			logger.warn("decoder issue", e1);
-			status = HttpResponseStatus.NOT_ACCEPTABLE;
-			throw new HttpIncorrectRequestException(e1);
-		}
-		for (InterfaceHttpData data : datas) {
-			readHttpData(data);
-		}
-	}
-	
-	/**
-	 * Read one Data
-	 * 
-	 * @param data
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected void readHttpData(InterfaceHttpData data)
-			throws HttpIncorrectRequestException {
-		if (data.getHttpDataType() == HttpDataType.Attribute) {
-			ObjectNode body = arguments.getBody();
-			try {
-				body.put(data.getName(), ((Attribute) data).getValue());
-			} catch (IOException e) {
-				throw new HttpIncorrectRequestException("Bad reading", e);
-			}
-		} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
-			FileUpload fileUpload = (FileUpload) data;
-			if (fileUpload.isCompleted()) {
-				handler.getFileUpload(this, fileUpload, arguments, response);
-			} else {
-				logger.warn("File still pending but should not");
-				fileUpload.delete();
-				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-				throw new HttpIncorrectRequestException("File still pending but should not");
-			}
-		} else {
-			logger.warn("Unknown element: " + data.toString());
-		}
-	}
+    /**
+     * Read all InterfaceHttpData from finished transfer
+     * 
+     * @throws HttpIncorrectRequestException
+     */
+    protected void readAllHttpData() throws HttpIncorrectRequestException {
+        List<InterfaceHttpData> datas = null;
+        try {
+            datas = decoder.getBodyHttpDatas();
+        } catch (NotEnoughDataDecoderException e1) {
+            // Should not be!
+            logger.warn("decoder issue", e1);
+            status = HttpResponseStatus.NOT_ACCEPTABLE;
+            throw new HttpIncorrectRequestException(e1);
+        }
+        for (InterfaceHttpData data : datas) {
+            readHttpData(data);
+        }
+    }
 
+    /**
+     * Read one Data
+     * 
+     * @param data
+     * @throws HttpIncorrectRequestException
+     */
+    protected void readHttpData(InterfaceHttpData data)
+            throws HttpIncorrectRequestException {
+        if (data.getHttpDataType() == HttpDataType.Attribute) {
+            ObjectNode body = arguments.getBody();
+            try {
+                body.put(data.getName(), ((Attribute) data).getValue());
+            } catch (IOException e) {
+                throw new HttpIncorrectRequestException("Bad reading", e);
+            }
+        } else if (data.getHttpDataType() == HttpDataType.FileUpload) {
+            FileUpload fileUpload = (FileUpload) data;
+            if (fileUpload.isCompleted()) {
+                handler.getFileUpload(this, fileUpload, arguments, response);
+            } else {
+                logger.warn("File still pending but should not");
+                fileUpload.delete();
+                status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+                throw new HttpIncorrectRequestException("File still pending but should not");
+            }
+        } else {
+            logger.warn("Unknown element: " + data.toString());
+        }
+    }
 
-	/**
-	 * To allow quick answer even if in very bad shape
-	 * 
-	 * @param ctx
-	 */
-	protected void forceClosing(ChannelHandlerContext ctx) {
-		if (status == HttpResponseStatus.OK) {
-			status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-		}
-		if (ctx.channel().isActive()) {
-			setWillClose(true);
+    /**
+     * To allow quick answer even if in very bad shape
+     * 
+     * @param ctx
+     */
+    protected void forceClosing(ChannelHandlerContext ctx) {
+        if (status == HttpResponseStatus.OK) {
+            status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+        }
+        if (ctx.channel().isActive()) {
+            setWillClose(true);
             String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
-			FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
-			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.headers().set(HttpHeaders.Names.REFERER, request.uri());
-			ChannelFuture future = ctx.writeAndFlush(response);
-			logger.debug("Will close");
-			future.addListener(WaarpSslUtility.SSLCLOSE);
-		}
-		clean();
-	}
+            FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
+            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+            response.headers().set(HttpHeaders.Names.REFERER, request.uri());
+            ChannelFuture future = ctx.writeAndFlush(response);
+            logger.debug("Will close");
+            future.addListener(WaarpSslUtility.SSLCLOSE);
+        }
+        clean();
+    }
 
-
-	/**
-	 * @param content
-	 * @return the Http Response according to the status and the content if not null (setting the CONTENT_LENGTH)
-	 */
-	public FullHttpResponse getResponse(ByteBuf content) {
-		// Decide whether to close the connection or not.
-		if (request == null) {
-		    FullHttpResponse response;
-		    if (content == null) {
+    /**
+     * @param content
+     * @return the Http Response according to the status and the content if not null (setting the CONTENT_LENGTH)
+     */
+    public FullHttpResponse getResponse(ByteBuf content) {
+        // Decide whether to close the connection or not.
+        if (request == null) {
+            FullHttpResponse response;
+            if (content == null) {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
-		    } else {
-    			response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
-    			response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
-		    }
+            } else {
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
+                response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
+            }
             setCookies(response);
             setWillClose(true);
             return response;
-		}
-		boolean keepAlive = HttpHeaders.isKeepAlive(request);
-		setWillClose(isWillClose() ||
-				status != HttpResponseStatus.OK ||
-				HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-						.headers().get(HttpHeaders.Names.CONNECTION)) ||
-				request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
-				!keepAlive);
-		if (isWillClose()) {
-			keepAlive = false;
-		}
-		// Build the response object.
-		FullHttpResponse response;
-		if (content != null) {
-		    response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
+        }
+        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+        setWillClose(isWillClose() ||
+                status != HttpResponseStatus.OK ||
+                HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
+                        .headers().get(HttpHeaders.Names.CONNECTION)) ||
+                request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
+                !keepAlive);
+        if (isWillClose()) {
+            keepAlive = false;
+        }
+        // Build the response object.
+        FullHttpResponse response;
+        if (content != null) {
+            response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
             response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
-		} else {
-		    response = new DefaultFullHttpResponse(request.protocolVersion(), status);
-		}
-		if (keepAlive) {
-			response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		}
-		setCookies(response);
-		return response;
-	}
+        } else {
+            response = new DefaultFullHttpResponse(request.protocolVersion(), status);
+        }
+        if (keepAlive) {
+            response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        }
+        setCookies(response);
+        return response;
+    }
 
-	/**
-	 * Method that get a chunk of data
-	 * 
-	 * @param ctx
-	 * @param chunk
-	 * @throws HttpIncorrectRequestException
-	 * @throws HttpInvalidAuthenticationException 
-	 * @throws HttpNotFoundRequestException 
-	 */
-	protected void bodyChunk(ChannelHandlerContext ctx, HttpContent chunk) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException, HttpNotFoundRequestException {
-		// New chunk is received: only for Post!
-		if (handler.isBodyJsonDecoded()) {
-			ByteBuf buffer = chunk.content();
-			if (cumulativeBody != null) {
-			    if (buffer.isReadable()) {
-			        cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, buffer);
-			    }
-			} else {
-				cumulativeBody = buffer;
-			}
-		} else {
-			try {
-				decoder.offer(chunk);
-			} catch (ErrorDataDecoderException e1) {
-				status = HttpResponseStatus.NOT_ACCEPTABLE;
-				throw new HttpIncorrectRequestException(e1);
-			}
-			// example of reading chunk by chunk (minimize memory usage due to
-			// Factory)
-			readHttpDataChunkByChunk();
-		}
-		// example of reading only if at the end
-		if (chunk instanceof LastHttpContent) {
-			if (handler.isBodyJsonDecoded()) {
-				jsonObject = getBodyJsonArgs(cumulativeBody);
-				cumulativeBody = null;
-			}
-			response.setFromArgument(arguments);
-			handler.endParsingRequest(this, arguments, response, jsonObject);
-			finalizeSend(ctx);
-		}
-	}
-	
-	protected void finalizeSend(ChannelHandlerContext ctx) {
-		ChannelFuture future = null;
-		if (arguments.getMethod() == METHOD.OPTIONS) {
-			future = handler.sendOptionsResponse(this, ctx, response, status);
-		} else {
-			future = handler.sendResponse(this, ctx, arguments, response, jsonObject, status);
-		}
-		if (future != null) {
-			future.addListener(WaarpSslUtility.SSLCLOSE);
-		}
-		clean();
+    /**
+     * Method that get a chunk of data
+     * 
+     * @param ctx
+     * @param chunk
+     * @throws HttpIncorrectRequestException
+     * @throws HttpInvalidAuthenticationException
+     * @throws HttpNotFoundRequestException
+     */
+    protected void bodyChunk(ChannelHandlerContext ctx, HttpContent chunk) throws HttpIncorrectRequestException,
+            HttpInvalidAuthenticationException, HttpNotFoundRequestException {
+        // New chunk is received: only for Post!
+        if (handler.isBodyJsonDecoded()) {
+            ByteBuf buffer = chunk.content();
+            if (cumulativeBody != null) {
+                if (buffer.isReadable()) {
+                    cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, buffer);
+                }
+            } else {
+                cumulativeBody = buffer;
+            }
+        } else {
+            try {
+                decoder.offer(chunk);
+            } catch (ErrorDataDecoderException e1) {
+                status = HttpResponseStatus.NOT_ACCEPTABLE;
+                throw new HttpIncorrectRequestException(e1);
+            }
+            // example of reading chunk by chunk (minimize memory usage due to
+            // Factory)
+            readHttpDataChunkByChunk();
+        }
+        // example of reading only if at the end
+        if (chunk instanceof LastHttpContent) {
+            if (handler.isBodyJsonDecoded()) {
+                jsonObject = getBodyJsonArgs(cumulativeBody);
+                cumulativeBody = null;
+            }
+            response.setFromArgument(arguments);
+            handler.endParsingRequest(this, arguments, response, jsonObject);
+            finalizeSend(ctx);
+        }
+    }
+
+    protected void finalizeSend(ChannelHandlerContext ctx) {
+        ChannelFuture future = null;
+        if (arguments.getMethod() == METHOD.OPTIONS) {
+            future = handler.sendOptionsResponse(this, ctx, response, status);
+        } else {
+            future = handler.sendResponse(this, ctx, arguments, response, jsonObject, status);
+        }
+        if (future != null) {
+            future.addListener(WaarpSslUtility.SSLCLOSE);
+        }
+        clean();
         logger.debug("Cleaned");
-	}
+    }
 
-	/**
-	 * Get Body args as JSON body
-	 * @param data
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected Object getBodyJsonArgs(ByteBuf data) throws HttpIncorrectRequestException {
-		if (data == null || data.readableBytes() == 0) {
-			return null;
-		}
-		return handler.getBody(this, data, arguments, response);
-	}
-	
-	/**
-	 * Read request by chunk and getting values from chunk to chunk
-	 * 
-	 * @throws HttpIncorrectRequestException
-	 */
-	protected void readHttpDataChunkByChunk() throws HttpIncorrectRequestException {
-		try {
-			while (decoder.hasNext()) {
-				InterfaceHttpData data = decoder.next();
-				if (data != null) {
-					// new value
-					readHttpData(data);
-				}
-			}
-		} catch (EndOfDataDecoderException e1) {
-			// end
-			return;
-		}
-	}
+    /**
+     * Get Body args as JSON body
+     * 
+     * @param data
+     * @throws HttpIncorrectRequestException
+     */
+    protected Object getBodyJsonArgs(ByteBuf data) throws HttpIncorrectRequestException {
+        if (data == null || data.readableBytes() == 0) {
+            return null;
+        }
+        return handler.getBody(this, data, arguments, response);
+    }
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-			throws Exception {
-		if (ctx.channel().isActive()) {
-			if (cause != null && cause.getMessage() != null) {
-				logger.warn("Exception {}", cause.getMessage(), cause);
-			} else {
-				logger.warn("Exception Received", cause);
-			}
-			Throwable thro = cause;
-			if (thro instanceof ClosedChannelException || thro instanceof IOException) {
-				return;
-			}
-			if (handler != null) {
-				status = handler.handleException(this, arguments, response, jsonObject, (Exception) cause);
-			}
-			if (status == HttpResponseStatus.OK) {
-				status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-			}
-			if (handler != null) {
-				finalizeSend(ctx);
-			} else {
-				forceClosing(ctx);
-			}
-		}
-	}
+    /**
+     * Read request by chunk and getting values from chunk to chunk
+     * 
+     * @throws HttpIncorrectRequestException
+     */
+    protected void readHttpDataChunkByChunk() throws HttpIncorrectRequestException {
+        try {
+            while (decoder.hasNext()) {
+                InterfaceHttpData data = decoder.next();
+                if (data != null) {
+                    // new value
+                    readHttpData(data);
+                }
+            }
+        } catch (EndOfDataDecoderException e1) {
+            // end
+            return;
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        if (ctx.channel().isActive()) {
+            if (cause != null && cause.getMessage() != null) {
+                logger.warn("Exception {}", cause.getMessage(), cause);
+            } else {
+                logger.warn("Exception Received", cause);
+            }
+            Throwable thro = cause;
+            if (thro instanceof ClosedChannelException || thro instanceof IOException) {
+                return;
+            }
+            if (handler != null) {
+                status = handler.handleException(this, arguments, response, jsonObject, (Exception) cause);
+            }
+            if (status == HttpResponseStatus.OK) {
+                status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
+            }
+            if (handler != null) {
+                finalizeSend(ctx);
+            } else {
+                forceClosing(ctx);
+            }
+        }
+    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-		clean();
-	}
+        clean();
+    }
 
-	/**
-	 * @return the status
-	 */
-	public HttpResponseStatus getStatus() {
-		return status;
-	}
+    /**
+     * @return the status
+     */
+    public HttpResponseStatus getStatus() {
+        return status;
+    }
 
-	/**
-	 * @param status the status to set
-	 */
-	public void setStatus(HttpResponseStatus status) {
-		this.status = status;
-	}
+    /**
+     * @param status
+     *            the status to set
+     */
+    public void setStatus(HttpResponseStatus status) {
+        this.status = status;
+    }
 
-	/**
-	 * @return the request
-	 */
-	public HttpRequest getRequest() {
-		return request;
-	}
+    /**
+     * @return the request
+     */
+    public HttpRequest getRequest() {
+        return request;
+    }
 
-	/**
-	 * @return the willClose
-	 */
-	public boolean isWillClose() {
-		return willClose;
-	}
+    /**
+     * @return the willClose
+     */
+    public boolean isWillClose() {
+        return willClose;
+    }
 
-	/**
-	 * @param willClose the willClose to set
-	 */
-	public void setWillClose(boolean willClose) {
-		this.willClose = willClose;
-	}
+    /**
+     * @param willClose
+     *            the willClose to set
+     */
+    public void setWillClose(boolean willClose) {
+        this.willClose = willClose;
+    }
 }

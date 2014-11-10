@@ -34,146 +34,146 @@ import org.waarp.gateway.kernel.database.DbConstant;
  * 
  */
 public class HttpSession implements SessionInterface {
-	protected HttpAuthInterface httpAuth;
-	protected long logid = DbConstant.ILLEGALVALUE;
-	protected CommonDirImpl dir;
-	HttpMethod method;
-	private String cookieSession;
-	private PageRole currentCommand;
-	protected String filename;
+    protected HttpAuthInterface httpAuth;
+    protected long logid = DbConstant.ILLEGALVALUE;
+    protected CommonDirImpl dir;
+    HttpMethod method;
+    private String cookieSession;
+    private PageRole currentCommand;
+    protected String filename;
 
-	/**
+    /**
 	 */
-	public HttpSession() {
-	}
+    public HttpSession() {
+    }
 
-	/**
-	 * @return the method
-	 */
-	public HttpMethod getMethod() {
-		return method;
-	}
+    /**
+     * @return the method
+     */
+    public HttpMethod getMethod() {
+        return method;
+    }
 
-	/**
-	 * @param method the method to set
-	 */
-	public void setMethod(HttpMethod method) {
-		this.method = method;
-	}
+    /**
+     * @param method
+     *            the method to set
+     */
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
 
+    /**
+     * @param httpAuth
+     *            the httpAuth to set
+     */
+    public void setHttpAuth(HttpAuthInterface httpAuth) {
+        this.httpAuth = httpAuth;
+        dir = new CommonDirImpl(this, new FilesystemBasedOptsMLSxImpl());
+        try {
+            dir.changeDirectoryNotChecked(httpAuth.getUser());
+            dir.changeDirectoryNotChecked(httpAuth.getAccount());
+        } catch (CommandAbstractException e) {
+        }
+    }
 
-	/**
-	 * @param httpAuth
-	 *            the httpAuth to set
-	 */
-	public void setHttpAuth(HttpAuthInterface httpAuth) {
-		this.httpAuth = httpAuth;
-		dir = new CommonDirImpl(this, new FilesystemBasedOptsMLSxImpl());
-		try {
-			dir.changeDirectoryNotChecked(httpAuth.getUser());
-			dir.changeDirectoryNotChecked(httpAuth.getAccount());
-		} catch (CommandAbstractException e) {
-		}
-	}
+    @Override
+    public HttpAuthInterface getAuth() {
+        return this.httpAuth;
+    }
 
-	@Override
-	public HttpAuthInterface getAuth() {
-		return this.httpAuth;
-	}
+    @Override
+    public void clear() {
+        if (httpAuth != null) {
+            httpAuth.clear();
+        }
+    }
 
-	@Override
-	public void clear() {
-		if (httpAuth != null) {
-			httpAuth.clear();
-		}
-	}
+    @Override
+    public int getBlockSize() {
+        return 8192; // HttpChunk size
+    }
 
-	@Override
-	public int getBlockSize() {
-		return 8192; // HttpChunk size
-	}
+    @Override
+    public FileParameterInterface getFileParameter() {
+        return FilesystemBasedFileParameterImpl.fileParameterInterface;
+    }
 
-	@Override
-	public FileParameterInterface getFileParameter() {
-		return FilesystemBasedFileParameterImpl.fileParameterInterface;
-	}
+    @Override
+    public Restart getRestart() {
+        return null;
+    }
 
-	@Override
-	public Restart getRestart() {
-		return null;
-	}
+    @Override
+    public String getUniqueExtension() {
+        return ".postu";
+    }
 
-	@Override
-	public String getUniqueExtension() {
-		return ".postu";
-	}
+    /**
+     * @return the logid
+     */
+    public long getLogid() {
+        return logid;
+    }
 
-	/**
-	 * @return the logid
-	 */
-	public long getLogid() {
-		return logid;
-	}
+    /**
+     * @param logid
+     *            the logid to set
+     */
+    public void setLogid(long logid) {
+        this.logid = logid;
+    }
 
-	/**
-	 * @param logid
-	 *            the logid to set
-	 */
-	public void setLogid(long logid) {
-		this.logid = logid;
-	}
+    @Override
+    public DirInterface getDir() {
+        return dir;
+    }
 
-	@Override
-	public DirInterface getDir() {
-		return dir;
-	}
-	/**
-	 * @return the currentCommand
-	 */
-	public PageRole getCurrentCommand() {
-		return currentCommand;
-	}
+    /**
+     * @return the currentCommand
+     */
+    public PageRole getCurrentCommand() {
+        return currentCommand;
+    }
 
-	/**
-	 * @param currentCommand
-	 *            the currentCommand to set
-	 */
-	public void setCurrentCommand(PageRole currentCommand) {
-		this.currentCommand = currentCommand;
-	}
+    /**
+     * @param currentCommand
+     *            the currentCommand to set
+     */
+    public void setCurrentCommand(PageRole currentCommand) {
+        this.currentCommand = currentCommand;
+    }
 
-	/**
-	 * @return the cookieSession
-	 */
-	public String getCookieSession() {
-		return cookieSession;
-	}
+    /**
+     * @return the cookieSession
+     */
+    public String getCookieSession() {
+        return cookieSession;
+    }
 
-	/**
-	 * @param cookieSession
-	 *            the cookieSession to set
-	 */
-	public void setCookieSession(String cookieSession) {
-		this.cookieSession = cookieSession;
-	}
+    /**
+     * @param cookieSession
+     *            the cookieSession to set
+     */
+    public void setCookieSession(String cookieSession) {
+        this.cookieSession = cookieSession;
+    }
 
-	/**
-	 * @return the filename
-	 */
-	public String getFilename() {
-		return filename;
-	}
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
 
-	/**
-	 * @param filename
-	 *            the filename to set
-	 */
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
+    /**
+     * @param filename
+     *            the filename to set
+     */
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
-
-	public String toString() {
-		return "Command: " + currentCommand.name() + " Filename: " + filename+ " LogId: " + logid;
-	}
+    public String toString() {
+        return "Command: " + currentCommand.name() + " Filename: " + filename + " LogId: " + logid;
+    }
 }
