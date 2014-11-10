@@ -23,31 +23,31 @@ package org.waarp.gateway.kernel.exception;
  */
 public class HttpInvalidAuthenticationException extends Exception {
 
-	/**
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = -6357523132449299675L;
+    private static final long serialVersionUID = -6357523132449299675L;
 
-	/**
-	 * @param arg0
-	 */
-	public HttpInvalidAuthenticationException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpInvalidAuthenticationException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public HttpInvalidAuthenticationException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpInvalidAuthenticationException(Throwable arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public HttpInvalidAuthenticationException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public HttpInvalidAuthenticationException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
 }

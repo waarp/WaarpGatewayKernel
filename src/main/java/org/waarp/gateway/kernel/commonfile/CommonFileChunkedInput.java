@@ -32,70 +32,70 @@ import org.jboss.netty.handler.stream.ChunkedInput;
  */
 public class CommonFileChunkedInput implements ChunkedInput {
 
-	private FileInterface document = null;
+    private FileInterface document = null;
 
-	private boolean lastChunkAlready = false;
+    private boolean lastChunkAlready = false;
 
-	private long offset = 0;
+    private long offset = 0;
 
-	/**
-	 * @param document
-	 * @throws HttpIncorrectRetrieveException
-	 */
-	public CommonFileChunkedInput(FileInterface document)
-			throws HttpIncorrectRetrieveException {
-		this.document = document;
-		try {
-			this.document.retrieve();
-		} catch (CommandAbstractException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-	}
+    /**
+     * @param document
+     * @throws HttpIncorrectRetrieveException
+     */
+    public CommonFileChunkedInput(FileInterface document)
+            throws HttpIncorrectRetrieveException {
+        this.document = document;
+        try {
+            this.document.retrieve();
+        } catch (CommandAbstractException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+    }
 
-	@Override
-	public boolean hasNextChunk() {
-		return (!lastChunkAlready);
-	}
+    @Override
+    public boolean hasNextChunk() {
+        return (!lastChunkAlready);
+    }
 
-	@Override
-	public Object nextChunk() throws HttpIncorrectRetrieveException {
-		// Document
-		DataBlock block;
-		try {
-			block = this.document.readDataBlock();
-		} catch (FileEndOfTransferException e) {
-			lastChunkAlready = true;
-			return null;
-		} catch (FileTransferException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-		lastChunkAlready = block.isEOF();
-		offset += block.getByteCount();
-		return block.getBlock();
-	}
+    @Override
+    public Object nextChunk() throws HttpIncorrectRetrieveException {
+        // Document
+        DataBlock block;
+        try {
+            block = this.document.readDataBlock();
+        } catch (FileEndOfTransferException e) {
+            lastChunkAlready = true;
+            return null;
+        } catch (FileTransferException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+        lastChunkAlready = block.isEOF();
+        offset += block.getByteCount();
+        return block.getBlock();
+    }
 
-	@Override
-	public boolean isEndOfInput() {
-		return (lastChunkAlready);
-	}
+    @Override
+    public boolean isEndOfInput() {
+        return (lastChunkAlready);
+    }
 
-	@Override
-	public void close() throws HttpIncorrectRetrieveException {
-		try {
-			if (this.document.isInReading()) {
-				this.document.abortFile();
-			}
-		} catch (CommandAbstractException e) {
-			throw new HttpIncorrectRetrieveException(e);
-		}
-		lastChunkAlready = true;
-	}
+    @Override
+    public void close() throws HttpIncorrectRetrieveException {
+        try {
+            if (this.document.isInReading()) {
+                this.document.abortFile();
+            }
+        } catch (CommandAbstractException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+        lastChunkAlready = true;
+    }
 
-	/**
-	 * Returns the number of transferred bytes.
-	 */
-	public long getTransferredBytes() {
-		return offset;
-	}
+    /**
+     * Returns the number of transferred bytes.
+     */
+    public long getTransferredBytes() {
+        return offset;
+    }
 
 }

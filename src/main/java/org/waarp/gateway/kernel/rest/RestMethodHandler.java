@@ -46,219 +46,251 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * Rest Method handler (used by Http Rest Handler)
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public abstract class RestMethodHandler {
-	/**
+    /**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(RestMethodHandler.class);
-    
+
     protected final String name;
-	protected final String path;
-	protected final Set<METHOD> methods;
-	protected final boolean isBodyJsonDecode;
-	protected final RestConfiguration restConfiguration;
-	
-	/**
-	 * @param name name associated with this Method Handler (to enable some HashMap or Enum classification)
-	 * @param path associated base Path
-	 * @param isBodyJsonDecode Is this method Handler using a Json as Body
-	 * @param config the associated configuration
-	 * @param method the associated methods
-	 */
-	public RestMethodHandler(String name, String path, boolean isBodyJsonDecode, RestConfiguration config, METHOD ...method) {
-		this.name = name;
-		this.path = path;
-		this.methods = new HashSet<HttpRestHandler.METHOD>();
-		setMethods(method);
-		setMethods(METHOD.OPTIONS);
-		this.isBodyJsonDecode = isBodyJsonDecode;
-		this.restConfiguration = config;
-	}
-	
-	protected void setMethods(METHOD ...method) {
-		for (METHOD method2 : method) {
-			methods.add(method2);
-		}
-	}
-	/**
-	 * Will assign the intersection of both set of Methods
-	 * @param selectedMethods the selected Methods among available
-	 * @param validMethod the validMethod for this handler
-	 */
-	protected void setIntersectionMethods(METHOD []selectedMethods, METHOD ...validMethod) {
-		Set<METHOD> set = new HashSet<METHOD>();
-		for (METHOD method : validMethod) {
-			set.add(method);
-		}
-		Set<METHOD> set2 = new HashSet<METHOD>();
-		for (METHOD method : selectedMethods) {
-			set2.add(method);
-		}
-		set.retainAll(set2);
-		METHOD [] methodsToSet = set.toArray(new METHOD[0]);
-		setMethods(methodsToSet);
-	}
+    protected final String path;
+    protected final Set<METHOD> methods;
+    protected final boolean isBodyJsonDecode;
+    protected final RestConfiguration restConfiguration;
 
-	public String getName() {
-		return name;
-	}
-	public String getPath() {
-		return path;
-	}
-	/**
-	 * 
-	 * @param method
-	 * @return True if the Method is valid for this Handler
-	 */
-	public boolean isMethodIncluded(METHOD method) {
-		return methods.contains(method);
-	}
-	/**
-	 * Check the session (arguments, result) vs handler correctness, called before any BODY elements but after URI and HEADER.
-	 * 
-	 * @param handler
-	 * @param arguments
-	 * @param result
-	 * @throws HttpForbiddenRequestException
-	 */
-	public abstract void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments, RestArgument result) throws HttpForbiddenRequestException;
+    /**
+     * @param name
+     *            name associated with this Method Handler (to enable some HashMap or Enum
+     *            classification)
+     * @param path
+     *            associated base Path
+     * @param isBodyJsonDecode
+     *            Is this method Handler using a Json as Body
+     * @param config
+     *            the associated configuration
+     * @param method
+     *            the associated methods
+     */
+    public RestMethodHandler(String name, String path, boolean isBodyJsonDecode, RestConfiguration config,
+            METHOD... method) {
+        this.name = name;
+        this.path = path;
+        this.methods = new HashSet<HttpRestHandler.METHOD>();
+        setMethods(method);
+        setMethods(METHOD.OPTIONS);
+        this.isBodyJsonDecode = isBodyJsonDecode;
+        this.restConfiguration = config;
+    }
 
-	/**
-	 * Get a new Http Uploaded File from BODY
-	 * @param handler
-	 * @param data
-	 * @param arguments
-	 * @param result
-	 * @throws HttpIncorrectRequestException
-	 */
-	public abstract void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments, RestArgument result) throws HttpIncorrectRequestException;
+    protected void setMethods(METHOD... method) {
+        for (METHOD method2 : method) {
+            methods.add(method2);
+        }
+    }
 
-	/**
-	 * Get data from BODY (supposedly a Json)
-	 * @param handler
-	 * @param body
-	 * @param arguments
-	 * @param result
-	 * @return the object related to BODY decoding
-	 * @throws HttpIncorrectRequestException
-	 */
-	public abstract Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments, RestArgument result) throws HttpIncorrectRequestException;
-	
-	/**
-	 * Called when all Data were passed to the handler
-	 * @param handler
-	 * @param arguments
-	 * @param result
-	 * @param body
-	 * @throws HttpIncorrectRequestException
-	 * @throws HttpNotFoundRequestException 
-	 */
-	public abstract void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException, HttpNotFoundRequestException;
-	
-	/**
-	 * Called when an exception occurs 
-	 * @param handler
-	 * @param arguments
-	 * @param result
-	 * @param body
-	 * @param exception
-	 * @return the status to used in sendReponse
-	 */
-	public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body, Exception exception) {
-		if (exception instanceof HttpInvalidAuthenticationException) {
-			result.setResult(HttpResponseStatus.UNAUTHORIZED);
-			return HttpResponseStatus.UNAUTHORIZED;
-		} else if (exception instanceof HttpForbiddenRequestException) {
-			result.setResult(HttpResponseStatus.FORBIDDEN);
-			return HttpResponseStatus.FORBIDDEN;
-		} else if (exception instanceof HttpIncorrectRequestException) {
-			result.setResult(HttpResponseStatus.BAD_REQUEST);
-			return HttpResponseStatus.BAD_REQUEST;
-		} else if (exception instanceof HttpMethodNotAllowedRequestException) {
-			result.setResult(HttpResponseStatus.METHOD_NOT_ALLOWED);
-			return HttpResponseStatus.METHOD_NOT_ALLOWED;
-		} else if (exception instanceof HttpNotFoundRequestException) {
-			result.setResult(HttpResponseStatus.NOT_FOUND);
-			return HttpResponseStatus.NOT_FOUND;
-		} else {
-			result.setResult(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-			return HttpResponseStatus.INTERNAL_SERVER_ERROR;
-		}
-	}
+    /**
+     * Will assign the intersection of both set of Methods
+     * 
+     * @param selectedMethods
+     *            the selected Methods among available
+     * @param validMethod
+     *            the validMethod for this handler
+     */
+    protected void setIntersectionMethods(METHOD[] selectedMethods, METHOD... validMethod) {
+        Set<METHOD> set = new HashSet<METHOD>();
+        for (METHOD method : validMethod) {
+            set.add(method);
+        }
+        Set<METHOD> set2 = new HashSet<METHOD>();
+        for (METHOD method : selectedMethods) {
+            set2.add(method);
+        }
+        set.retainAll(set2);
+        METHOD[] methodsToSet = set.toArray(new METHOD[0]);
+        setMethods(methodsToSet);
+    }
 
-	/**
-	 * Send a response (correct or not)
-	 * @param handler
-	 * @param channel
-	 * @param arguments
-	 * @param result
-	 * @param body
-	 * @param status
-	 * @return The ChannelFuture if this response will need the channel to be closed, else null
-	 */
-	public abstract ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments, RestArgument result, Object body, HttpResponseStatus status);
+    public String getName() {
+        return name;
+    }
 
-	protected ChannelFuture sendOptionsResponse(HttpRestHandler handler, Channel channel, RestArgument result, HttpResponseStatus status) {
-		HttpResponse response = handler.getResponse();
-		if (status == HttpResponseStatus.UNAUTHORIZED) {
-			ChannelFuture future = channel.write(response);
-			return future;
-		}
-		response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-		response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
-		String list = result.getAllowOption();
-		response.headers().add(HttpHeaders.Names.ALLOW, list);
-		String answer = result.toString();
-		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
-		response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
-		response.setContent(buffer);
-		logger.debug("Msg ready");
-		ChannelFuture future = channel.write(response);
-		if (handler.isWillClose()) {
-			logger.warn("Will close session in RestMethodHandler");
-			return future;
-		}
-		return null;
-	}
-	
-	/**
-	 * Options command that all handler should implement
-	 * @param handler
-	 * @param arguments
-	 * @param result
-	 */
-	protected void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
-		result.setCommand(COMMAND_TYPE.OPTIONS);
-		METHOD [] realmethods = METHOD.values();
-		boolean []allMethods = new boolean[realmethods.length];
-		for (METHOD methoditem : methods) {
-			allMethods[methoditem.ordinal()] = true;
-		}
-		String allow = null;
-		for (int i = 0; i < allMethods.length; i++) {
-			if (allMethods[i]) {
-				if (allow == null) {
-					allow = realmethods[i].name();
-				} else {
-					allow += "," + realmethods[i].name();
-				}
-			}
-		}
-		result.addOptions(allow, path, getDetailedAllow());
-	}
-	/**
-	 * 
-	 * @return the detail of the method handler
-	 */
-	protected abstract ArrayNode getDetailedAllow();
-	/**
-	 * @return the isBodyJson
-	 */
-	public boolean isBodyJsonDecoded() {
-		return isBodyJsonDecode;
-	}
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * 
+     * @param method
+     * @return True if the Method is valid for this Handler
+     */
+    public boolean isMethodIncluded(METHOD method) {
+        return methods.contains(method);
+    }
+
+    /**
+     * Check the session (arguments, result) vs handler correctness, called before any BODY elements
+     * but after URI and HEADER.
+     * 
+     * @param handler
+     * @param arguments
+     * @param result
+     * @throws HttpForbiddenRequestException
+     */
+    public abstract void checkHandlerSessionCorrectness(HttpRestHandler handler, RestArgument arguments,
+            RestArgument result) throws HttpForbiddenRequestException;
+
+    /**
+     * Get a new Http Uploaded File from BODY
+     * 
+     * @param handler
+     * @param data
+     * @param arguments
+     * @param result
+     * @throws HttpIncorrectRequestException
+     */
+    public abstract void getFileUpload(HttpRestHandler handler, FileUpload data, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException;
+
+    /**
+     * Get data from BODY (supposedly a Json)
+     * 
+     * @param handler
+     * @param body
+     * @param arguments
+     * @param result
+     * @return the object related to BODY decoding
+     * @throws HttpIncorrectRequestException
+     */
+    public abstract Object getBody(HttpRestHandler handler, ChannelBuffer body, RestArgument arguments,
+            RestArgument result) throws HttpIncorrectRequestException;
+
+    /**
+     * Called when all Data were passed to the handler
+     * 
+     * @param handler
+     * @param arguments
+     * @param result
+     * @param body
+     * @throws HttpIncorrectRequestException
+     * @throws HttpNotFoundRequestException
+     */
+    public abstract void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result,
+            Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException,
+            HttpNotFoundRequestException;
+
+    /**
+     * Called when an exception occurs
+     * 
+     * @param handler
+     * @param arguments
+     * @param result
+     * @param body
+     * @param exception
+     * @return the status to used in sendReponse
+     */
+    public HttpResponseStatus handleException(HttpRestHandler handler, RestArgument arguments, RestArgument result,
+            Object body, Exception exception) {
+        if (exception instanceof HttpInvalidAuthenticationException) {
+            result.setResult(HttpResponseStatus.UNAUTHORIZED);
+            return HttpResponseStatus.UNAUTHORIZED;
+        } else if (exception instanceof HttpForbiddenRequestException) {
+            result.setResult(HttpResponseStatus.FORBIDDEN);
+            return HttpResponseStatus.FORBIDDEN;
+        } else if (exception instanceof HttpIncorrectRequestException) {
+            result.setResult(HttpResponseStatus.BAD_REQUEST);
+            return HttpResponseStatus.BAD_REQUEST;
+        } else if (exception instanceof HttpMethodNotAllowedRequestException) {
+            result.setResult(HttpResponseStatus.METHOD_NOT_ALLOWED);
+            return HttpResponseStatus.METHOD_NOT_ALLOWED;
+        } else if (exception instanceof HttpNotFoundRequestException) {
+            result.setResult(HttpResponseStatus.NOT_FOUND);
+            return HttpResponseStatus.NOT_FOUND;
+        } else {
+            result.setResult(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            return HttpResponseStatus.INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    /**
+     * Send a response (correct or not)
+     * 
+     * @param handler
+     * @param channel
+     * @param arguments
+     * @param result
+     * @param body
+     * @param status
+     * @return The ChannelFuture if this response will need the channel to be closed, else null
+     */
+    public abstract ChannelFuture sendResponse(HttpRestHandler handler, Channel channel, RestArgument arguments,
+            RestArgument result, Object body, HttpResponseStatus status);
+
+    protected ChannelFuture sendOptionsResponse(HttpRestHandler handler, Channel channel, RestArgument result,
+            HttpResponseStatus status) {
+        HttpResponse response = handler.getResponse();
+        if (status == HttpResponseStatus.UNAUTHORIZED) {
+            ChannelFuture future = channel.write(response);
+            return future;
+        }
+        response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+        response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().getUri());
+        String list = result.getAllowOption();
+        response.headers().add(HttpHeaders.Names.ALLOW, list);
+        String answer = result.toString();
+        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8));
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+        response.setContent(buffer);
+        logger.debug("Msg ready");
+        ChannelFuture future = channel.write(response);
+        if (handler.isWillClose()) {
+            logger.warn("Will close session in RestMethodHandler");
+            return future;
+        }
+        return null;
+    }
+
+    /**
+     * Options command that all handler should implement
+     * 
+     * @param handler
+     * @param arguments
+     * @param result
+     */
+    protected void optionsCommand(HttpRestHandler handler, RestArgument arguments, RestArgument result) {
+        result.setCommand(COMMAND_TYPE.OPTIONS);
+        METHOD[] realmethods = METHOD.values();
+        boolean[] allMethods = new boolean[realmethods.length];
+        for (METHOD methoditem : methods) {
+            allMethods[methoditem.ordinal()] = true;
+        }
+        String allow = null;
+        for (int i = 0; i < allMethods.length; i++) {
+            if (allMethods[i]) {
+                if (allow == null) {
+                    allow = realmethods[i].name();
+                } else {
+                    allow += "," + realmethods[i].name();
+                }
+            }
+        }
+        result.addOptions(allow, path, getDetailedAllow());
+    }
+
+    /**
+     * 
+     * @return the detail of the method handler
+     */
+    protected abstract ArrayNode getDetailedAllow();
+
+    /**
+     * @return the isBodyJson
+     */
+    public boolean isBodyJsonDecoded() {
+        return isBodyJsonDecode;
+    }
 }

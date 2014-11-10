@@ -23,37 +23,37 @@ package org.waarp.gateway.kernel.exception;
  */
 public class HttpIncorrectRetrieveException extends Exception {
 
-	/**
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = -6357523132449299675L;
+    private static final long serialVersionUID = -6357523132449299675L;
 
-	/**
+    /**
 	 * 
 	 */
-	public HttpIncorrectRetrieveException() {
-	}
+    public HttpIncorrectRetrieveException() {
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public HttpIncorrectRetrieveException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpIncorrectRetrieveException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public HttpIncorrectRetrieveException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpIncorrectRetrieveException(Throwable arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public HttpIncorrectRetrieveException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public HttpIncorrectRetrieveException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
 }

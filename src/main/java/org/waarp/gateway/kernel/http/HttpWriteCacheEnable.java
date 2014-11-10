@@ -50,7 +50,7 @@ import org.jboss.netty.handler.stream.ChunkedNioFile;
  * 
  */
 public class HttpWriteCacheEnable {
-	/**
+    /**
      * US locale - all HTTP dates are in english
      */
     public final static Locale LOCALE_US = Locale.US;
@@ -64,35 +64,35 @@ public class HttpWriteCacheEnable {
      * format for RFC 1123 date string -- "Sun, 06 Nov 1994 08:49:37 GMT"
      */
     public final static String RFC1123_PATTERN =
-        "EEE, dd MMM yyyyy HH:mm:ss z";
+            "EEE, dd MMM yyyyy HH:mm:ss z";
     /**
      * set MIME TYPE if possible
      */
     public static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
     static {
-    	mimetypesFileTypeMap.addMimeTypes("text/css css CSS");
-    	mimetypesFileTypeMap.addMimeTypes("text/javascript js JS");
-    	//Official but not supported mimetypesFileTypeMap.addMimeTypes("application/javascript js JS");
-    	mimetypesFileTypeMap.addMimeTypes("application/json json JSON");
-    	mimetypesFileTypeMap.addMimeTypes("text/plain txt text TXT");
-    	mimetypesFileTypeMap.addMimeTypes("text/html htm html HTM HTML htmls htx");
-    	mimetypesFileTypeMap.addMimeTypes("image/jpeg jpe jpeg jpg JPG");
-    	mimetypesFileTypeMap.addMimeTypes("image/png png PNG");
-    	mimetypesFileTypeMap.addMimeTypes("image/gif gif GIF");
-    	mimetypesFileTypeMap.addMimeTypes("image/x-icon ico ICO");
+        mimetypesFileTypeMap.addMimeTypes("text/css css CSS");
+        mimetypesFileTypeMap.addMimeTypes("text/javascript js JS");
+        //Official but not supported mimetypesFileTypeMap.addMimeTypes("application/javascript js JS");
+        mimetypesFileTypeMap.addMimeTypes("application/json json JSON");
+        mimetypesFileTypeMap.addMimeTypes("text/plain txt text TXT");
+        mimetypesFileTypeMap.addMimeTypes("text/html htm html HTM HTML htmls htx");
+        mimetypesFileTypeMap.addMimeTypes("image/jpeg jpe jpeg jpg JPG");
+        mimetypesFileTypeMap.addMimeTypes("image/png png PNG");
+        mimetypesFileTypeMap.addMimeTypes("image/gif gif GIF");
+        mimetypesFileTypeMap.addMimeTypes("image/x-icon ico ICO");
     }
 
-	/**
-	 * Write a file, taking into account cache enabled and removing session cookie
-	 * 
-	 * @param request
-	 * @param channel
-	 * @param filename
-	 * @param cookieNameToRemove
-	 */
-	public static void writeFile(HttpRequest request, Channel channel, String filename,
-			String cookieNameToRemove) {
-		// Convert the response content to a ChannelBuffer.
+    /**
+     * Write a file, taking into account cache enabled and removing session cookie
+     * 
+     * @param request
+     * @param channel
+     * @param filename
+     * @param cookieNameToRemove
+     */
+    public static void writeFile(HttpRequest request, Channel channel, String filename,
+            String cookieNameToRemove) {
+        // Convert the response content to a ChannelBuffer.
         HttpResponse response;
         File file = new File(filename);
         if (!file.isFile() || !file.canRead()) {
@@ -106,35 +106,34 @@ public class HttpWriteCacheEnable {
         rfc1123Format.setTimeZone(GMT_ZONE);
         Date lastModifDate = new Date(file.lastModified());
         if (request.headers().contains(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-        	String sdate = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
-        	try {
-				Date ifmodif = rfc1123Format.parse(sdate);
-				if (ifmodif.after(lastModifDate)) {
-		            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-		                    HttpResponseStatus.NOT_MODIFIED);
-		            handleCookies(request, response, cookieNameToRemove);
-		            channel.write(response);
-		            return;
-				}
-			} catch (ParseException e) {
-			}
+            String sdate = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
+            try {
+                Date ifmodif = rfc1123Format.parse(sdate);
+                if (ifmodif.after(lastModifDate)) {
+                    response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                            HttpResponseStatus.NOT_MODIFIED);
+                    handleCookies(request, response, cookieNameToRemove);
+                    channel.write(response);
+                    return;
+                }
+            } catch (ParseException e) {}
         }
         long size = file.length();
         ChunkedNioFile nioFile;
-		try {
-			nioFile = new ChunkedNioFile(file);
-		} catch (IOException e) {
+        try {
+            nioFile = new ChunkedNioFile(file);
+        } catch (IOException e) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
             handleCookies(request, response, cookieNameToRemove);
             channel.write(response);
             return;
-		}
+        }
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.OK);
         response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
                 String.valueOf(size));
-        
+
         String type = mimetypesFileTypeMap.getContentType(filename);
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, type);
         ArrayList<String> cache_control = new ArrayList<String>(2);
@@ -147,35 +146,34 @@ public class HttpWriteCacheEnable {
         // Write the response.
         channel.write(response);
         channel.write(nioFile);
-	}
+    }
 
-	/**
-	 * Remove the given named cookie
-	 * 
-	 * @param request
-	 * @param response
-	 * @param cookieNameToRemove
-	 */
-	public static void handleCookies(HttpRequest request, HttpResponse response,
-			String cookieNameToRemove) {
-		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
-		if (cookieString != null) {
-			CookieDecoder cookieDecoder = new CookieDecoder();
-			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-			if (!cookies.isEmpty()) {
-				// Reset the sessions if necessary.
-				CookieEncoder cookieEncoder = new CookieEncoder(true);
-				// Remove all Session for images
-				for (Cookie cookie : cookies) {
-					if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {
-					} else {
-						cookieEncoder.addCookie(cookie);
-						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-						cookieEncoder = new CookieEncoder(true);
-					}
-				}
-			}
-		}
-	}
+    /**
+     * Remove the given named cookie
+     * 
+     * @param request
+     * @param response
+     * @param cookieNameToRemove
+     */
+    public static void handleCookies(HttpRequest request, HttpResponse response,
+            String cookieNameToRemove) {
+        String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
+        if (cookieString != null) {
+            CookieDecoder cookieDecoder = new CookieDecoder();
+            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+            if (!cookies.isEmpty()) {
+                // Reset the sessions if necessary.
+                CookieEncoder cookieEncoder = new CookieEncoder(true);
+                // Remove all Session for images
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {} else {
+                        cookieEncoder.addCookie(cookie);
+                        response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                        cookieEncoder = new CookieEncoder(true);
+                    }
+                }
+            }
+        }
+    }
 
 }

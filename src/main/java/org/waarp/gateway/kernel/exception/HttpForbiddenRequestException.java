@@ -23,31 +23,31 @@ package org.waarp.gateway.kernel.exception;
  */
 public class HttpForbiddenRequestException extends Exception {
 
-	/**
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = -6357523132449299675L;
+    private static final long serialVersionUID = -6357523132449299675L;
 
-	/**
-	 * @param arg0
-	 */
-	public HttpForbiddenRequestException(String arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpForbiddenRequestException(String arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 */
-	public HttpForbiddenRequestException(Throwable arg0) {
-		super(arg0);
-	}
+    /**
+     * @param arg0
+     */
+    public HttpForbiddenRequestException(Throwable arg0) {
+        super(arg0);
+    }
 
-	/**
-	 * @param arg0
-	 * @param arg1
-	 */
-	public HttpForbiddenRequestException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public HttpForbiddenRequestException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
 }

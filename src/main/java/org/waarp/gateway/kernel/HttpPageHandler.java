@@ -30,114 +30,114 @@ import org.waarp.gateway.kernel.session.HttpSession;
  * 
  */
 public class HttpPageHandler {
-	/*
-	 * Need as default error pages: 400, 401, 403, 404, 406, 500
-	 */
+    /*
+     * Need as default error pages: 400, 401, 403, 404, 406, 500
+     */
 
-	public static String hostid;
+    public static String hostid;
 
-	public HashMap<String, HttpPage> hashmap;
+    public HashMap<String, HttpPage> hashmap;
 
-	/**
-	 * @param hashmap
-	 */
-	public HttpPageHandler(HashMap<String, HttpPage> hashmap) {
-		this.hashmap = hashmap;
-	}
+    /**
+     * @param hashmap
+     */
+    public HttpPageHandler(HashMap<String, HttpPage> hashmap) {
+        this.hashmap = hashmap;
+    }
 
-	/**
-	 * 
-	 * @param code
-	 * @return an HttpPage according to the error code (400, 404, 500, ...)
-	 */
-	public HttpPage getHttpPage(int code) {
-		String scode = Integer.toString(code);
-		return this.hashmap.get(scode);
-	}
+    /**
+     * 
+     * @param code
+     * @return an HttpPage according to the error code (400, 404, 500, ...)
+     */
+    public HttpPage getHttpPage(int code) {
+        String scode = Integer.toString(code);
+        return this.hashmap.get(scode);
+    }
 
-	/**
-	 * 
-	 * @param uri
-	 * @param method
-	 * @param session
-	 * @return the associated HttpPage if any
-	 * @throws HttpIncorrectRequestException
-	 */
-	public HttpPage getHttpPage(String uri, String method, HttpSession session)
-			throws HttpIncorrectRequestException {
-		HttpPage page = this.hashmap.get(uri);
-		if (page == null) {
-			return null;
-		}
-		switch (page.pagerole) {
-			case DELETE:
-				if (!method.equalsIgnoreCase("DELETE")) {
-					// error
-					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-							"Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-					if (page.errorpage != null || page.errorpage.length() > 1) {
-						page = this.hashmap.get(page.errorpage);
-					} else {
-						page = null;
-					}
-				}
-				break;
-			case HTML:
-			case MENU:
-				// no check
-				break;
-			case GETDOWNLOAD:
-				if (!method.equalsIgnoreCase("GET")) {
-					// error
-					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-							"Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-					if (page.errorpage != null || page.errorpage.length() > 1) {
-						page = this.hashmap.get(page.errorpage);
-					} else {
-						page = null;
-					}
-				}
-				break;
-			case POST:
-			case POSTUPLOAD:
-				if (!method.equalsIgnoreCase("POST")) {
-					// error
-					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-							"Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-					if (page.errorpage != null || page.errorpage.length() > 1) {
-						page = this.hashmap.get(page.errorpage);
-					} else {
-						page = null;
-					}
-				}
-				break;
-			case PUT:
-				if (!method.equalsIgnoreCase("PUT")) {
-					// error
-					WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-							"Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-					if (page.errorpage != null || page.errorpage.length() > 1) {
-						page = this.hashmap.get(page.errorpage);
-					} else {
-						page = null;
-					}
-				}
-				break;
-			case ERROR:
-				break;
-			default:
-				// error
-				WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-						"Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-				if (page.errorpage != null || page.errorpage.length() > 1) {
-					page = this.hashmap.get(page.errorpage);
-				} else {
-					page = null;
-				}
-		}
-		if (page == null) {
-			throw new HttpIncorrectRequestException("No Page found");
-		}
-		return page;
-	}
+    /**
+     * 
+     * @param uri
+     * @param method
+     * @param session
+     * @return the associated HttpPage if any
+     * @throws HttpIncorrectRequestException
+     */
+    public HttpPage getHttpPage(String uri, String method, HttpSession session)
+            throws HttpIncorrectRequestException {
+        HttpPage page = this.hashmap.get(uri);
+        if (page == null) {
+            return null;
+        }
+        switch (page.pagerole) {
+            case DELETE:
+                if (!method.equalsIgnoreCase("DELETE")) {
+                    // error
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
+                    if (page.errorpage != null || page.errorpage.length() > 1) {
+                        page = this.hashmap.get(page.errorpage);
+                    } else {
+                        page = null;
+                    }
+                }
+                break;
+            case HTML:
+            case MENU:
+                // no check
+                break;
+            case GETDOWNLOAD:
+                if (!method.equalsIgnoreCase("GET")) {
+                    // error
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
+                    if (page.errorpage != null || page.errorpage.length() > 1) {
+                        page = this.hashmap.get(page.errorpage);
+                    } else {
+                        page = null;
+                    }
+                }
+                break;
+            case POST:
+            case POSTUPLOAD:
+                if (!method.equalsIgnoreCase("POST")) {
+                    // error
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
+                    if (page.errorpage != null || page.errorpage.length() > 1) {
+                        page = this.hashmap.get(page.errorpage);
+                    } else {
+                        page = null;
+                    }
+                }
+                break;
+            case PUT:
+                if (!method.equalsIgnoreCase("PUT")) {
+                    // error
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
+                    if (page.errorpage != null || page.errorpage.length() > 1) {
+                        page = this.hashmap.get(page.errorpage);
+                    } else {
+                        page = null;
+                    }
+                }
+                break;
+            case ERROR:
+                break;
+            default:
+                // error
+                WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
+                        "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
+                if (page.errorpage != null || page.errorpage.length() > 1) {
+                    page = this.hashmap.get(page.errorpage);
+                } else {
+                    page = null;
+                }
+        }
+        if (page == null) {
+            throw new HttpIncorrectRequestException("No Page found");
+        }
+        return page;
+    }
 }

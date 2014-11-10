@@ -24,107 +24,107 @@ import java.util.LinkedHashMap;
  * 
  */
 public abstract class AbstractHttpBusinessRequest {
-	protected LinkedHashMap<String, AbstractHttpField> fields;
-	protected HttpPage page;
+    protected LinkedHashMap<String, AbstractHttpField> fields;
+    protected HttpPage page;
 
-	/**
-	 * Default constructor
-	 * 
-	 * @param fields
-	 * @param page
-	 */
-	public AbstractHttpBusinessRequest(LinkedHashMap<String, AbstractHttpField> fields,
-			HttpPage page) {
-		this.fields = fields;
-		this.page = page;
-	}
+    /**
+     * Default constructor
+     * 
+     * @param fields
+     * @param page
+     */
+    public AbstractHttpBusinessRequest(LinkedHashMap<String, AbstractHttpField> fields,
+            HttpPage page) {
+        this.fields = fields;
+        this.page = page;
+    }
 
-	/**
-	 * 
-	 * @return the LinkedHashMap<String, AbstractHttpField> associated with the current request
-	 */
-	public LinkedHashMap<String, AbstractHttpField> getLinkedHashMapHttpFields() {
-		return fields;
-	}
+    /**
+     * 
+     * @return the LinkedHashMap<String, AbstractHttpField> associated with the current request
+     */
+    public LinkedHashMap<String, AbstractHttpField> getLinkedHashMapHttpFields() {
+        return fields;
+    }
 
-	/**
-	 * 
-	 * @return the HTML header or null if set through definition
-	 */
-	public abstract String getHeader();
+    /**
+     * 
+     * @return the HTML header or null if set through definition
+     */
+    public abstract String getHeader();
 
-	/**
-	 * 
-	 * @return the HTML Footer or null if set through definition
-	 */
-	public abstract String getFooter();
+    /**
+     * 
+     * @return the HTML Footer or null if set through definition
+     */
+    public abstract String getFooter();
 
-	/**
-	 * 
-	 * @return True if the HTML output will be a Form
-	 */
-	public abstract boolean isForm();
+    /**
+     * 
+     * @return True if the HTML output will be a Form
+     */
+    public abstract boolean isForm();
 
-	/**
-	 * 
-	 * @return the HTML Begin of Form (including URI) or null if set through definition
-	 */
-	public abstract String getBeginForm();
+    /**
+     * 
+     * @return the HTML Begin of Form (including URI) or null if set through definition
+     */
+    public abstract String getBeginForm();
 
-	/**
-	 * 
-	 * @return the HTML End of Form or null if set through definition
-	 */
-	public abstract String getEndForm();
+    /**
+     * 
+     * @return the HTML End of Form or null if set through definition
+     */
+    public abstract String getEndForm();
 
-	/**
-	 * 
-	 * @param field
-	 * @return the HTML field form or null if set standard
-	 */
-	public abstract String getFieldForm(AbstractHttpField field);
+    /**
+     * 
+     * @param field
+     * @return the HTML field form or null if set standard
+     */
+    public abstract String getFieldForm(AbstractHttpField field);
 
-	/**
-	 * 
-	 * @return the HTML Next Field in Form or null if set through definition
-	 */
-	public abstract String getNextFieldInForm();
+    /**
+     * 
+     * @return the HTML Next Field in Form or null if set through definition
+     */
+    public abstract String getNextFieldInForm();
 
-	/**
-	 * Called if fieldtovalidate is true
-	 * 
-	 * @param field
-	 * @return True if the field is valid
-	 */
-	public abstract boolean isFieldValid(AbstractHttpField field);
+    /**
+     * Called if fieldtovalidate is true
+     * 
+     * @param field
+     * @return True if the field is valid
+     */
+    public abstract boolean isFieldValid(AbstractHttpField field);
 
-	/**
-	 * Note that mandatory fields is tested outside of the AbstractHttpBusinessRequest
-	 * 
-	 * @return True if according to known informations this request is valid
-	 */
-	public abstract boolean isRequestValid();
+    /**
+     * Note that mandatory fields is tested outside of the AbstractHttpBusinessRequest
+     * 
+     * @return True if according to known informations this request is valid
+     */
+    public abstract boolean isRequestValid();
 
-	/**
-	 * 
-	 * @return the string that contains the ContentType in HTML format (as "text/html")
-	 */
-	public abstract String getContentType();
+    /**
+     * 
+     * @return the string that contains the ContentType in HTML format (as "text/html")
+     */
+    public abstract String getContentType();
 
-	/**
-	 * Utility mainly used for PUT where the content is coming out of the decoder
-	 * 
-	 * @return the main FileUpload as AbstractHttpField for the current request
-	 */
-	public abstract AbstractHttpField getMainFileUpload();
+    /**
+     * Utility mainly used for PUT where the content is coming out of the decoder
+     * 
+     * @return the main FileUpload as AbstractHttpField for the current request
+     */
+    public abstract AbstractHttpField getMainFileUpload();
 
-	/**
-	 * Used at the end of the request to release the resources
-	 */
-	public void cleanRequest() {
-		for (AbstractHttpField field : fields.values()) {
-			field.clean();
-		}
-		fields.clear();
-	}
+    /**
+     * Used at the end of the request to release the resources
+     */
+    public void cleanRequest() {
+        for (AbstractHttpField field : fields.values()) {
+            field.clean();
+        }
+        fields.clear();
+    }
 }
