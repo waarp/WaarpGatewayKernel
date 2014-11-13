@@ -23,11 +23,14 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.Set;
 
 import org.dom4j.Document;
+
 import io.netty.handler.codec.http.HttpResponseStatus;
+
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
@@ -148,7 +151,7 @@ public class DbTransferLog extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?) ";
 
-    private static final TreeSet<Long> clientNoDbSpecialId = new TreeSet<Long>();
+    private static final Set<Long> clientNoDbSpecialId = new HashSet<Long>();
 
     /**
      * Insert into database
