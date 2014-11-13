@@ -65,6 +65,14 @@ public class HttpWriteCacheEnable {
      */
     public final static String RFC1123_PATTERN =
             "EEE, dd MMM yyyyy HH:mm:ss z";
+
+    private static final ArrayList<String> cache_control;
+    static {
+        cache_control = new ArrayList<String>(2);
+        cache_control.add(HttpHeaders.Values.PUBLIC);
+        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
+    }
+
     /**
      * set MIME TYPE if possible
      */
@@ -136,9 +144,6 @@ public class HttpWriteCacheEnable {
 
         String type = mimetypesFileTypeMap.getContentType(filename);
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, type);
-        ArrayList<String> cache_control = new ArrayList<String>(2);
-        cache_control.add(HttpHeaders.Values.PUBLIC);
-        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
         response.headers().set(HttpHeaders.Names.CACHE_CONTROL, cache_control);
         response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
                 rfc1123Format.format(lastModifDate));
