@@ -69,7 +69,7 @@ public class HttpWriteCacheEnable {
      */
     public final static String RFC1123_PATTERN =
             "EEE, dd MMM yyyyy HH:mm:ss z";
-    
+
     private static final ArrayList<String> cache_control;
     static {
         cache_control = new ArrayList<String>(2);
