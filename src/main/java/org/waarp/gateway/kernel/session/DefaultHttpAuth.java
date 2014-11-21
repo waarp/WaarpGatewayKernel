@@ -33,112 +33,112 @@ import org.waarp.common.file.SessionInterface;
  * 
  */
 public class DefaultHttpAuth implements HttpAuthInterface {
-	/**
-	 * User name
-	 */
-	protected String user = "user";
+    /**
+     * User name
+     */
+    protected String user = "user";
 
-	/**
-	 * Password
-	 */
-	protected String password = "password";
+    /**
+     * Password
+     */
+    protected String password = "password";
 
-	/**
-	 * Account name
-	 */
-	protected String account = "account";
+    /**
+     * Account name
+     */
+    protected String account = "account";
 
-	/**
-	 * Is Identified
-	 */
-	protected boolean isIdentified = false;
+    /**
+     * Is Identified
+     */
+    protected boolean isIdentified = false;
 
-	/**
-	 * SessionInterface
-	 */
-	protected final SessionInterface session;
+    /**
+     * SessionInterface
+     */
+    protected final SessionInterface session;
 
-	/**
-	 * @param session
-	 */
-	public DefaultHttpAuth(SessionInterface session) {
-		this.session = session;
-		isIdentified = true;
-	}
+    /**
+     * @param session
+     */
+    public DefaultHttpAuth(SessionInterface session) {
+        this.session = session;
+        isIdentified = true;
+    }
 
-	@Override
-	public SessionInterface getSession() {
-		return session;
-	}
+    @Override
+    public SessionInterface getSession() {
+        return session;
+    }
 
-	@Override
-	public NextCommandReply setUser(String user) throws Reply421Exception, Reply530Exception {
-		this.user = user;
-		return null;
-	}
+    @Override
+    public NextCommandReply setUser(String user) throws Reply421Exception, Reply530Exception {
+        this.user = user;
+        return null;
+    }
 
-	@Override
-	public String getUser() {
-		return this.user;
-	}
+    @Override
+    public String getUser() {
+        return this.user;
+    }
 
-	@Override
-	public NextCommandReply setPassword(String password) throws Reply421Exception,
-			Reply530Exception {
-		this.password = password;
-		return null;
-	}
+    @Override
+    public NextCommandReply setPassword(String password) throws Reply421Exception,
+            Reply530Exception {
+        this.password = password;
+        return null;
+    }
 
-	@Override
-	public boolean isIdentified() {
-		return isIdentified;
-	}
+    @Override
+    public boolean isIdentified() {
+        return isIdentified;
+    }
 
-	@Override
-	public boolean isAdmin() {
-		return false;
-	}
+    @Override
+    public boolean isAdmin() {
+        return false;
+    }
 
-	@Override
-	public boolean isBusinessPathValid(String newPath) {
-		return true;
-	}
+    @Override
+    public boolean isBusinessPathValid(String newPath) {
+        return true;
+    }
 
-	@Override
-	public String getBusinessPath() {
-		return "";
-	}
+    @Override
+    public String getBusinessPath() {
+        return "";
+    }
 
-	@Override
-	public String getBaseDirectory() {
-		return "/";
-	}
+    @Override
+    public String getBaseDirectory() {
+        return "/";
+    }
 
-	@Override
-	public String getRelativePath(String file) {
-		return file;
-	}
+    @Override
+    public String getRelativePath(String file) {
+        return file;
+    }
 
-	@Override
-	public void clear() {
-	}
+    @Override
+    public void clear() {
+    }
 
-	@Override
-	public String getAccount() {
-		return this.account;
-	}
+    @Override
+    public String getAccount() {
+        return this.account;
+    }
 
-	@Override
-	public NextCommandReply setAccount(String account) throws Reply421Exception, Reply530Exception,
-			Reply502Exception {
-		this.account = account;
-		return null;
-	}
+    @Override
+    public NextCommandReply setAccount(String account) throws Reply421Exception, Reply530Exception,
+            Reply502Exception {
+        this.account = account;
+        return null;
+    }
 
-	@Override
-	public CommandExecutorInterface getCommandExecutor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public CommandExecutorInterface getCommandExecutor() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

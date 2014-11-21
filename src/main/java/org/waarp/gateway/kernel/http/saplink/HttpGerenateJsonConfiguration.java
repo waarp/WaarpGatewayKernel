@@ -27,21 +27,21 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
  */
 public class HttpGerenateJsonConfiguration {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		if (args.length < 1) {
-			System.err.println("Not enough argument: filepath for output");
-			System.exit(1);
-		}
-		HttpPageHandler httpPageHandler = HttpSapBusinessFactory.initializeHttpPageHandler();
-		try {
-			HttpJsonDefinition.exportConfiguration(httpPageHandler, args[0]);
-		} catch (HttpIncorrectRequestException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Not enough argument: filepath for output");
+            System.exit(1);
+        }
+        HttpPageHandler httpPageHandler = HttpSapBusinessFactory.initializeHttpPageHandler();
+        try {
+            HttpJsonDefinition.exportConfiguration(httpPageHandler, args[0]);
+        } catch (HttpIncorrectRequestException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
 }

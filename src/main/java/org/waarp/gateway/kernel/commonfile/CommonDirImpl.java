@@ -29,17 +29,17 @@ import org.waarp.common.file.filesystembased.FilesystemBasedDirImpl;
  */
 public class CommonDirImpl extends FilesystemBasedDirImpl {
 
-	/**
-	 * @param session
-	 * @param optsMLSx
-	 */
-	public CommonDirImpl(SessionInterface session, OptsMLSxInterface optsMLSx) {
-		super(session, optsMLSx);
-	}
+    /**
+     * @param session
+     * @param optsMLSx
+     */
+    public CommonDirImpl(SessionInterface session, OptsMLSxInterface optsMLSx) {
+        super(session, optsMLSx);
+    }
 
-	@Override
-	public FileInterface newFile(String path, boolean append) throws CommandAbstractException {
-		return new CommonFileImpl(session, this, path);
-	}
+    @Override
+    public FileInterface newFile(String path, boolean append) throws CommandAbstractException {
+        return new CommonFileImpl(session, this, path);
+    }
 
 }

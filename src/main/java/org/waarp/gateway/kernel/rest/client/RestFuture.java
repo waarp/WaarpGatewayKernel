@@ -25,46 +25,49 @@ import org.waarp.gateway.kernel.rest.RestArgument;
 
 /**
  * WaarpFuture for Rest interface
+ * 
  * @author "Frederic Bregier"
- *
+ * 
  */
 public class RestFuture extends WaarpFuture {
 
-	RestArgument result = null;
-	Object otherObject = null;
-	
-	/**
+    RestArgument result = null;
+    Object otherObject = null;
+
+    /**
 	 * 
 	 */
-	public RestFuture() {
-	}
+    public RestFuture() {
+    }
 
-	/**
-	 * @param cancellable
-	 */
-	public RestFuture(boolean cancellable) {
-		super(cancellable);
-	}
+    /**
+     * @param cancellable
+     */
+    public RestFuture(boolean cancellable) {
+        super(cancellable);
+    }
 
-	public void setRestArgument(RestArgument arg) {
-		result = arg;
-	}
-	public RestArgument getRestArgument() {
-		return result;
-	}
+    public void setRestArgument(RestArgument arg) {
+        result = arg;
+    }
 
-	/**
-	 * @return the otherObject
-	 */
-	public Object getOtherObject() {
-		return otherObject;
-	}
+    public RestArgument getRestArgument() {
+        return result;
+    }
 
-	/**
-	 * @param otherObject the otherObject to set
-	 */
-	public void setOtherObject(Object otherObject) {
-		this.otherObject = otherObject;
-	}
-	
+    /**
+     * @return the otherObject
+     */
+    public Object getOtherObject() {
+        return otherObject;
+    }
+
+    /**
+     * @param otherObject
+     *            the otherObject to set
+     */
+    public void setOtherObject(Object otherObject) {
+        this.otherObject = otherObject;
+    }
+
 }

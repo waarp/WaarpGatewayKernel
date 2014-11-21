@@ -33,175 +33,175 @@ import org.waarp.gateway.kernel.session.HttpSession;
  * 
  */
 public class WaarpActionLogger {
-	/**
-	 * Internal Logger
-	 */
-	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(WaarpActionLogger.class);
+    /**
+     * Internal Logger
+     */
+    private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+            .getLogger(WaarpActionLogger.class);
 
-	/**
-	 * Log the action
-	 * 
-	 * @param dbSession
-	 * @param message
-	 * @param session
-	 */
-	public static void logCreate(DbSession dbSession,
-			String message, HttpSession session) {
-		String sessionContexte = session.toString();
-		logger.info(message + " " + sessionContexte);
-		if (dbSession != null) {
-			PageRole code = session.getCurrentCommand();
-			boolean isSender = false;
-			switch (code) {
-				case ERROR:
-				case HTML:
-				case MENU:
-					session.setLogid(DbConstant.ILLEGALVALUE);
-					return;
-				case DELETE:
-				case GETDOWNLOAD:
-					isSender = false;
-					break;
-				case POST:
-				case POSTUPLOAD:
-				case PUT:
-					isSender = true;
-					break;
-				default:
-					break;
-			}
-			// Insert new one
-			try {
-				DbTransferLog log =
-						new DbTransferLog(dbSession,
-								session.getAuth().getUser(),
-								session.getAuth().getAccount(),
-								DbConstant.ILLEGALVALUE,
-								isSender, session.getFilename(),
-								code.name(),
-								HttpResponseStatus.OK, message,
-								UpdatedInfo.TOSUBMIT);
-				logger.debug("Create FS: " + log.toString());
-				session.setLogid(log.getSpecialId());
-				return;
-			} catch (WaarpDatabaseException e1) {
-				// Do nothing
-			}
-			/*
-			 * if (FileBasedConfiguration.fileBasedConfiguration.monitoring != null) { if (isSender)
-			 * { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastOutBand(); }
-			 * else { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastInBound();
-			 * } }
-			 */
-		}
-		session.setLogid(DbConstant.ILLEGALVALUE);
-	}
+    /**
+     * Log the action
+     * 
+     * @param dbSession
+     * @param message
+     * @param session
+     */
+    public static void logCreate(DbSession dbSession,
+            String message, HttpSession session) {
+        String sessionContexte = session.toString();
+        logger.info(message + " " + sessionContexte);
+        if (dbSession != null) {
+            PageRole code = session.getCurrentCommand();
+            boolean isSender = false;
+            switch (code) {
+                case ERROR:
+                case HTML:
+                case MENU:
+                    session.setLogid(DbConstant.ILLEGALVALUE);
+                    return;
+                case DELETE:
+                case GETDOWNLOAD:
+                    isSender = false;
+                    break;
+                case POST:
+                case POSTUPLOAD:
+                case PUT:
+                    isSender = true;
+                    break;
+                default:
+                    break;
+            }
+            // Insert new one
+            try {
+                DbTransferLog log =
+                        new DbTransferLog(dbSession,
+                                session.getAuth().getUser(),
+                                session.getAuth().getAccount(),
+                                DbConstant.ILLEGALVALUE,
+                                isSender, session.getFilename(),
+                                code.name(),
+                                HttpResponseStatus.OK, message,
+                                UpdatedInfo.TOSUBMIT);
+                logger.debug("Create FS: " + log.toString());
+                session.setLogid(log.getSpecialId());
+                return;
+            } catch (WaarpDatabaseException e1) {
+                // Do nothing
+            }
+            /*
+             * if (FileBasedConfiguration.fileBasedConfiguration.monitoring != null) { if (isSender)
+             * { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastOutBand(); }
+             * else { FileBasedConfiguration.fileBasedConfiguration.monitoring .updateLastInBound();
+             * } }
+             */
+        }
+        session.setLogid(DbConstant.ILLEGALVALUE);
+    }
 
-	/**
-	 * Log the action
-	 * 
-	 * @param dbSession
-	 * @param session
-	 * @param message
-	 * @param rcode
-	 * @param info
-	 */
-	public static void logAction(DbSession dbSession,
-			HttpSession session, String message, HttpResponseStatus rcode,
-			UpdatedInfo info) {
-		String sessionContexte = session.toString();
-		long specialId = session.getLogid();
-		logger.info(message + " " + sessionContexte);
-		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
-			PageRole code = session.getCurrentCommand();
-			switch (code) {
-				case ERROR:
-				case HTML:
-				case MENU:
-					return;
-				case DELETE:
-				case GETDOWNLOAD:
-				case POST:
-				case POSTUPLOAD:
-				case PUT:
-					break;
-				default:
-					return;
-			}
-			try {
-				// Try load
-				DbTransferLog log =
-						new DbTransferLog(dbSession,
-								session.getAuth().getUser(),
-								session.getAuth().getAccount(), specialId);
-				log.changeUpdatedInfo(info);
-				log.setInfotransf(message);
-				log.setReplyCodeExecutionStatus(rcode);
-				log.update();
-				logger.debug("Update FS: " + log.toString());
-				session.setLogid(log.getSpecialId());
-				return;
-			} catch (WaarpDatabaseException e) {
-				// Do nothing
-			}
-		}
-	}
+    /**
+     * Log the action
+     * 
+     * @param dbSession
+     * @param session
+     * @param message
+     * @param rcode
+     * @param info
+     */
+    public static void logAction(DbSession dbSession,
+            HttpSession session, String message, HttpResponseStatus rcode,
+            UpdatedInfo info) {
+        String sessionContexte = session.toString();
+        long specialId = session.getLogid();
+        logger.info(message + " " + sessionContexte);
+        if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
+            PageRole code = session.getCurrentCommand();
+            switch (code) {
+                case ERROR:
+                case HTML:
+                case MENU:
+                    return;
+                case DELETE:
+                case GETDOWNLOAD:
+                case POST:
+                case POSTUPLOAD:
+                case PUT:
+                    break;
+                default:
+                    return;
+            }
+            try {
+                // Try load
+                DbTransferLog log =
+                        new DbTransferLog(dbSession,
+                                session.getAuth().getUser(),
+                                session.getAuth().getAccount(), specialId);
+                log.changeUpdatedInfo(info);
+                log.setInfotransf(message);
+                log.setReplyCodeExecutionStatus(rcode);
+                log.update();
+                logger.debug("Update FS: " + log.toString());
+                session.setLogid(log.getSpecialId());
+                return;
+            } catch (WaarpDatabaseException e) {
+                // Do nothing
+            }
+        }
+    }
 
-	/**
-	 * Log the action in error
-	 * 
-	 * @param dbSession
-	 * @param session
-	 * @param message
-	 * @param rcode
-	 */
-	public static void logErrorAction(DbSession dbSession,
-			HttpSession session,
-			String message, HttpResponseStatus rcode) {
-		String sessionContexte = session.toString();
-		long specialId = session.getLogid();
-		logger.error(rcode.getCode() + ":" + message + " " + sessionContexte);
-		logger.warn("To Change to debug Log",
-				new Exception("Log"));
-		if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
-			PageRole code = session.getCurrentCommand();
-			switch (code) {
-				case ERROR:
-				case HTML:
-				case MENU:
-					return;
-				case DELETE:
-				case GETDOWNLOAD:
-				case POST:
-				case POSTUPLOAD:
-				case PUT:
-					break;
-				default:
-					return;
-			}
-			UpdatedInfo info = UpdatedInfo.INERROR;
-			try {
-				// Try load
-				DbTransferLog log =
-						new DbTransferLog(dbSession,
-								session.getAuth().getUser(),
-								session.getAuth().getAccount(), specialId);
-				log.changeUpdatedInfo(info);
-				log.setInfotransf(message);
-				if (rcode.getCode() < 400) {
-					log.setReplyCodeExecutionStatus(HttpResponseStatus.BAD_REQUEST);
-				} else {
-					log.setReplyCodeExecutionStatus(rcode);
-				}
-				if (session.getFilename() != null) {
-					log.setFilename(session.getFilename());
-				}
-				log.update();
-				logger.debug("Update FS: " + log.toString());
-			} catch (WaarpDatabaseException e) {
-				// Do nothing
-			}
-		}
-	}
+    /**
+     * Log the action in error
+     * 
+     * @param dbSession
+     * @param session
+     * @param message
+     * @param rcode
+     */
+    public static void logErrorAction(DbSession dbSession,
+            HttpSession session,
+            String message, HttpResponseStatus rcode) {
+        String sessionContexte = session.toString();
+        long specialId = session.getLogid();
+        logger.error(rcode.getCode() + ":" + message + " " + sessionContexte);
+        logger.warn("To Change to debug Log",
+                new Exception("Log"));
+        if (dbSession != null && specialId != DbConstant.ILLEGALVALUE) {
+            PageRole code = session.getCurrentCommand();
+            switch (code) {
+                case ERROR:
+                case HTML:
+                case MENU:
+                    return;
+                case DELETE:
+                case GETDOWNLOAD:
+                case POST:
+                case POSTUPLOAD:
+                case PUT:
+                    break;
+                default:
+                    return;
+            }
+            UpdatedInfo info = UpdatedInfo.INERROR;
+            try {
+                // Try load
+                DbTransferLog log =
+                        new DbTransferLog(dbSession,
+                                session.getAuth().getUser(),
+                                session.getAuth().getAccount(), specialId);
+                log.changeUpdatedInfo(info);
+                log.setInfotransf(message);
+                if (rcode.getCode() < 400) {
+                    log.setReplyCodeExecutionStatus(HttpResponseStatus.BAD_REQUEST);
+                } else {
+                    log.setReplyCodeExecutionStatus(rcode);
+                }
+                if (session.getFilename() != null) {
+                    log.setFilename(session.getFilename());
+                }
+                log.update();
+                logger.debug("Update FS: " + log.toString());
+            } catch (WaarpDatabaseException e) {
+                // Do nothing
+            }
+        }
+    }
 }

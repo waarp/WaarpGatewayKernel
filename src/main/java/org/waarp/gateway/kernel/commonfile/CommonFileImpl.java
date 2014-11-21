@@ -27,25 +27,25 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileImpl;
  */
 public class CommonFileImpl extends FilesystemBasedFileImpl {
 
-	/**
-	 * @param session
-	 * @param dir
-	 * @param path
-	 * @param append
-	 * @throws CommandAbstractException
-	 */
-	public CommonFileImpl(SessionInterface session, CommonDirImpl dir, String path,
-			boolean append) throws CommandAbstractException {
-		super(session, dir, path, append);
-	}
+    /**
+     * @param session
+     * @param dir
+     * @param path
+     * @param append
+     * @throws CommandAbstractException
+     */
+    public CommonFileImpl(SessionInterface session, CommonDirImpl dir, String path,
+            boolean append) throws CommandAbstractException {
+        super(session, dir, path, append);
+    }
 
-	/**
-	 * @param session
-	 * @param dir
-	 * @param path
-	 */
-	public CommonFileImpl(SessionInterface session, CommonDirImpl dir, String path) {
-		super(session, dir, path);
-	}
+    /**
+     * @param session
+     * @param dir
+     * @param path
+     */
+    public CommonFileImpl(SessionInterface session, CommonDirImpl dir, String path) {
+        super(session, dir, path);
+    }
 
 }
