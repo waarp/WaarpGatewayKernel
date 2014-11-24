@@ -748,7 +748,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      * Method that get a chunk of data
      * 
      * @param ctx
-     * @param msg
+     * @param chunk
      * @throws HttpIncorrectRequestException
      */
     protected void postChunk(ChannelHandlerContext ctx, HttpContent chunk) throws HttpIncorrectRequestException {
@@ -890,7 +890,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
     /**
      * Default session creation
      * 
-     * @param e
+     * @param ctx
      */
     protected void createNewSessionAtConnection(ChannelHandlerContext ctx) {
         this.session = new HttpSession();

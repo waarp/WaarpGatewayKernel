@@ -192,9 +192,10 @@
 	          <windowtitle>${project.name} ${project.version} API Reference</windowtitle>
 	          <additionalparam>
 	            -link http://java.sun.com/javase/6/docs/api/
-	            -link http://static.netty.io/3.5/api/
 
-				-group "Waarp Gateway Http Kernel package" "org.waarp.gateway.kernel*"
+				-group "Waarp Gateway Http Kernel Common package" "org.waarp.gateway.kernel.commonfile*:org.waarp.gateway.kernel.exception*"
+                -group "Waarp Gateway Http Kernel Database package" "org.waarp.gateway.kernel.database*"
+                -group "Waarp Gateway Http Kernel Http and Rest packages" "org.waarp.gateway.kernel.http*:org.waarp.gateway.kernel.rest*:org.waarp.gateway.kernel.session*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>

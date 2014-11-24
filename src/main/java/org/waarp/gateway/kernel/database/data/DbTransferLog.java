@@ -463,7 +463,7 @@ public class DbTransferLog extends AbstractDbData {
     /**
      * Private constructor
      * 
-     * @param session
+     * @param dBsession
      */
     public DbTransferLog(DbSession dBsession) {
         super(dBsession);
