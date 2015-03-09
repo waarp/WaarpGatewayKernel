@@ -32,12 +32,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderUtil;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
@@ -45,6 +46,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieDecoder;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -219,11 +221,11 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      */
     protected void getCookieArgs() throws HttpIncorrectRequestException {
         Set<Cookie> cookies;
-        String value = request.headers().get(HttpHeaders.Names.COOKIE);
+        String value = request.headers().get(HttpHeaderNames.COOKIE);
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = CookieDecoder.decode(value);
+            cookies = ServerCookieDecoder.decode(value);
         }
         if (!cookies.isEmpty()) {
             for (Cookie cookie : cookies) {
@@ -421,8 +423,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             willClose = true;
             String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
             FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-            response.headers().set(HttpHeaders.Names.REFERER, request.uri());
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
+            response.headers().set(HttpHeaderNames.REFERER, request.uri());
             ChannelFuture future = ctx.writeAndFlush(response);
             logger.debug("Will close");
             future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -454,13 +456,13 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         // Convert the response content to a ByteBuf.
         ByteBuf buf = Unpooled.wrappedBuffer(answer.getBytes(CharsetUtil.UTF_8));
         FullHttpResponse response = getResponse(buf);
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, this.businessRequest.getContentType());
-        response.headers().set(HttpHeaders.Names.REFERER, request.uri());
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, this.businessRequest.getContentType());
+        response.headers().set(HttpHeaderNames.REFERER, request.uri());
         length = buf.readableBytes();
         if (!willClose) {
             // There's no need to add 'Content-Length' header
             // if this is the last response.
-            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH,
                     String.valueOf(length));
         }
         // Write the response.
@@ -491,7 +493,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
     protected void addBusinessCookie(FullHttpResponse response, Set<String> cookieNames) {
         for (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
             if (field.fieldcookieset && !cookieNames.contains(field.fieldname)) {
-                response.headers().add(HttpHeaders.Names.SET_COOKIE,
+                response.headers().add(HttpHeaderNames.SET_COOKIE,
                         ServerCookieEncoder.encode(field.fieldname, field.fieldvalue));
             }
         }
@@ -504,11 +506,11 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      */
     protected void setCookieEncoder(FullHttpResponse response) {
         Set<Cookie> cookies;
-        String value = request.headers().get(HttpHeaders.Names.COOKIE);
+        String value = request.headers().get(HttpHeaderNames.COOKIE);
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = CookieDecoder.decode(value);
+            cookies = ServerCookieDecoder.decode(value);
         }
         boolean foundCookieSession = false;
         Set<String> cookiesName = new HashSet<String>();
@@ -516,7 +518,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             // Reset the cookies if necessary.
             for (Cookie cookie : cookies) {
                 if (isCookieValid(cookie)) {
-                    response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
                     if (cookie.name().equals(cookieSession)) {
                         foundCookieSession = true;
                     }
@@ -525,7 +527,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             }
         }
         if (!foundCookieSession) {
-            response.headers().add(HttpHeaders.Names.SET_COOKIE,
+            response.headers().add(HttpHeaderNames.SET_COOKIE,
                     ServerCookieEncoder.encode(cookieSession, session.getCookieSession()));
             cookiesName.add(cookieSession);
         }
@@ -545,7 +547,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         if (request == null) {
             if (buf != null) {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, buf);
-                response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+                response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
             }
@@ -553,11 +555,11 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             willClose = true;
             return response;
         }
-        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
         willClose = willClose ||
                 status != HttpResponseStatus.OK ||
-                HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-                        .headers().get(HttpHeaders.Names.CONNECTION)) ||
+                HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+                        .headers().get(HttpHeaderNames.CONNECTION)) ||
                 request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
                 !keepAlive;
         if (willClose) {
@@ -566,14 +568,14 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         // Build the response object.
         if (buf != null) {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status, buf);
-            response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         } else {
             response = new DefaultFullHttpResponse(
                     request.protocolVersion(), status);
         }
         if (keepAlive) {
-            response.headers().set(HttpHeaders.Names.CONNECTION,
-                    HttpHeaders.Values.KEEP_ALIVE);
+            response.headers().set(HttpHeaderNames.CONNECTION,
+                    HttpHeaderValues.KEEP_ALIVE);
         }
         setCookieEncoder(response);
         return response;

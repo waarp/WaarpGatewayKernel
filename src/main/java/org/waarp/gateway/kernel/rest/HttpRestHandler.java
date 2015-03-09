@@ -52,7 +52,9 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderUtil;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
@@ -343,7 +345,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
             Iterator<Entry<String, JsonNode>> iter = cookieON.fields();
             while (iter.hasNext()) {
                 Entry<String, JsonNode> entry = iter.next();
-                httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE,
+                httpResponse.headers().add(HttpHeaderNames.SET_COOKIE,
                         ServerCookieEncoder.encode(entry.getKey(), entry.getValue().asText()));
             }
         }
@@ -388,7 +390,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 this.request = (HttpRequest) msg;
                 arguments.setRequest(request);
                 arguments.setHeaderArgs(request.headers().entries());
-                arguments.setCookieArgs(request.headers().get(HttpHeaders.Names.COOKIE));
+                arguments.setCookieArgs(request.headers().get(HttpHeaderNames.COOKIE));
                 logger.debug("DEBUG: {}", arguments);
                 checkConnection(ctx);
                 handler = getHandler();
@@ -595,8 +597,8 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
             setWillClose(true);
             String answer = "<html><body>Error " + status.reasonPhrase() + "</body></html>";
             FullHttpResponse response = getResponse(Unpooled.wrappedBuffer(answer.getBytes(WaarpStringUtils.UTF8)));
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-            response.headers().set(HttpHeaders.Names.REFERER, request.uri());
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
+            response.headers().set(HttpHeaderNames.REFERER, request.uri());
             ChannelFuture future = ctx.writeAndFlush(response);
             logger.debug("Will close");
             future.addListener(WaarpSslUtility.SSLCLOSE);
@@ -616,17 +618,17 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
-                response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
+                response.headers().add(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
             }
             setCookies(response);
             setWillClose(true);
             return response;
         }
-        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
         setWillClose(isWillClose() ||
                 status != HttpResponseStatus.OK ||
-                HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-                        .headers().get(HttpHeaders.Names.CONNECTION)) ||
+                HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+                        .headers().get(HttpHeaderNames.CONNECTION)) ||
                 request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
                 !keepAlive);
         if (isWillClose()) {
@@ -636,12 +638,12 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
         FullHttpResponse response;
         if (content != null) {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
-            response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes());
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
         } else {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status);
         }
         if (keepAlive) {
-            response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         }
         setCookies(response);
         return response;

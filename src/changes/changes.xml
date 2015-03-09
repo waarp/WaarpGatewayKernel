@@ -5,6 +5,18 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="3.0.1" date="2014-03-09" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix after upgrading dependencies</action>
+        </release>
+        <release version="3.0.0" date="2014-12-01" description="Fix release, same as 1.0.8">
+            <action dev="Frederic Bregier" type="fix">Migrate to Netty 4.1</action>
+            <action dev="Frederic Bregier" type="fix">Memory optimizations</action>
+            <action dev="Frederic Bregier" type="fix">Fix after upgrading dependencies</action>
+        </release>
+        <release version="1.0.7" date="2014-10-05" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix Database compatibilty with MySQL/MariaDB</action>
+            <action dev="Frederic Bregier" type="fix">Fix after upgrading dependencies</action>
+        </release>
         <release version="1.0.6" date="2014-06-01" description="Fix release">
             <action dev="Frederic Bregier" type="add">Add capacity to specify one specific IP for REST interface</action>
             <action dev="Frederic Bregier" type="add">Add capacity to deactivate Signature on REST interface</action>
