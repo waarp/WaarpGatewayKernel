@@ -34,15 +34,17 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpChunkedInput;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderUtil;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.ServerCookieDecoder;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.stream.ChunkedNioFile;
 
@@ -73,8 +75,8 @@ public class HttpWriteCacheEnable {
     private static final ArrayList<String> cache_control;
     static {
         cache_control = new ArrayList<String>(2);
-        cache_control.add(HttpHeaders.Values.PUBLIC);
-        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
+        cache_control.add(HttpHeaderValues.PUBLIC.toString());
+        cache_control.add(HttpHeaderValues.MAX_AGE + "=" + 604800);// 1 week
     }
 
     /**
@@ -117,8 +119,8 @@ public class HttpWriteCacheEnable {
         DateFormat rfc1123Format = new SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
         rfc1123Format.setTimeZone(GMT_ZONE);
         Date lastModifDate = new Date(file.lastModified());
-        if (request.headers().contains(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-            String sdate = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
+        if (request.headers().contains(HttpHeaderNames.IF_MODIFIED_SINCE)) {
+            String sdate = request.headers().get(HttpHeaderNames.IF_MODIFIED_SINCE);
             try {
                 Date ifmodif = rfc1123Format.parse(sdate);
                 if (ifmodif.after(lastModifDate)) {
@@ -144,20 +146,20 @@ public class HttpWriteCacheEnable {
         }
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.OK);
-        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH,
                 String.valueOf(size));
 
         String type = mimetypesFileTypeMap.getContentType(filename);
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, type);
-        response.headers().set(HttpHeaders.Names.CACHE_CONTROL, cache_control);
-        response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, type);
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, cache_control);
+        response.headers().set(HttpHeaderNames.LAST_MODIFIED,
                 rfc1123Format.format(lastModifDate));
         handleCookies(request, response, cookieNameToRemove);
         // Write the response.
         ctx.write(response);
         ctx.write(new HttpChunkedInput(nioFile));
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (!HttpHeaders.isKeepAlive(request)) {
+        if (!HttpHeaderUtil.isKeepAlive(request)) {
             // Close the connection when the whole content is written out.
             future.addListener(ChannelFutureListener.CLOSE);
         }
@@ -172,16 +174,16 @@ public class HttpWriteCacheEnable {
      */
     public static void handleCookies(HttpRequest request, HttpResponse response,
             String cookieNameToRemove) {
-        String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
+        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         if (cookieString != null) {
-            Set<Cookie> cookies = CookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.decode(cookieString);
             if (!cookies.isEmpty()) {
                 // Reset the sessions if necessary.
                 // Remove all Session for images
                 for (Cookie cookie : cookies) {
                     if (cookie.name().equalsIgnoreCase(cookieNameToRemove)) {
                     } else {
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                        response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
                     }
                 }
             }

@@ -27,7 +27,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -239,9 +239,9 @@ public abstract class RestMethodHandler {
             ChannelFuture future = ctx.writeAndFlush(response);
             return future;
         }
-        response.headers().add(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-        response.headers().add(HttpHeaders.Names.REFERER, handler.getRequest().uri());
-        response.headers().add(HttpHeaders.Names.ALLOW, list);
+        response.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/json");
+        response.headers().add(HttpHeaderNames.REFERER, handler.getRequest().uri());
+        response.headers().add(HttpHeaderNames.ALLOW, list);
         logger.debug("Msg ready");
         ChannelFuture future = ctx.writeAndFlush(response);
         if (handler.isWillClose()) {

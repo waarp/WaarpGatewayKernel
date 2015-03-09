@@ -30,13 +30,13 @@ import java.util.Map.Entry;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.handler.codec.http.ServerCookieDecoder;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -451,7 +451,7 @@ public class RestArgument {
         }
         for (Entry<String, String> entry : list) {
             String key = entry.getKey();
-            if (!key.equals(HttpHeaders.Names.COOKIE)) {
+            if (!key.equals(HttpHeaderNames.COOKIE)) {
                 if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
                     arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, entry.getValue());
                     continue;
@@ -512,7 +512,7 @@ public class RestArgument {
         if (cookieString == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = CookieDecoder.decode(cookieString);
+            cookies = ServerCookieDecoder.decode(cookieString);
         }
         if (!cookies.isEmpty()) {
             ObjectNode node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
@@ -702,7 +702,7 @@ public class RestArgument {
      */
     public void addOptions(String allow, String path, ArrayNode detailedAllow) {
         ObjectNode node = getAnswer();
-        node.put(HttpHeaders.Names.ALLOW, allow);
+        node.put(HttpHeaderNames.ALLOW.toString(), allow);
         node.put(REST_FIELD.X_ALLOW_URIS.field, path);
         if (detailedAllow != null) {
             node.putArray(REST_FIELD.X_DETAILED_ALLOW.field).addAll(detailedAllow);
@@ -710,7 +710,7 @@ public class RestArgument {
     }
 
     public String getAllowOption() {
-        return getAnswer().path(HttpHeaders.Names.ALLOW).asText();
+        return getAnswer().path(HttpHeaderNames.ALLOW.toString()).asText();
     }
 
     public String getAllowUrisOption() {

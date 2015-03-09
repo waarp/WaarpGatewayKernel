@@ -40,6 +40,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -108,14 +110,14 @@ public class HttpRestClientHelper {
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                 HttpMethod.GET, baseUri);
         headers = request.headers();
-        headers.set(HttpHeaders.Names.ACCEPT_ENCODING,
-                HttpHeaders.Values.GZIP + "," + HttpHeaders.Values.DEFLATE);
-        headers.set(HttpHeaders.Names.ACCEPT_CHARSET,
+        headers.set(HttpHeaderNames.ACCEPT_ENCODING,
+                HttpHeaderValues.GZIP + "," + HttpHeaderValues.DEFLATE);
+        headers.set(HttpHeaderNames.ACCEPT_CHARSET,
                 "utf-8;q=0.7,*;q=0.7");
-        headers.set(HttpHeaders.Names.ACCEPT_LANGUAGE, "fr,en");
-        headers.set(HttpHeaders.Names.USER_AGENT,
+        headers.set(HttpHeaderNames.ACCEPT_LANGUAGE, "fr,en");
+        headers.set(HttpHeaderNames.USER_AGENT,
                 "Netty Simple Http Rest Client side");
-        headers.set(HttpHeaders.Names.ACCEPT,
+        headers.set(HttpHeaderNames.ACCEPT,
                 "text/html,text/plain,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.8");
         // connection will not close but needed
         /*request.headers().set(HttpHeaders.Names.CONNECTION,
@@ -207,13 +209,13 @@ public class HttpRestClientHelper {
             logger.debug("Add body");
             ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
             request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString(), buffer);
-            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+            request.headers().set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
         } else {
             request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString());
         }
         // it is legal to add directly header or cookie into the request until finalize
         request.headers().add(this.headers);
-        request.headers().set(HttpHeaders.Names.HOST, host);
+        request.headers().set(HttpHeaderNames.HOST, host);
         if (user != null) {
             request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
         }
@@ -277,14 +279,14 @@ public class HttpRestClientHelper {
             logger.debug("Add body");
             ByteBuf buffer = Unpooled.wrappedBuffer(json.getBytes(WaarpStringUtils.UTF8));
             request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString(), buffer);
-            request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+            request.headers().set(HttpHeaderNames.CONTENT_LENGTH, buffer.readableBytes());
         } else {
             request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, uri.toASCIIString());
         }
 
         // it is legal to add directly header or cookie into the request until finalize
         request.headers().add(this.headers);
-        request.headers().set(HttpHeaders.Names.HOST, host);
+        request.headers().set(HttpHeaderNames.HOST, host);
         if (user != null) {
             request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
         }
