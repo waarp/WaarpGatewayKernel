@@ -24,7 +24,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -83,7 +83,7 @@ public class HttpRestClientSimpleResponseHandler extends SimpleChannelInboundHan
         if (msg instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) msg;
             HttpResponseStatus status = response.status();
-            logger.debug(HttpHeaders.Names.REFERER + ": " + response.headers().get(HttpHeaders.Names.REFERER) +
+            logger.debug(HttpHeaderNames.REFERER + ": " + response.headers().get(HttpHeaderNames.REFERER) +
                     " STATUS: " + status);
         }
         if (msg instanceof HttpContent) {
