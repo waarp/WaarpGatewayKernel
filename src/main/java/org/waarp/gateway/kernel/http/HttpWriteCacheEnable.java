@@ -71,6 +71,7 @@ public class HttpWriteCacheEnable {
         cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
         cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
+        cache_control.add(HttpHeaders.Values.MUST_REVALIDATE.toString());
     }
 
     /**
