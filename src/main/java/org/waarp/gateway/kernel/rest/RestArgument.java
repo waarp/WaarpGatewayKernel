@@ -29,14 +29,14 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.netty.handler.codec.http.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -512,7 +512,7 @@ public class RestArgument {
         if (cookieString == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = ServerCookieDecoder.decode(cookieString);
+            cookies = ServerCookieDecoder.LAX.decode(cookieString);
         }
         if (!cookies.isEmpty()) {
             ObjectNode node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
