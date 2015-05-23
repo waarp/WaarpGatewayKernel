@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpGatewayKernel</artifactId>
   <name>GoldenGate Gateway Kernel</name>
-  <version>3.0.1</version>
+  <version>3.0.2</version>
   <description>Waarp Gateway contains the kernel for Http Gateway</description>
     <inceptionYear>2009</inceptionYear>
   <parent>
@@ -233,17 +233,17 @@
   	<dependency>
   	    <groupId>ch.qos.logback</groupId>
   	    <artifactId>logback-classic</artifactId>
-  	    <version>1.1.2</version>
+  	    <version>1.1.3</version>
   	</dependency>
   	<dependency>
   	    <groupId>ch.qos.logback</groupId>
   	    <artifactId>logback-core</artifactId>
-  	    <version>1.1.2</version>
+  	    <version>1.1.3</version>
   	</dependency>
   	<dependency>
   	    <groupId>io.netty</groupId>
   	    <artifactId>netty-all</artifactId>
-  	    <version>4.1.0.Beta4</version>
+  	    <version>4.1.0.Beta5</version>
   	</dependency>
   </dependencies>
 </project>
