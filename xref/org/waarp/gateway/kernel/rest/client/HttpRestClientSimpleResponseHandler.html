@@ -32,7 +32,7 @@
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.ChannelHandlerContext;
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.SimpleChannelInboundHandler;
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpContent;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaders;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpHeaderNames;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpObject;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponse;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.http.HttpResponseStatus;
@@ -91,7 +91,7 @@
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">if</strong> (msg instanceof HttpResponse) {
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>              HttpResponse response = (HttpResponse) msg;
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>              HttpResponseStatus status = response.status();
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              logger.debug(HttpHeaders.Names.REFERER + <span class="jxr_string">": "</span> + response.headers().get(HttpHeaders.Names.REFERER) +
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              logger.debug(HttpHeaderNames.REFERER + <span class="jxr_string">": "</span> + response.headers().get(HttpHeaderNames.REFERER) +
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>                      <span class="jxr_string">" STATUS: "</span> + status);
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>          }
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">if</strong> (msg instanceof HttpContent) {
@@ -156,6 +156,6 @@
 <a class="jxr_linenumber" name="L148" href="#L148">148</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2014 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>
