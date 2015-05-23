@@ -35,10 +35,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -48,6 +44,10 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http.cookie.Cookie;
+import org.jboss.netty.handler.codec.http.cookie.DefaultCookie;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import org.jboss.netty.handler.codec.http.multipart.Attribute;
 import org.jboss.netty.handler.codec.http.multipart.FileUpload;
 import org.jboss.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -226,13 +226,12 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            CookieDecoder decoder = new CookieDecoder();
-            cookies = decoder.decode(value);
+            cookies = ServerCookieDecoder.LAX.decode(value);
         }
         if (!cookies.isEmpty()) {
             for (Cookie cookie : cookies) {
                 if (isCookieValid(cookie)) {
-                    httpPage.setValue(businessRequest, cookie.getName(), cookie.getValue(),
+                    httpPage.setValue(businessRequest, cookie.name(), cookie.value(),
                             FieldPosition.COOKIE);
                 }
             }
@@ -499,9 +498,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         for (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
             if (field.fieldcookieset && !cookieNames.contains(field.fieldname)) {
                 Cookie cookie = new DefaultCookie(field.fieldname, field.fieldvalue);
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
-                cookieEncoder.addCookie(cookie);
-                response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
             }
         }
     }
@@ -517,8 +514,7 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            CookieDecoder decoder = new CookieDecoder();
-            cookies = decoder.decode(value);
+            cookies = ServerCookieDecoder.LAX.decode(value);
         }
         boolean foundCookieSession = false;
         Set<String> cookiesName = new HashSet<String>();
@@ -526,22 +522,18 @@ public abstract class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             // Reset the cookies if necessary.
             for (Cookie cookie : cookies) {
                 if (isCookieValid(cookie)) {
-                    CookieEncoder cookieEncoder = new CookieEncoder(true);
-                    cookieEncoder.addCookie(cookie);
-                    response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-                    if (cookie.getName().equals(cookieSession)) {
+                    response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
+                    if (cookie.name().equals(cookieSession)) {
                         foundCookieSession = true;
                     }
-                    cookiesName.add(cookie.getName());
+                    cookiesName.add(cookie.name());
                 }
             }
         }
         if (!foundCookieSession) {
-            CookieEncoder cookieEncoder = new CookieEncoder(true);
             Cookie cookie = new DefaultCookie(cookieSession, session.getCookieSession());
-            cookieEncoder.addCookie(cookie);
-            response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-            cookiesName.add(cookie.getName());
+            response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
+            cookiesName.add(cookie.name());
         }
         addBusinessCookie(response, cookiesName);
         cookiesName.clear();
