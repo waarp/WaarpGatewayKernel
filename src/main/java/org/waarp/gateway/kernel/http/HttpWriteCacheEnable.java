@@ -31,15 +31,15 @@ import java.util.TimeZone;
 import javax.activation.MimetypesFileTypeMap;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.codec.http.cookie.Cookie;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import org.jboss.netty.handler.stream.ChunkedNioFile;
 
 /**
@@ -71,6 +71,7 @@ public class HttpWriteCacheEnable {
         cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
         cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
+        cache_control.add(HttpHeaders.Values.MUST_REVALIDATE.toString());
     }
 
     /**
@@ -164,17 +165,13 @@ public class HttpWriteCacheEnable {
             String cookieNameToRemove) {
         String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
         if (cookieString != null) {
-            CookieDecoder cookieDecoder = new CookieDecoder();
-            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieString);
             if (!cookies.isEmpty()) {
                 // Reset the sessions if necessary.
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
                 // Remove all Session for images
                 for (Cookie cookie : cookies) {
-                    if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {} else {
-                        cookieEncoder.addCookie(cookie);
-                        response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-                        cookieEncoder = new CookieEncoder(true);
+                    if (cookie.name().equalsIgnoreCase(cookieNameToRemove)) {} else {
+                        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     }
                 }
             }

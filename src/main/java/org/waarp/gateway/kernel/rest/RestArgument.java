@@ -29,13 +29,13 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.codec.http.QueryStringEncoder;
+import org.jboss.netty.handler.codec.http.cookie.Cookie;
+import org.jboss.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.waarp.common.crypto.HmacSha256;
@@ -508,13 +508,12 @@ public class RestArgument {
         if (cookieString == null) {
             cookies = Collections.emptySet();
         } else {
-            CookieDecoder decoder = new CookieDecoder();
-            cookies = decoder.decode(cookieString);
+            cookies = ServerCookieDecoder.LAX.decode(cookieString);
         }
         if (!cookies.isEmpty()) {
             ObjectNode node = arguments.putObject(REST_GROUP.ARGS_COOKIE.group);
             for (Cookie cookie : cookies) {
-                node.put(cookie.getName(), cookie.getValue());
+                node.put(cookie.name(), cookie.value());
             }
         }
     }
