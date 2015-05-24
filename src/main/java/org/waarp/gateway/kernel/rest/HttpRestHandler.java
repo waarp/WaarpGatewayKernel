@@ -61,7 +61,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
@@ -346,7 +346,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
             while (iter.hasNext()) {
                 Entry<String, JsonNode> entry = iter.next();
                 httpResponse.headers().add(HttpHeaderNames.SET_COOKIE,
-                        ServerCookieEncoder.encode(entry.getKey(), entry.getValue().asText()));
+                        ServerCookieEncoder.LAX.encode(entry.getKey(), entry.getValue().asText()));
             }
         }
     }

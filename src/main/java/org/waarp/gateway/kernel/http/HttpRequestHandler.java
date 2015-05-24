@@ -31,7 +31,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -46,8 +45,9 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.ServerCookieDecoder;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -225,7 +225,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = ServerCookieDecoder.decode(value);
+            cookies = ServerCookieDecoder.LAX.decode(value);
         }
         if (!cookies.isEmpty()) {
             for (Cookie cookie : cookies) {
@@ -494,7 +494,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         for (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
             if (field.fieldcookieset && !cookieNames.contains(field.fieldname)) {
                 response.headers().add(HttpHeaderNames.SET_COOKIE,
-                        ServerCookieEncoder.encode(field.fieldname, field.fieldvalue));
+                        ServerCookieEncoder.LAX.encode(field.fieldname, field.fieldvalue));
             }
         }
     }
@@ -510,7 +510,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         if (value == null) {
             cookies = Collections.emptySet();
         } else {
-            cookies = ServerCookieDecoder.decode(value);
+            cookies = ServerCookieDecoder.LAX.decode(value);
         }
         boolean foundCookieSession = false;
         Set<String> cookiesName = new HashSet<String>();
@@ -518,7 +518,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             // Reset the cookies if necessary.
             for (Cookie cookie : cookies) {
                 if (isCookieValid(cookie)) {
-                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+                    response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
                     if (cookie.name().equals(cookieSession)) {
                         foundCookieSession = true;
                     }
@@ -528,7 +528,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         }
         if (!foundCookieSession) {
             response.headers().add(HttpHeaderNames.SET_COOKIE,
-                    ServerCookieEncoder.encode(cookieSession, session.getCookieSession()));
+                    ServerCookieEncoder.LAX.encode(cookieSession, session.getCookieSession()));
             cookiesName.add(cookieSession);
         }
         addBusinessCookie(response, cookiesName);
