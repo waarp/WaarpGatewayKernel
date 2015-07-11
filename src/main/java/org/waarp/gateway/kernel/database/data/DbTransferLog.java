@@ -50,7 +50,6 @@ import org.waarp.common.xml.XmlValue;
 import org.waarp.gateway.kernel.HttpPageHandler;
 import org.waarp.gateway.kernel.HttpPage.PageRole;
 import org.waarp.gateway.kernel.database.DbConstant;
-import org.waarp.gateway.kernel.database.model.DbModelFactory;
 
 /**
  * Transfer Log for Gateway for Http
@@ -374,7 +373,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -401,7 +400,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -439,7 +438,7 @@ public class DbTransferLog extends AbstractDbData {
                             throw new WaarpDatabaseSqlException(e1);
                         }
                         specialId = result + 1;
-                        DbModelFactory.dbModel.resetSequence(dbSession, specialId + 1);
+                        dbSession.admin.getDbModel().resetSequence(dbSession, specialId + 1);
                         setToArray();
                         preparedStatement.close();
                         setValues(preparedStatement, allFields);
@@ -509,7 +508,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         if (limit > 0) {
-            request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+            request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
         }
         return new DbPreparedStatement(session, request);
     }
