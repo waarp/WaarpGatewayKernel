@@ -464,7 +464,38 @@ public class RestArgument {
                     arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, entry.getValue());
                     continue;
                 }
-                node.put(entry.getKey(), entry.getValue());
+                node.put(key, entry.getValue());
+            }
+        }
+    }
+
+    /**
+     * set values from Header into arguments.path(ARGS_HEADER)
+     * 
+     * @throws HttpIncorrectRequestException
+     */
+    public void setHeaderArgs(Iterator<Entry<CharSequence, CharSequence>> iterator) {
+        ObjectNode node = (ObjectNode) arguments.get(REST_GROUP.ARGS_HEADER.group);
+        if (node == null || node.isMissingNode()) {
+            node = arguments.putObject(REST_GROUP.ARGS_HEADER.group);
+        }
+        while (iterator.hasNext()) {
+            Entry<CharSequence, CharSequence> entry = iterator.next();
+            String key = entry.getKey().toString();
+            if (!key.equals(HttpHeaderNames.COOKIE)) {
+                if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field)) {
+                    arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, entry.getValue().toString());
+                    continue;
+                }
+                if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_USER.field)) {
+                    arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_USER.field, entry.getValue().toString());
+                    continue;
+                }
+                if (key.equalsIgnoreCase(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field)) {
+                    arguments.put(REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, entry.getValue().toString());
+                    continue;
+                }
+                node.put(key, entry.getValue().toString());
             }
         }
     }

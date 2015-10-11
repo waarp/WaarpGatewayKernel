@@ -217,10 +217,10 @@ public class HttpRestClientHelper {
         request.headers().add(this.headers);
         request.headers().set(HttpHeaderNames.HOST, host);
         if (user != null) {
-            request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+            request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
         }
-        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
-        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
+        request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
+        request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
         // send request
         logger.debug("Send request");
         channel.writeAndFlush(request);
@@ -288,9 +288,9 @@ public class HttpRestClientHelper {
         request.headers().add(this.headers);
         request.headers().set(HttpHeaderNames.HOST, host);
         if (user != null) {
-            request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+            request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
         }
-        request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, new DateTime().toString());
+        request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, new DateTime().toString());
         // send request
         logger.debug("Send request");
         channel.writeAndFlush(request);
