@@ -225,10 +225,10 @@
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>         request.headers().add(<strong class="jxr_keyword">this</strong>.headers);
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>         request.headers().set(HttpHeaderNames.HOST, host);
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>         <strong class="jxr_keyword">if</strong> (user != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>             request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, result[0]);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_KEY.field, result[1]);
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>         <em class="jxr_comment">// send request</em>
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>         logger.debug(<span class="jxr_string">"Send request"</span>);
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>         channel.writeAndFlush(request);
@@ -296,9 +296,9 @@
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>         request.headers().add(<strong class="jxr_keyword">this</strong>.headers);
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>         request.headers().set(HttpHeaderNames.HOST, host);
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>         <strong class="jxr_keyword">if</strong> (user != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>             request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_USER.field, user);
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>         }
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>         request.headers().set(RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, <strong class="jxr_keyword">new</strong> DateTime().toString());
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         request.headers().set((CharSequence) RestArgument.REST_ROOT_FIELD.ARG_X_AUTH_TIMESTAMP.field, <strong class="jxr_keyword">new</strong> DateTime().toString());
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>         <em class="jxr_comment">// send request</em>
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>         logger.debug(<span class="jxr_string">"Send request"</span>);
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>         channel.writeAndFlush(request);
