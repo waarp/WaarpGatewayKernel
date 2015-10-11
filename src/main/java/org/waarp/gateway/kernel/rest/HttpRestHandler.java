@@ -53,12 +53,12 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
@@ -389,7 +389,8 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 initialize();
                 this.request = (HttpRequest) msg;
                 arguments.setRequest(request);
-                arguments.setHeaderArgs(request.headers().entries());
+                Iterator<Entry<CharSequence, CharSequence>> iterator = request.headers().iteratorCharSequence();
+                arguments.setHeaderArgs(iterator);
                 arguments.setCookieArgs(request.headers().get(HttpHeaderNames.COOKIE));
                 logger.debug("DEBUG: {}", arguments);
                 checkConnection(ctx);
@@ -624,10 +625,10 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
             setWillClose(true);
             return response;
         }
-        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
+        boolean keepAlive = HttpUtil.isKeepAlive(request);
         setWillClose(isWillClose() ||
                 status != HttpResponseStatus.OK ||
-                HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+                HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(request
                         .headers().get(HttpHeaderNames.CONNECTION)) ||
                 request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
                 !keepAlive);

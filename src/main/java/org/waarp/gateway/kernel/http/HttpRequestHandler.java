@@ -36,12 +36,12 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -195,7 +195,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
     protected void getHeaderArgs() throws HttpIncorrectRequestException {
         Set<String> headerNames = request.headers().names();
         for (String name : headerNames) {
-            List<String> values = request.headers().getAll(name);
+            List<String> values = request.headers().getAll((CharSequence) name);
             if (values != null) {
                 if (values.size() == 1) {
                     // only one element is allowed
@@ -555,10 +555,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             willClose = true;
             return response;
         }
-        boolean keepAlive = HttpHeaderUtil.isKeepAlive(request);
+        boolean keepAlive = HttpUtil.isKeepAlive(request);
         willClose = willClose ||
                 status != HttpResponseStatus.OK ||
-                HttpHeaderValues.CLOSE.equalsIgnoreCase(request
+                HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(request
                         .headers().get(HttpHeaderNames.CONNECTION)) ||
                 request.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
                 !keepAlive;
