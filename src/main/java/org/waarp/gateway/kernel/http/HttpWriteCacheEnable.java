@@ -36,11 +36,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -160,7 +160,7 @@ public class HttpWriteCacheEnable {
         ctx.write(response);
         ctx.write(new HttpChunkedInput(nioFile));
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (!HttpHeaderUtil.isKeepAlive(request)) {
+        if (!HttpUtil.isKeepAlive(request)) {
             // Close the connection when the whole content is written out.
             future.addListener(ChannelFutureListener.CLOSE);
         }
