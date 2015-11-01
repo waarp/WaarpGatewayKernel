@@ -373,14 +373,14 @@ public class HttpXmlDefinition {
         // Now read the configuration
         for (XmlValue[] fieldValue : list) {
             AbstractHttpField field = loadHttpPage(fieldValue);
-            listFields.add(field.fieldrank, field);
+            listFields.add(field.getFieldrank(), field);
         }
         list.clear();
         list = null;
         LinkedHashMap<String, AbstractHttpField> linkedHashMap =
                 new LinkedHashMap<String, AbstractHttpField>(listFields.size());
         for (AbstractHttpField abstractHttpField : listFields) {
-            linkedHashMap.put(abstractHttpField.fieldname, abstractHttpField);
+            linkedHashMap.put(abstractHttpField.getFieldname(), abstractHttpField);
         }
         listFields.clear();
         listFields = null;
@@ -424,7 +424,7 @@ public class HttpXmlDefinition {
         // Now read the configuration
         for (XmlValue[] xmlValue : list) {
             HttpPage page = loadHttpConfiguration(xmlValue);
-            pages.put(page.uri, page);
+            pages.put(page.getUri(), page);
         }
         list.clear();
         list = null;
@@ -448,32 +448,32 @@ public class HttpXmlDefinition {
     }
 
     protected static void addToField(Element root, AbstractHttpField field) {
-        root.add(newElement(XML_HTTP_FIELDNAME, field.fieldname));
-        root.add(newElement(XML_HTTP_FIELDTYPE, field.fieldtype.name()));
-        root.add(newElement(XML_HTTP_FIELDINFO, field.fieldinfo));
+        root.add(newElement(XML_HTTP_FIELDNAME, field.getFieldname()));
+        root.add(newElement(XML_HTTP_FIELDTYPE, field.getFieldtype().name()));
+        root.add(newElement(XML_HTTP_FIELDINFO, field.getFieldinfo()));
         root.add(newElement(XML_HTTP_FIELDVALUE, field.fieldvalue));
-        root.add(newElement(XML_HTTP_FIELDVISIBILITY, Boolean.toString(field.fieldvisibility)));
-        root.add(newElement(XML_HTTP_FIELDMANDATORY, Boolean.toString(field.fieldmandatory)));
-        root.add(newElement(XML_HTTP_FIELDCOOKIESET, Boolean.toString(field.fieldcookieset)));
-        root.add(newElement(XML_HTTP_FIELDTOVALIDATE, Boolean.toString(field.fieldtovalidate)));
-        root.add(newElement(XML_HTTP_FIELDPOSITION, field.fieldposition.name()));
-        root.add(newElement(XML_HTTP_FIELDRANK, Integer.toString(field.fieldrank)));
+        root.add(newElement(XML_HTTP_FIELDVISIBILITY, Boolean.toString(field.isFieldvisibility())));
+        root.add(newElement(XML_HTTP_FIELDMANDATORY, Boolean.toString(field.isFieldmandatory())));
+        root.add(newElement(XML_HTTP_FIELDCOOKIESET, Boolean.toString(field.isFieldcookieset())));
+        root.add(newElement(XML_HTTP_FIELDTOVALIDATE, Boolean.toString(field.isFieldtovalidate())));
+        root.add(newElement(XML_HTTP_FIELDPOSITION, field.getFieldposition().name()));
+        root.add(newElement(XML_HTTP_FIELDRANK, Integer.toString(field.getFieldrank())));
     }
 
     protected static void addToElement(Element root, HttpPage page) {
-        root.add(newElement(XML_HTTP_PAGENAME, page.pagename));
-        root.add(newElement(XML_HTTP_FILEFORM, page.fileform));
-        root.add(newElement(XML_HTTP_HEADER, page.header));
-        root.add(newElement(XML_HTTP_FOOTER, page.footer));
-        root.add(newElement(XML_HTTP_BEGINFORM, page.beginform));
-        root.add(newElement(XML_HTTP_ENDFORM, page.endform));
-        root.add(newElement(XML_HTTP_NEXTINFORM, page.nextinform));
-        root.add(newElement(XML_HTTP_URI, page.uri));
-        root.add(newElement(XML_HTTP_PAGEROLE, page.pagerole.name()));
-        root.add(newElement(XML_HTTP_ERRORPAGE, page.errorpage));
-        root.add(newElement(XML_HTTP_CLASSNAME, page.classname));
+        root.add(newElement(XML_HTTP_PAGENAME, page.getPagename()));
+        root.add(newElement(XML_HTTP_FILEFORM, page.getFileform()));
+        root.add(newElement(XML_HTTP_HEADER, page.getHeader()));
+        root.add(newElement(XML_HTTP_FOOTER, page.getFooter()));
+        root.add(newElement(XML_HTTP_BEGINFORM, page.getBeginform()));
+        root.add(newElement(XML_HTTP_ENDFORM, page.getEndform()));
+        root.add(newElement(XML_HTTP_NEXTINFORM, page.getNextinform()));
+        root.add(newElement(XML_HTTP_URI, page.getUri()));
+        root.add(newElement(XML_HTTP_PAGEROLE, page.getPagerole().name()));
+        root.add(newElement(XML_HTTP_ERRORPAGE, page.getErrorpage()));
+        root.add(newElement(XML_HTTP_CLASSNAME, page.getClassname()));
         Element element = root.addElement(XML_HTTP_FIELDS);
-        for (AbstractHttpField field : page.fields.values()) {
+        for (AbstractHttpField field : page.getFields().values()) {
             Element subroot = element.addElement(XML_HTTP_FIELD);
             addToField(subroot, field);
         }
@@ -484,7 +484,7 @@ public class HttpXmlDefinition {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_ROOT_NAME);
         Element subroot = root.addElement(XML_HTTP_PAGES);
-        for (HttpPage page : httpPageHandler.hashmap.values()) {
+        for (HttpPage page : httpPageHandler.getHashmap().values()) {
             Element element = subroot.addElement(XML_HTTP_PAGE);
             addToElement(element, page);
         }

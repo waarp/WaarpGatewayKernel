@@ -176,7 +176,7 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
         DbTransferLog empty = new DbTransferLog(null);
         DbValue[] values = empty.getAllFields();
         for (DbValue dbValue : values) {
-            node1.put(dbValue.column, dbValue.getType());
+            node1.put(dbValue.getColumn(), dbValue.getType());
         }
 
         ObjectNode node2, node3;
@@ -202,10 +202,10 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
             node3 = JsonHandler.createObjectNode();
             node3.put(DbTransferLog.Columns.HOSTID.name(), "SPECIALID as Long in URI as " + this.path + "/id");
             for (DbValue dbValue : values) {
-                if (dbValue.column.equalsIgnoreCase(DbTransferLog.Columns.SPECIALID.name())) {
+                if (dbValue.getColumn().equalsIgnoreCase(DbTransferLog.Columns.SPECIALID.name())) {
                     continue;
                 }
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path + "/id", COMMAND_TYPE.UPDATE.name(),
                     node3, node1);
@@ -221,7 +221,7 @@ public class DbTransferLogDataModelRestMethodHandler extends DataModelRestMethod
         if (this.methods.contains(METHOD.POST)) {
             node3 = JsonHandler.createObjectNode();
             for (DbValue dbValue : values) {
-                node3.put(dbValue.column, dbValue.getType());
+                node3.put(dbValue.getColumn(), dbValue.getType());
             }
             node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(),
                     node3, node1);
