@@ -56,18 +56,18 @@ public abstract class AbstractHttpField implements Cloneable {
      * fieldname, fieldtype, fieldinfo, fieldvalue, fieldvisibility, fieldmandatory, fieldcookieset,
      * fieldtovalidate, fieldposition, fieldrank
      */
-    public String fieldname;
-    public FieldRole fieldtype;
-    public String fieldinfo;
+    private String fieldname;
+    private FieldRole fieldtype;
+    private String fieldinfo;
     public String fieldvalue;
-    public boolean fieldvisibility;
-    public boolean fieldmandatory;
-    public boolean fieldcookieset;
-    public boolean fieldtovalidate;
-    public FieldPosition fieldposition;
-    public int fieldrank;
-    public boolean present = false;
-    public FileUpload fileUpload;
+    private boolean fieldvisibility;
+    private boolean fieldmandatory;
+    private boolean fieldcookieset;
+    private boolean fieldtovalidate;
+    private FieldPosition fieldposition;
+    private int fieldrank;
+    private boolean present = false;
+    FileUpload fileUpload;
 
     /**
      * @param fieldname
@@ -85,16 +85,16 @@ public abstract class AbstractHttpField implements Cloneable {
             String fieldvalue, boolean fieldvisibility, boolean fieldmandatory,
             boolean fieldcookieset,
             boolean fieldtovalidate, FieldPosition fieldposition, int fieldrank) {
-        this.fieldname = fieldname;
-        this.fieldtype = fieldtype;
-        this.fieldinfo = fieldinfo;
+        this.setFieldname(fieldname);
+        this.setFieldtype(fieldtype);
+        this.setFieldinfo(fieldinfo);
         this.fieldvalue = fieldvalue;
-        this.fieldvisibility = fieldvisibility;
-        this.fieldmandatory = fieldmandatory;
-        this.fieldcookieset = fieldcookieset;
-        this.fieldtovalidate = fieldtovalidate;
-        this.fieldposition = fieldposition;
-        this.fieldrank = fieldrank;
+        this.setFieldvisibility(fieldvisibility);
+        this.setFieldmandatory(fieldmandatory);
+        this.setFieldcookieset(fieldcookieset);
+        this.setFieldtovalidate(fieldtovalidate);
+        this.setFieldposition(fieldposition);
+        this.setFieldrank(fieldrank);
     }
 
     /**
@@ -138,13 +138,160 @@ public abstract class AbstractHttpField implements Cloneable {
      * Clean method
      */
     public void clean() {
-        this.fieldname = null;
-        this.fieldinfo = null;
+        this.setFieldname(null);
+        this.setFieldinfo(null);
         this.fieldvalue = null;
-        this.present = false;
-        if (this.fileUpload != null) {
-            this.fileUpload.delete();
+        this.setPresent(false);
+        if (this.getFileUpload() != null) {
+            this.getFileUpload().delete();
             this.fileUpload = null;
         }
+    }
+
+    /**
+     * @return the fieldname
+     */
+    public String getFieldname() {
+        return fieldname;
+    }
+
+    /**
+     * @param fieldname the fieldname to set
+     */
+    private void setFieldname(String fieldname) {
+        this.fieldname = fieldname;
+    }
+
+    /**
+     * @return the fieldtype
+     */
+    public FieldRole getFieldtype() {
+        return fieldtype;
+    }
+
+    /**
+     * @param fieldtype the fieldtype to set
+     */
+    private void setFieldtype(FieldRole fieldtype) {
+        this.fieldtype = fieldtype;
+    }
+
+    /**
+     * @return the fieldinfo
+     */
+    public String getFieldinfo() {
+        return fieldinfo;
+    }
+
+    /**
+     * @param fieldinfo the fieldinfo to set
+     */
+    private void setFieldinfo(String fieldinfo) {
+        this.fieldinfo = fieldinfo;
+    }
+
+    /**
+     * @return the fieldvisibility
+     */
+    public boolean isFieldvisibility() {
+        return fieldvisibility;
+    }
+
+    /**
+     * @param fieldvisibility the fieldvisibility to set
+     */
+    public void setFieldvisibility(boolean fieldvisibility) {
+        this.fieldvisibility = fieldvisibility;
+    }
+
+    /**
+     * @return the fieldmandatory
+     */
+    public boolean isFieldmandatory() {
+        return fieldmandatory;
+    }
+
+    /**
+     * @param fieldmandatory the fieldmandatory to set
+     */
+    private void setFieldmandatory(boolean fieldmandatory) {
+        this.fieldmandatory = fieldmandatory;
+    }
+
+    /**
+     * @return the fieldcookieset
+     */
+    public boolean isFieldcookieset() {
+        return fieldcookieset;
+    }
+
+    /**
+     * @param fieldcookieset the fieldcookieset to set
+     */
+    private void setFieldcookieset(boolean fieldcookieset) {
+        this.fieldcookieset = fieldcookieset;
+    }
+
+    /**
+     * @return the fieldtovalidate
+     */
+    public boolean isFieldtovalidate() {
+        return fieldtovalidate;
+    }
+
+    /**
+     * @param fieldtovalidate the fieldtovalidate to set
+     */
+    private void setFieldtovalidate(boolean fieldtovalidate) {
+        this.fieldtovalidate = fieldtovalidate;
+    }
+
+    /**
+     * @return the fieldposition
+     */
+    public FieldPosition getFieldposition() {
+        return fieldposition;
+    }
+
+    /**
+     * @param fieldposition the fieldposition to set
+     */
+    private void setFieldposition(FieldPosition fieldposition) {
+        this.fieldposition = fieldposition;
+    }
+
+    /**
+     * @return the fieldrank
+     */
+    public int getFieldrank() {
+        return fieldrank;
+    }
+
+    /**
+     * @param fieldrank the fieldrank to set
+     */
+    private void setFieldrank(int fieldrank) {
+        this.fieldrank = fieldrank;
+    }
+
+    /**
+     * @return the present
+     */
+    public boolean isPresent() {
+        return present;
+    }
+
+    /**
+     * @param present the present to set
+     */
+    void setPresent(boolean present) {
+        this.present = present;
+    }
+
+    /**
+     * @return the fileUpload
+     */
+    public FileUpload getFileUpload() {
+        return fileUpload;
     }
 }

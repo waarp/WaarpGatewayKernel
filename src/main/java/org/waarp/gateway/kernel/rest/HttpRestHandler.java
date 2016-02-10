@@ -317,7 +317,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
      * @return the DbSession associated with the current request (might be Admin dbSession if none)
      */
     public DbSession getDbSession() {
-        return dbSession == null ? DbConstant.admin.session : dbSession;
+        return dbSession == null ? DbConstant.admin.getSession() : dbSession;
     }
 
     /**

@@ -258,30 +258,34 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
             HttpInvalidAuthenticationException, HttpNotFoundRequestException {
         long limit = arguments.getLimitFromUri();
         DbPreparedStatement statement = getPreparedStatement(handler, arguments, result, body);
-        result.addFilter((ObjectNode) body);
-        int count = 0;
         try {
-            statement.executeQuery();
-        } catch (WaarpDatabaseNoConnectionException e) {
-            throw new HttpIncorrectRequestException(e);
-        } catch (WaarpDatabaseSqlException e) {
-            throw new HttpNotFoundRequestException(e);
-        }
-        try {
-            for (; count < limit && statement.getNext(); count++) {
-                E item = getItemPreparedStatement(statement);
-                if (item != null) {
-                    result.addResult(item.getJson());
-                }
+            result.addFilter((ObjectNode) body);
+            int count = 0;
+            try {
+                statement.executeQuery();
+            } catch (WaarpDatabaseNoConnectionException e) {
+                throw new HttpIncorrectRequestException(e);
+            } catch (WaarpDatabaseSqlException e) {
+                throw new HttpNotFoundRequestException(e);
             }
-        } catch (WaarpDatabaseNoConnectionException e) {
-            throw new HttpIncorrectRequestException(e);
-        } catch (WaarpDatabaseSqlException e) {
-            throw new HttpNotFoundRequestException(e);
+            try {
+                for (; count < limit && statement.getNext(); count++) {
+                    E item = getItemPreparedStatement(statement);
+                    if (item != null) {
+                        result.addResult(item.getJson());
+                    }
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                throw new HttpIncorrectRequestException(e);
+            } catch (WaarpDatabaseSqlException e) {
+                throw new HttpNotFoundRequestException(e);
+            }
+            result.addCountLimit(count, limit);
+            result.setCommand(COMMAND_TYPE.MULTIGET);
+            setOk(handler, result);
+        } finally {
+            statement.realClose();
         }
-        result.addCountLimit(count, limit);
-        result.setCommand(COMMAND_TYPE.MULTIGET);
-        setOk(handler, result);
     }
 
     /**

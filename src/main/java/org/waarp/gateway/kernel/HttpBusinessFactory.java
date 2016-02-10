@@ -115,7 +115,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
 
@@ -127,7 +127,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
 
@@ -139,7 +139,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
 
@@ -151,7 +151,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
 
@@ -163,7 +163,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
 
@@ -175,7 +175,7 @@ public abstract class HttpBusinessFactory {
                     fieldvalue,
                     fieldvisibility, fieldmandatory, fieldcookieset, fieldtovalidate,
                     FieldPosition.BODY, fieldrank));
-            pages.hashmap.put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
+            pages.getHashmap().put(uri, new HttpPage(pagename, null, header, footer, beginform, endform,
                     nextinform,
                     uri, pageRole, errorpage, classname, linkedHashMap));
             return true;

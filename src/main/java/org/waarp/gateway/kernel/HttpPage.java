@@ -48,19 +48,19 @@ public class HttpPage {
      * pagename, fileform, header, footer, beginform, endform, nextinform, uri, pagerole, errorpage,
      * classname, fields
      */
-    public String pagename;
-    public String fileform;
-    public String header;
-    public String footer;
-    public String beginform;
-    public String endform;
-    public String nextinform;
-    public String uri;
-    public PageRole pagerole;
-    public String errorpage;
-    public String classname;
-    public LinkedHashMap<String, AbstractHttpField> fields;
-    public HttpBusinessFactory httpBusinessFactory;
+    private String pagename;
+    private String fileform;
+    private String header;
+    private String footer;
+    private String beginform;
+    private String endform;
+    private String nextinform;
+    private String uri;
+    private PageRole pagerole;
+    private String errorpage;
+    private String classname;
+    private LinkedHashMap<String, AbstractHttpField> fields;
+    private HttpBusinessFactory httpBusinessFactory;
 
     /**
      * 
@@ -85,24 +85,24 @@ public class HttpPage {
             String uri, PageRole pagerole, String errorpage,
             String classname, LinkedHashMap<String, AbstractHttpField> fields)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-        this.pagename = pagename;
-        this.fileform = fileform;
-        if (this.fileform != null && this.fileform.length() == 0) {
-            this.fileform = null;
+        this.setPagename(pagename);
+        this.setFileform(fileform);
+        if (this.getFileform() != null && this.getFileform().length() == 0) {
+            this.setFileform(null);
         }
-        this.header = header;
-        this.footer = footer;
-        this.beginform = beginform;
-        this.endform = endform;
-        this.nextinform = nextinform;
-        this.uri = uri;
-        this.pagerole = pagerole;
-        this.errorpage = errorpage;
-        this.classname = classname;
-        this.fields = fields;
+        this.setHeader(header);
+        this.setFooter(footer);
+        this.setBeginform(beginform);
+        this.setEndform(endform);
+        this.setNextinform(nextinform);
+        this.setUri(uri);
+        this.setPagerole(pagerole);
+        this.setErrorpage(errorpage);
+        this.setClassname(classname);
+        this.setFields(fields);
         @SuppressWarnings("unchecked")
         Class<HttpBusinessFactory> clasz = (Class<HttpBusinessFactory>) Class.forName(classname);
-        this.httpBusinessFactory = clasz.newInstance();
+        this.setHttpBusinessFactory(clasz.newInstance());
     }
 
     /**
@@ -114,22 +114,22 @@ public class HttpPage {
      */
     public AbstractHttpBusinessRequest newRequest(SocketAddress remoteAddress) {
         LinkedHashMap<String, AbstractHttpField> linkedHashMap = new LinkedHashMap<String, AbstractHttpField>(
-                this.fields.size());
-        for (AbstractHttpField field : this.fields.values()) {
+                this.getFields().size());
+        for (AbstractHttpField field : this.getFields().values()) {
             AbstractHttpField newfield = field.clone();
-            if (pagerole != PageRole.MENU) {
+            if (getPagerole() != PageRole.MENU) {
                 newfield.fieldvalue = null;
             }
-            linkedHashMap.put(field.fieldname, newfield);
+            linkedHashMap.put(field.getFieldname(), newfield);
         }
-        return this.httpBusinessFactory.getNewHttpBusinessRequest(remoteAddress, linkedHashMap,
+        return this.getHttpBusinessFactory().getNewHttpBusinessRequest(remoteAddress, linkedHashMap,
                 this);
     }
 
     public String getPageValue(String value) {
-        if (this.fileform != null && value != null) {
+        if (this.getFileform() != null && value != null) {
             try {
-                return WaarpStringUtils.readFileException(fileform + value);
+                return WaarpStringUtils.readFileException(getFileform() + value);
             } catch (InvalidArgumentException e) {
             } catch (FileTransferException e) {
             }
@@ -145,12 +145,12 @@ public class HttpPage {
      */
     public String getHtmlPage(AbstractHttpBusinessRequest reference)
             throws HttpIncorrectRequestException {
-        if (this.pagerole == PageRole.HTML) {
+        if (this.getPagerole() == PageRole.HTML) {
             // No handling of variable management, use MENU instead
             String value = reference.getHeader();
             logger.debug("Debug: " + (value != null));
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.header);
+                value = getPageValue(this.getHeader());
             }
             StringBuilder builder = null;
             if (value == null) {
@@ -160,21 +160,21 @@ public class HttpPage {
             }
             value = reference.getBeginForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.beginform);
+                value = getPageValue(this.getBeginform());
             }
             if (value != null) {
                 builder.append(value);
             }
             value = reference.getEndForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.endform);
+                value = getPageValue(this.getEndform());
             }
             if (value != null) {
                 builder.append(value);
             }
             value = reference.getFooter();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.footer);
+                value = getPageValue(this.getFooter());
             }
             if (value != null) {
                 builder.append(value);
@@ -184,7 +184,7 @@ public class HttpPage {
         boolean isForm = reference.isForm();
         String value = reference.getHeader();
         if (value == null || value.length() == 0) {
-            value = getPageValue(this.header);
+            value = getPageValue(this.getHeader());
         }
         StringBuilder builder = null;
         if (value == null) {
@@ -197,15 +197,15 @@ public class HttpPage {
         if (!isForm) {
             value = reference.getBeginForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.beginform);
+                value = getPageValue(this.getBeginform());
             }
             if (value != null) {
                 builder.append(value);
             } else {
                 builder.append("<BR><TABLE border=1><TR>");
                 for (AbstractHttpField field : requestFields.values()) {
-                    if (field.fieldvisibility) {
-                        builder.append("<TH>").append(field.fieldinfo).append("</TH>");
+                    if (field.isFieldvisibility()) {
+                        builder.append("<TH>").append(field.getFieldinfo()).append("</TH>");
                     }
                 }
                 builder.append("<TR>");
@@ -213,7 +213,7 @@ public class HttpPage {
         } else {
             value = reference.getBeginForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.beginform);
+                value = getPageValue(this.getBeginform());
             }
             if (value != null) {
                 builder.append(value);
@@ -221,14 +221,14 @@ public class HttpPage {
         }
         boolean first = true;
         for (AbstractHttpField field : requestFields.values()) {
-            if (field.fieldvisibility) {
+            if (field.isFieldvisibility()) {
                 // to prevent that last will have a next field form
                 if (first) {
                     first = false;
                 } else {
                     value = reference.getNextFieldInForm();
                     if (value == null || value.length() == 0) {
-                        value = getPageValue(this.nextinform);
+                        value = getPageValue(this.getNextinform());
                     }
                     if (value != null) {
                         builder.append(value);
@@ -250,7 +250,7 @@ public class HttpPage {
         if (!isForm) {
             value = reference.getEndForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.endform);
+                value = getPageValue(this.getEndform());
             }
             if (value != null) {
                 builder.append(value);
@@ -260,7 +260,7 @@ public class HttpPage {
         } else {
             value = reference.getEndForm();
             if (value == null || value.length() == 0) {
-                value = getPageValue(this.endform);
+                value = getPageValue(this.getEndform());
             }
             if (value != null) {
                 builder.append(value);
@@ -268,7 +268,7 @@ public class HttpPage {
         }
         value = reference.getFooter();
         if (value == null || value.length() == 0) {
-            value = getPageValue(this.footer);
+            value = getPageValue(this.getFooter());
         }
         if (value != null) {
             builder.append(value);
@@ -294,16 +294,16 @@ public class HttpPage {
                 .getLinkedHashMapHttpFields();
         AbstractHttpField field = requestFields.get(fieldname);
         if (field != null) {
-            if (field.fieldposition == FieldPosition.ANY || field.fieldposition == position) {
+            if (field.getFieldposition() == FieldPosition.ANY || field.getFieldposition() == position) {
                 field.setStringValue(value);
-                if (field.fieldtovalidate) {
+                if (field.isFieldtovalidate()) {
                     if (!reference.isFieldValid(field)) {
                         throw new HttpIncorrectRequestException("Field unvalid: " + fieldname);
                     }
                 }
             } else {
                 throw new HttpIncorrectRequestException("Invalid position: " + position +
-                        " while field is supposed to be in " + field.fieldposition);
+                        " while field is supposed to be in " + field.getFieldposition());
             }
         }
     }
@@ -325,7 +325,7 @@ public class HttpPage {
         AbstractHttpField field = requestFields.get(fieldname);
         if (field != null) {
             field.setFileUpload(fileUpload);
-            if (field.fieldtovalidate) {
+            if (field.isFieldtovalidate()) {
                 if (!reference.isFieldValid(field)) {
                     throw new HttpIncorrectRequestException("Field unvalid: " + fieldname);
                 }
@@ -342,9 +342,9 @@ public class HttpPage {
         LinkedHashMap<String, AbstractHttpField> requestFields = reference
                 .getLinkedHashMapHttpFields();
         for (AbstractHttpField field : requestFields.values()) {
-            if (field.fieldmandatory && !field.present) {
+            if (field.isFieldmandatory() && !field.isPresent()) {
                 logger.warn("Request invalid since the following field is absent: "
-                        + field.fieldname);
+                        + field.getFieldname());
                 return false;
             }
         }
@@ -401,5 +401,187 @@ public class HttpPage {
      */
     public AbstractHttpField getField(AbstractHttpBusinessRequest reference, String fieldname) {
         return reference.getLinkedHashMapHttpFields().get(fieldname);
+    }
+
+    /**
+     * @return the pagename
+     */
+    public String getPagename() {
+        return pagename;
+    }
+
+    /**
+     * @param pagename the pagename to set
+     */
+    private void setPagename(String pagename) {
+        this.pagename = pagename;
+    }
+
+    /**
+     * @return the fileform
+     */
+    public String getFileform() {
+        return fileform;
+    }
+
+    /**
+     * @param fileform the fileform to set
+     */
+    private void setFileform(String fileform) {
+        this.fileform = fileform;
+    }
+
+    /**
+     * @return the header
+     */
+    public String getHeader() {
+        return header;
+    }
+
+    /**
+     * @param header the header to set
+     */
+    private void setHeader(String header) {
+        this.header = header;
+    }
+
+    /**
+     * @return the footer
+     */
+    public String getFooter() {
+        return footer;
+    }
+
+    /**
+     * @param footer the footer to set
+     */
+    private void setFooter(String footer) {
+        this.footer = footer;
+    }
+
+    /**
+     * @return the beginform
+     */
+    public String getBeginform() {
+        return beginform;
+    }
+
+    /**
+     * @param beginform the beginform to set
+     */
+    private void setBeginform(String beginform) {
+        this.beginform = beginform;
+    }
+
+    /**
+     * @return the endform
+     */
+    public String getEndform() {
+        return endform;
+    }
+
+    /**
+     * @param endform the endform to set
+     */
+    private void setEndform(String endform) {
+        this.endform = endform;
+    }
+
+    /**
+     * @return the nextinform
+     */
+    public String getNextinform() {
+        return nextinform;
+    }
+
+    /**
+     * @param nextinform the nextinform to set
+     */
+    private void setNextinform(String nextinform) {
+        this.nextinform = nextinform;
+    }
+
+    /**
+     * @return the uri
+     */
+    public String getUri() {
+        return uri;
+    }
+
+    /**
+     * @param uri the uri to set
+     */
+    private void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    /**
+     * @return the pagerole
+     */
+    public PageRole getPagerole() {
+        return pagerole;
+    }
+
+    /**
+     * @param pagerole the pagerole to set
+     */
+    private void setPagerole(PageRole pagerole) {
+        this.pagerole = pagerole;
+    }
+
+    /**
+     * @return the errorpage
+     */
+    public String getErrorpage() {
+        return errorpage;
+    }
+
+    /**
+     * @param errorpage the errorpage to set
+     */
+    private void setErrorpage(String errorpage) {
+        this.errorpage = errorpage;
+    }
+
+    /**
+     * @return the classname
+     */
+    public String getClassname() {
+        return classname;
+    }
+
+    /**
+     * @param classname the classname to set
+     */
+    private void setClassname(String classname) {
+        this.classname = classname;
+    }
+
+    /**
+     * @return the fields
+     */
+    public LinkedHashMap<String, AbstractHttpField> getFields() {
+        return fields;
+    }
+
+    /**
+     * @param fields the fields to set
+     */
+    private void setFields(LinkedHashMap<String, AbstractHttpField> fields) {
+        this.fields = fields;
+    }
+
+    /**
+     * @return the httpBusinessFactory
+     */
+    public HttpBusinessFactory getHttpBusinessFactory() {
+        return httpBusinessFactory;
+    }
+
+    /**
+     * @param httpBusinessFactory the httpBusinessFactory to set
+     */
+    private void setHttpBusinessFactory(HttpBusinessFactory httpBusinessFactory) {
+        this.httpBusinessFactory = httpBusinessFactory;
     }
 }
