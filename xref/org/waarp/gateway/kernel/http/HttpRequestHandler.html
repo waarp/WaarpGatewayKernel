@@ -299,10 +299,10 @@
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>                     }
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>                 }
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>                 httpPage = httpPageTemp;
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 session.setCurrentCommand(httpPage.pagerole);
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 WaarpActionLogger.logCreate(DbConstant.admin.session, <span class="jxr_string">"Request received: "</span>
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>                         + httpPage.pagename, session);
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 <strong class="jxr_keyword">if</strong> (httpPageTemp.pagerole == PageRole.ERROR) {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 session.setCurrentCommand(httpPage.getPagerole());
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 WaarpActionLogger.logCreate(DbConstant.admin.getSession(), <span class="jxr_string">"Request received: "</span>
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                         + httpPage.getPagename(), session);
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 <strong class="jxr_keyword">if</strong> (httpPageTemp.getPagerole() == PageRole.ERROR) {
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>                     status = HttpResponseStatus.BAD_REQUEST;
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>                     error(ctx);
 <a class="jxr_linenumber" name="L300" href="#L300">300</a>                     clean();
@@ -310,8 +310,8 @@
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>                     <strong class="jxr_keyword">this</strong>.businessRequest = httpPage.newRequest(ctx.channel().remoteAddress());
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>                     willClose = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>                     writeSimplePage(ctx);
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>                     WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>                             <span class="jxr_string">"Error: "</span> + httpPage.pagename, status);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>                     WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                             <span class="jxr_string">"Error: "</span> + httpPage.getPagename(), status);
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>                     <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>                     <em class="jxr_comment">// end of task</em>
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>                 }
@@ -320,7 +320,7 @@
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>                 getHeaderArgs();
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>                 getCookieArgs();
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>                 checkConnection(ctx);
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <strong class="jxr_keyword">switch</strong> (httpPage.pagerole) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <strong class="jxr_keyword">switch</strong> (httpPage.getPagerole()) {
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>                     <strong class="jxr_keyword">case</strong> DELETE:
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>                         <em class="jxr_comment">// no body element</em>
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>                         delete(ctx);
@@ -400,8 +400,8 @@
 <a class="jxr_linenumber" name="L392" href="#L392">392</a> <em class="jxr_javadoccomment">     * @param ctx</em>
 <a class="jxr_linenumber" name="L393" href="#L393">393</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L394" href="#L394">394</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> writeErrorPage(ChannelHandlerContext ctx) {
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>         WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>                 <span class="jxr_string">"Error: "</span> + (httpPage == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"no page"</span> : httpPage.pagename), status);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>         WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>                 <span class="jxr_string">"Error: "</span> + (httpPage == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"no page"</span> : httpPage.getPagename()), status);
 <a class="jxr_linenumber" name="L397" href="#L397">397</a>         error(ctx);
 <a class="jxr_linenumber" name="L398" href="#L398">398</a>         clean();
 <a class="jxr_linenumber" name="L399" href="#L399">399</a>         willClose = <strong class="jxr_keyword">true</strong>;
@@ -437,8 +437,8 @@
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>             logger.debug(<span class="jxr_string">"Will close"</span>);
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>             future.addListener(WaarpSslUtility.SSLCLOSE);
 <a class="jxr_linenumber" name="L431" href="#L431">431</a>         }
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>         WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>                 <span class="jxr_string">"Error: "</span> + httpPage.pagename, status);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>         WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>                 <span class="jxr_string">"Error: "</span> + httpPage.getPagename(), status);
 <a class="jxr_linenumber" name="L434" href="#L434">434</a>     }
 <a class="jxr_linenumber" name="L435" href="#L435">435</a> 
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>     <em class="jxr_javadoccomment">/**</em>
@@ -448,10 +448,10 @@
 <a class="jxr_linenumber" name="L440" href="#L440">440</a> <em class="jxr_javadoccomment">     * @throws HttpIncorrectRequestException</em>
 <a class="jxr_linenumber" name="L441" href="#L441">441</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L442" href="#L442">442</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> writeSimplePage(ChannelHandlerContext ctx) <strong class="jxr_keyword">throws</strong> HttpIncorrectRequestException {
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>         logger.debug(<span class="jxr_string">"HttpPage: "</span> + (httpPage != <strong class="jxr_keyword">null</strong> ? httpPage.pagename : <span class="jxr_string">"no page"</span>) +
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         logger.debug(<span class="jxr_string">"HttpPage: "</span> + (httpPage != <strong class="jxr_keyword">null</strong> ? httpPage.getPagename() : <span class="jxr_string">"no page"</span>) +
 <a class="jxr_linenumber" name="L444" href="#L444">444</a>                 <span class="jxr_string">" businessRequest: "</span>
 <a class="jxr_linenumber" name="L445" href="#L445">445</a>                 + (businessRequest != <strong class="jxr_keyword">null</strong> ? businessRequest.getClass().getName() : <span class="jxr_string">"no BR"</span>));
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <strong class="jxr_keyword">if</strong> (httpPage.pagerole == PageRole.ERROR) {
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <strong class="jxr_keyword">if</strong> (httpPage.getPagerole() == PageRole.ERROR) {
 <a class="jxr_linenumber" name="L447" href="#L447">447</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L448" href="#L448">448</a>                 httpPage.setValue(businessRequest, AbstractHttpField.ERRORINFO, errorMesg,
 <a class="jxr_linenumber" name="L449" href="#L449">449</a>                         FieldPosition.BODY);
@@ -500,9 +500,9 @@
 <a class="jxr_linenumber" name="L492" href="#L492">492</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L493" href="#L493">493</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> addBusinessCookie(FullHttpResponse response, Set&lt;String&gt; cookieNames) {
 <a class="jxr_linenumber" name="L494" href="#L494">494</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>             <strong class="jxr_keyword">if</strong> (field.fieldcookieset &amp;&amp; !cookieNames.contains(field.fieldname)) {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>             <strong class="jxr_keyword">if</strong> (field.isFieldcookieset() &amp;&amp; !cookieNames.contains(field.getFieldname())) {
 <a class="jxr_linenumber" name="L496" href="#L496">496</a>                 response.headers().add(HttpHeaderNames.SET_COOKIE,
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>                         ServerCookieEncoder.LAX.encode(field.fieldname, field.fieldvalue));
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>                         ServerCookieEncoder.LAX.encode(field.getFieldname(), field.fieldvalue));
 <a class="jxr_linenumber" name="L498" href="#L498">498</a>             }
 <a class="jxr_linenumber" name="L499" href="#L499">499</a>         }
 <a class="jxr_linenumber" name="L500" href="#L500">500</a>     }
@@ -615,31 +615,31 @@
 <a class="jxr_linenumber" name="L607" href="#L607">607</a>             <strong class="jxr_keyword">if</strong> (!httpPage.isRequestValid(businessRequest)) {
 <a class="jxr_linenumber" name="L608" href="#L608">608</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/gateway/kernel/exception/HttpIncorrectRequestException.html">HttpIncorrectRequestException</a>(<span class="jxr_string">"Request unvalid"</span>);
 <a class="jxr_linenumber" name="L609" href="#L609">609</a>             }
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>             <strong class="jxr_keyword">switch</strong> (httpPage.pagerole) {
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>             <strong class="jxr_keyword">switch</strong> (httpPage.getPagerole()) {
 <a class="jxr_linenumber" name="L611" href="#L611">611</a>                 <strong class="jxr_keyword">case</strong> DELETE:
 <a class="jxr_linenumber" name="L612" href="#L612">612</a>                     session.setFilename(getFilename());
 <a class="jxr_linenumber" name="L613" href="#L613">613</a>                     finalDelete(ctx);
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>                     WaarpActionLogger.logAction(DbConstant.admin.session, session,
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>                     WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
 <a class="jxr_linenumber" name="L615" href="#L615">615</a>                             <span class="jxr_string">"Delete OK"</span>, status, UpdatedInfo.DONE);
 <a class="jxr_linenumber" name="L616" href="#L616">616</a>                     <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L617" href="#L617">617</a>                 <strong class="jxr_keyword">case</strong> GETDOWNLOAD:
 <a class="jxr_linenumber" name="L618" href="#L618">618</a>                     finalGet(ctx);
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>                     WaarpActionLogger.logAction(DbConstant.admin.session, session,
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>                     WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
 <a class="jxr_linenumber" name="L620" href="#L620">620</a>                             <span class="jxr_string">"Download OK"</span>, status, UpdatedInfo.DONE);
 <a class="jxr_linenumber" name="L621" href="#L621">621</a>                     <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L622" href="#L622">622</a>                 <strong class="jxr_keyword">case</strong> POST:
 <a class="jxr_linenumber" name="L623" href="#L623">623</a>                     finalPost(ctx);
-<a class="jxr_linenumber" name="L624" href="#L624">624</a>                     WaarpActionLogger.logAction(DbConstant.admin.session, session,
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>                     WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
 <a class="jxr_linenumber" name="L625" href="#L625">625</a>                             <span class="jxr_string">"Post OK"</span>, status, UpdatedInfo.DONE);
 <a class="jxr_linenumber" name="L626" href="#L626">626</a>                     <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L627" href="#L627">627</a>                 <strong class="jxr_keyword">case</strong> POSTUPLOAD:
 <a class="jxr_linenumber" name="L628" href="#L628">628</a>                     finalPostUpload(ctx);
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>                     WaarpActionLogger.logAction(DbConstant.admin.session, session,
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>                     WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
 <a class="jxr_linenumber" name="L630" href="#L630">630</a>                             <span class="jxr_string">"PostUpload OK"</span>, status, UpdatedInfo.DONE);
 <a class="jxr_linenumber" name="L631" href="#L631">631</a>                     <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L632" href="#L632">632</a>                 <strong class="jxr_keyword">case</strong> PUT:
 <a class="jxr_linenumber" name="L633" href="#L633">633</a>                     finalPut(ctx);
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>                     WaarpActionLogger.logAction(DbConstant.admin.session, session,
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>                     WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
 <a class="jxr_linenumber" name="L635" href="#L635">635</a>                             <span class="jxr_string">"Put OK"</span>, status, UpdatedInfo.DONE);
 <a class="jxr_linenumber" name="L636" href="#L636">636</a>                     <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L637" href="#L637">637</a>                 <strong class="jxr_keyword">default</strong>:
@@ -873,8 +873,8 @@
 <a class="jxr_linenumber" name="L865" href="#L865">865</a>             <strong class="jxr_keyword">if</strong> (fileUpload.isCompleted()) {
 <a class="jxr_linenumber" name="L866" href="#L866">866</a>                 <a href="../../../../../org/waarp/gateway/kernel/AbstractHttpField.html">AbstractHttpField</a> field =
 <a class="jxr_linenumber" name="L867" href="#L867">867</a>                         httpPage.getField(businessRequest, fileUpload.getName());
-<a class="jxr_linenumber" name="L868" href="#L868">868</a>                 <strong class="jxr_keyword">if</strong> (field != <strong class="jxr_keyword">null</strong> &amp;&amp; field.fieldtype == FieldRole.BUSINESS_INPUT_FILE) {
-<a class="jxr_linenumber" name="L869" href="#L869">869</a>                     httpPage.setValue(businessRequest, field.fieldname, fileUpload);
+<a class="jxr_linenumber" name="L868" href="#L868">868</a>                 <strong class="jxr_keyword">if</strong> (field != <strong class="jxr_keyword">null</strong> &amp;&amp; field.getFieldtype() == FieldRole.BUSINESS_INPUT_FILE) {
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>                     httpPage.setValue(businessRequest, field.getFieldname(), fileUpload);
 <a class="jxr_linenumber" name="L870" href="#L870">870</a>                 } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L871" href="#L871">871</a>                     logger.warn(<span class="jxr_string">"File received but no variable for it"</span>);
 <a class="jxr_linenumber" name="L872" href="#L872">872</a>                     fileUpload.delete();
@@ -918,6 +918,6 @@
 <a class="jxr_linenumber" name="L910" href="#L910">910</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

@@ -325,7 +325,7 @@
 <a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_javadoccomment">     * @return the DbSession associated with the current request (might be Admin dbSession if none)</em>
 <a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>     <strong class="jxr_keyword">public</strong> DbSession getDbSession() {
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <strong class="jxr_keyword">return</strong> dbSession == <strong class="jxr_keyword">null</strong> ? DbConstant.admin.session : dbSession;
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <strong class="jxr_keyword">return</strong> dbSession == <strong class="jxr_keyword">null</strong> ? DbConstant.admin.getSession() : dbSession;
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>     }
 <a class="jxr_linenumber" name="L322" href="#L322">322</a> 
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>     <em class="jxr_javadoccomment">/**</em>
@@ -821,6 +821,6 @@
 <a class="jxr_linenumber" name="L813" href="#L813">813</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

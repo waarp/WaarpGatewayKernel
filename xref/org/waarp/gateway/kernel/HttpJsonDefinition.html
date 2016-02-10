@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>         <em class="jxr_comment">// Now read the configuration</em>
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>         <strong class="jxr_keyword">for</strong> (ConfigHttpField fieldValue : list) {
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>             <a href="../../../../org/waarp/gateway/kernel/AbstractHttpField.html">AbstractHttpField</a> field = loadHttpPage(fieldValue);
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>             linkedHashMap.put(field.fieldname, field);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             linkedHashMap.put(field.getFieldname(), field);
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>         }
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>         list.clear();
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>         list = <strong class="jxr_keyword">null</strong>;
@@ -173,7 +173,7 @@
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>         <em class="jxr_comment">// Now read the configuration</em>
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>         <strong class="jxr_keyword">for</strong> (ConfigHttpPage cpage : cpages.PAGE) {
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>             <a href="../../../../org/waarp/gateway/kernel/HttpPage.html">HttpPage</a> page = loadHttpConfiguration(cpage);
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>             pages.put(page.uri, page);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>             pages.put(page.getUri(), page);
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>         }
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>         cpages.PAGE.clear();
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/gateway/kernel/HttpPageHandler.html">HttpPageHandler</a>(pages);
@@ -181,34 +181,34 @@
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> 
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addToField(List&lt;ConfigHttpField&gt; fields, <a href="../../../../org/waarp/gateway/kernel/AbstractHttpField.html">AbstractHttpField</a> field) {
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>         <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpField</a> cfield = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpField</a>();
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>         cfield.FIELDNAME = field.fieldname;
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>         cfield.FIELDTYPE = field.fieldtype;
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>         cfield.FIELDINFO = field.fieldinfo;
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         cfield.FIELDNAME = field.getFieldname();
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         cfield.FIELDTYPE = field.getFieldtype();
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         cfield.FIELDINFO = field.getFieldinfo();
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>         cfield.FIELDVALUE = field.fieldvalue;
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>         cfield.FIELDVISIBILITY = field.fieldvisibility;
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>         cfield.FIELDMANDATORY = field.fieldmandatory;
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>         cfield.FIELDCOOKIESET = field.fieldcookieset;
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>         cfield.FIELDTOVALIDATE = field.fieldtovalidate;
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>         cfield.FIELDPOSITION = field.fieldposition;
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>         cfield.FIELDRANK = field.fieldrank;
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         cfield.FIELDVISIBILITY = field.isFieldvisibility();
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         cfield.FIELDMANDATORY = field.isFieldmandatory();
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         cfield.FIELDCOOKIESET = field.isFieldcookieset();
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         cfield.FIELDTOVALIDATE = field.isFieldtovalidate();
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         cfield.FIELDPOSITION = field.getFieldposition();
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         cfield.FIELDRANK = field.getFieldrank();
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         fields.add(cfield);
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>     }
 <a class="jxr_linenumber" name="L188" href="#L188">188</a> 
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addToElement(List&lt;ConfigHttpPage&gt; pages, <a href="../../../../org/waarp/gateway/kernel/HttpPage.html">HttpPage</a> page) {
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>         <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpPage</a> cpage = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpPage</a>();
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>         cpage.PAGENAME = page.pagename;
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>         cpage.FILEFORM = page.fileform;
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>         cpage.HEADER = page.header;
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         cpage.FOOTER = page.footer;
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>         cpage.BEGINFORM = page.beginform;
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>         cpage.ENDFORM = page.endform;
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>         cpage.NEXTINFORM = page.nextinform;
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>         cpage.URI = page.uri;
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>         cpage.PAGEROLE = page.pagerole;
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>         cpage.ERRORPAGE = page.errorpage;
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>         cpage.CLASSNAME = page.classname;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         cpage.PAGENAME = page.getPagename();
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         cpage.FILEFORM = page.getFileform();
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         cpage.HEADER = page.getHeader();
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         cpage.FOOTER = page.getFooter();
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>         cpage.BEGINFORM = page.getBeginform();
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         cpage.ENDFORM = page.getEndform();
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         cpage.NEXTINFORM = page.getNextinform();
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         cpage.URI = page.getUri();
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         cpage.PAGEROLE = page.getPagerole();
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         cpage.ERRORPAGE = page.getErrorpage();
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         cpage.CLASSNAME = page.getClassname();
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>         cpage.FIELD = <strong class="jxr_keyword">new</strong> ArrayList&lt;ConfigHttpField&gt;();
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField field : page.fields.values()) {
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField field : page.getFields().values()) {
 <a class="jxr_linenumber" name="L204" href="#L204">204</a>             addToField(cpage.FIELD, field);
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         pages.add(cpage);
@@ -218,7 +218,7 @@
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">throws</strong> <a href="../../../../org/waarp/gateway/kernel/exception/HttpIncorrectRequestException.html">HttpIncorrectRequestException</a> {
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>         <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpPages</a> cpages = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/gateway/kernel/HttpJsonDefinition.html">ConfigHttpPages</a>();
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>         cpages.PAGE = <strong class="jxr_keyword">new</strong> ArrayList&lt;ConfigHttpPage&gt;();
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <strong class="jxr_keyword">for</strong> (HttpPage page : httpPageHandler.hashmap.values()) {
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <strong class="jxr_keyword">for</strong> (HttpPage page : httpPageHandler.getHashmap().values()) {
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>             addToElement(cpages.PAGE, page);
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>         }
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>         File file = <strong class="jxr_keyword">new</strong> File(filename);
@@ -235,6 +235,6 @@
 <a class="jxr_linenumber" name="L227" href="#L227">227</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>

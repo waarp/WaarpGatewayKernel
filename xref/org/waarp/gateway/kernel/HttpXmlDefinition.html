@@ -381,14 +381,14 @@
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>         <em class="jxr_comment">// Now read the configuration</em>
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>         <strong class="jxr_keyword">for</strong> (XmlValue[] fieldValue : list) {
 <a class="jxr_linenumber" name="L375" href="#L375">375</a>             <a href="../../../../org/waarp/gateway/kernel/AbstractHttpField.html">AbstractHttpField</a> field = loadHttpPage(fieldValue);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>             listFields.add(field.fieldrank, field);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>             listFields.add(field.getFieldrank(), field);
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>         }
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>         list.clear();
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>         list = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L380" href="#L380">380</a>         LinkedHashMap&lt;String, AbstractHttpField&gt; linkedHashMap =
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>                 <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, AbstractHttpField&gt;(listFields.size());
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField abstractHttpField : listFields) {
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>             linkedHashMap.put(abstractHttpField.fieldname, abstractHttpField);
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>             linkedHashMap.put(abstractHttpField.getFieldname(), abstractHttpField);
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>         }
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>         listFields.clear();
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>         listFields = <strong class="jxr_keyword">null</strong>;
@@ -432,7 +432,7 @@
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>         <em class="jxr_comment">// Now read the configuration</em>
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>         <strong class="jxr_keyword">for</strong> (XmlValue[] xmlValue : list) {
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>             <a href="../../../../org/waarp/gateway/kernel/HttpPage.html">HttpPage</a> page = loadHttpConfiguration(xmlValue);
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>             pages.put(page.uri, page);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             pages.put(page.getUri(), page);
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>         }
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>         list.clear();
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>         list = <strong class="jxr_keyword">null</strong>;
@@ -456,32 +456,32 @@
 <a class="jxr_linenumber" name="L448" href="#L448">448</a>     }
 <a class="jxr_linenumber" name="L449" href="#L449">449</a> 
 <a class="jxr_linenumber" name="L450" href="#L450">450</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addToField(Element root, <a href="../../../../org/waarp/gateway/kernel/AbstractHttpField.html">AbstractHttpField</a> field) {
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>         root.add(newElement(XML_HTTP_FIELDNAME, field.fieldname));
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>         root.add(newElement(XML_HTTP_FIELDTYPE, field.fieldtype.name()));
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>         root.add(newElement(XML_HTTP_FIELDINFO, field.fieldinfo));
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         root.add(newElement(XML_HTTP_FIELDNAME, field.getFieldname()));
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         root.add(newElement(XML_HTTP_FIELDTYPE, field.getFieldtype().name()));
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         root.add(newElement(XML_HTTP_FIELDINFO, field.getFieldinfo()));
 <a class="jxr_linenumber" name="L454" href="#L454">454</a>         root.add(newElement(XML_HTTP_FIELDVALUE, field.fieldvalue));
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>         root.add(newElement(XML_HTTP_FIELDVISIBILITY, Boolean.toString(field.fieldvisibility)));
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>         root.add(newElement(XML_HTTP_FIELDMANDATORY, Boolean.toString(field.fieldmandatory)));
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>         root.add(newElement(XML_HTTP_FIELDCOOKIESET, Boolean.toString(field.fieldcookieset)));
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>         root.add(newElement(XML_HTTP_FIELDTOVALIDATE, Boolean.toString(field.fieldtovalidate)));
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>         root.add(newElement(XML_HTTP_FIELDPOSITION, field.fieldposition.name()));
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>         root.add(newElement(XML_HTTP_FIELDRANK, Integer.toString(field.fieldrank)));
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         root.add(newElement(XML_HTTP_FIELDVISIBILITY, Boolean.toString(field.isFieldvisibility())));
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         root.add(newElement(XML_HTTP_FIELDMANDATORY, Boolean.toString(field.isFieldmandatory())));
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         root.add(newElement(XML_HTTP_FIELDCOOKIESET, Boolean.toString(field.isFieldcookieset())));
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         root.add(newElement(XML_HTTP_FIELDTOVALIDATE, Boolean.toString(field.isFieldtovalidate())));
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>         root.add(newElement(XML_HTTP_FIELDPOSITION, field.getFieldposition().name()));
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>         root.add(newElement(XML_HTTP_FIELDRANK, Integer.toString(field.getFieldrank())));
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>     }
 <a class="jxr_linenumber" name="L462" href="#L462">462</a> 
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addToElement(Element root, <a href="../../../../org/waarp/gateway/kernel/HttpPage.html">HttpPage</a> page) {
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>         root.add(newElement(XML_HTTP_PAGENAME, page.pagename));
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>         root.add(newElement(XML_HTTP_FILEFORM, page.fileform));
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>         root.add(newElement(XML_HTTP_HEADER, page.header));
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>         root.add(newElement(XML_HTTP_FOOTER, page.footer));
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>         root.add(newElement(XML_HTTP_BEGINFORM, page.beginform));
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>         root.add(newElement(XML_HTTP_ENDFORM, page.endform));
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>         root.add(newElement(XML_HTTP_NEXTINFORM, page.nextinform));
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>         root.add(newElement(XML_HTTP_URI, page.uri));
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>         root.add(newElement(XML_HTTP_PAGEROLE, page.pagerole.name()));
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>         root.add(newElement(XML_HTTP_ERRORPAGE, page.errorpage));
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>         root.add(newElement(XML_HTTP_CLASSNAME, page.classname));
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>         root.add(newElement(XML_HTTP_PAGENAME, page.getPagename()));
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>         root.add(newElement(XML_HTTP_FILEFORM, page.getFileform()));
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>         root.add(newElement(XML_HTTP_HEADER, page.getHeader()));
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         root.add(newElement(XML_HTTP_FOOTER, page.getFooter()));
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>         root.add(newElement(XML_HTTP_BEGINFORM, page.getBeginform()));
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         root.add(newElement(XML_HTTP_ENDFORM, page.getEndform()));
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         root.add(newElement(XML_HTTP_NEXTINFORM, page.getNextinform()));
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         root.add(newElement(XML_HTTP_URI, page.getUri()));
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>         root.add(newElement(XML_HTTP_PAGEROLE, page.getPagerole().name()));
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         root.add(newElement(XML_HTTP_ERRORPAGE, page.getErrorpage()));
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         root.add(newElement(XML_HTTP_CLASSNAME, page.getClassname()));
 <a class="jxr_linenumber" name="L475" href="#L475">475</a>         Element element = root.addElement(XML_HTTP_FIELDS);
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField field : page.fields.values()) {
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>         <strong class="jxr_keyword">for</strong> (AbstractHttpField field : page.getFields().values()) {
 <a class="jxr_linenumber" name="L477" href="#L477">477</a>             Element subroot = element.addElement(XML_HTTP_FIELD);
 <a class="jxr_linenumber" name="L478" href="#L478">478</a>             addToField(subroot, field);
 <a class="jxr_linenumber" name="L479" href="#L479">479</a>         }
@@ -492,7 +492,7 @@
 <a class="jxr_linenumber" name="L484" href="#L484">484</a>         Document document = DocumentHelper.createDocument();
 <a class="jxr_linenumber" name="L485" href="#L485">485</a>         Element root = document.addElement(XML_ROOT_NAME);
 <a class="jxr_linenumber" name="L486" href="#L486">486</a>         Element subroot = root.addElement(XML_HTTP_PAGES);
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>         <strong class="jxr_keyword">for</strong> (HttpPage page : httpPageHandler.hashmap.values()) {
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         <strong class="jxr_keyword">for</strong> (HttpPage page : httpPageHandler.getHashmap().values()) {
 <a class="jxr_linenumber" name="L488" href="#L488">488</a>             Element element = subroot.addElement(XML_HTTP_PAGE);
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>             addToElement(element, page);
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>         }
@@ -505,6 +505,6 @@
 <a class="jxr_linenumber" name="L497" href="#L497">497</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2009&#x2013;2015 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2009&#x2013;2016 <a href="http://www.waarp.it">Waarp</a>. All rights reserved.</div>
 </body>
 </html>
