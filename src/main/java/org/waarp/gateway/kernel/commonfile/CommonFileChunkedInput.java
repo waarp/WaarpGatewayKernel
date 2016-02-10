@@ -25,6 +25,7 @@ import org.waarp.common.file.FileInterface;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRetrieveException;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.stream.ChunkedInput;
@@ -57,19 +58,7 @@ public class CommonFileChunkedInput implements ChunkedInput<ByteBuf> {
 
     @Override
     public ByteBuf readChunk(ChannelHandlerContext ctx) throws Exception {
-        // Document
-        DataBlock block;
-        try {
-            block = this.document.readDataBlock();
-        } catch (FileEndOfTransferException e) {
-            lastChunkAlready = true;
-            return Unpooled.EMPTY_BUFFER;
-        } catch (FileTransferException e) {
-            throw new HttpIncorrectRetrieveException(e);
-        }
-        lastChunkAlready = block.isEOF();
-        offset += block.getByteCount();
-        return block.getBlock();
+        return readChunk((ByteBufAllocator) null);
     }
 
     @Override
@@ -101,5 +90,22 @@ public class CommonFileChunkedInput implements ChunkedInput<ByteBuf> {
             throw new HttpIncorrectRetrieveException(e);
         }
         lastChunkAlready = true;
+    }
+
+    @Override
+    public ByteBuf readChunk(ByteBufAllocator arg0) throws Exception {
+        // Document
+        DataBlock block;
+        try {
+            block = this.document.readDataBlock();
+        } catch (FileEndOfTransferException e) {
+            lastChunkAlready = true;
+            return Unpooled.EMPTY_BUFFER;
+        } catch (FileTransferException e) {
+            throw new HttpIncorrectRetrieveException(e);
+        }
+        lastChunkAlready = block.isEOF();
+        offset += block.getByteCount();
+        return block.getBlock();
     }
 }

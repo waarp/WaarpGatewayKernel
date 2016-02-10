@@ -36,13 +36,13 @@ public class HttpPageHandler {
 
     public static String hostid;
 
-    public HashMap<String, HttpPage> hashmap;
+    private HashMap<String, HttpPage> hashmap;
 
     /**
      * @param hashmap
      */
     public HttpPageHandler(HashMap<String, HttpPage> hashmap) {
-        this.hashmap = hashmap;
+        this.setHashmap(hashmap);
     }
 
     /**
@@ -52,7 +52,7 @@ public class HttpPageHandler {
      */
     public HttpPage getHttpPage(int code) {
         String scode = Integer.toString(code);
-        return this.hashmap.get(scode);
+        return this.getHashmap().get(scode);
     }
 
     /**
@@ -65,18 +65,18 @@ public class HttpPageHandler {
      */
     public HttpPage getHttpPage(String uri, String method, HttpSession session)
             throws HttpIncorrectRequestException {
-        HttpPage page = this.hashmap.get(uri);
+        HttpPage page = this.getHashmap().get(uri);
         if (page == null) {
             return null;
         }
-        switch (page.pagerole) {
+        switch (page.getPagerole()) {
             case DELETE:
                 if (!method.equalsIgnoreCase("DELETE")) {
                     // error
-                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-                    if (page.errorpage != null || page.errorpage.length() > 1) {
-                        page = this.hashmap.get(page.errorpage);
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                            "Incorrect Page: " + page.getPagerole(), HttpResponseStatus.BAD_REQUEST);
+                    if (page.getErrorpage() != null || page.getErrorpage().length() > 1) {
+                        page = this.getHashmap().get(page.getErrorpage());
                     } else {
                         page = null;
                     }
@@ -89,10 +89,10 @@ public class HttpPageHandler {
             case GETDOWNLOAD:
                 if (!method.equalsIgnoreCase("GET")) {
                     // error
-                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-                    if (page.errorpage != null || page.errorpage.length() > 1) {
-                        page = this.hashmap.get(page.errorpage);
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                            "Incorrect Page: " + page.getPagerole(), HttpResponseStatus.BAD_REQUEST);
+                    if (page.getErrorpage() != null || page.getErrorpage().length() > 1) {
+                        page = this.getHashmap().get(page.getErrorpage());
                     } else {
                         page = null;
                     }
@@ -102,10 +102,10 @@ public class HttpPageHandler {
             case POSTUPLOAD:
                 if (!method.equalsIgnoreCase("POST")) {
                     // error
-                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-                    if (page.errorpage != null || page.errorpage.length() > 1) {
-                        page = this.hashmap.get(page.errorpage);
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                            "Incorrect Page: " + page.getPagerole(), HttpResponseStatus.BAD_REQUEST);
+                    if (page.getErrorpage() != null || page.getErrorpage().length() > 1) {
+                        page = this.getHashmap().get(page.getErrorpage());
                     } else {
                         page = null;
                     }
@@ -114,10 +114,10 @@ public class HttpPageHandler {
             case PUT:
                 if (!method.equalsIgnoreCase("PUT")) {
                     // error
-                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                            "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-                    if (page.errorpage != null || page.errorpage.length() > 1) {
-                        page = this.hashmap.get(page.errorpage);
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                            "Incorrect Page: " + page.getPagerole(), HttpResponseStatus.BAD_REQUEST);
+                    if (page.getErrorpage() != null || page.getErrorpage().length() > 1) {
+                        page = this.getHashmap().get(page.getErrorpage());
                     } else {
                         page = null;
                     }
@@ -127,10 +127,10 @@ public class HttpPageHandler {
                 break;
             default:
                 // error
-                WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                        "Incorrect Page: " + page.pagerole, HttpResponseStatus.BAD_REQUEST);
-                if (page.errorpage != null || page.errorpage.length() > 1) {
-                    page = this.hashmap.get(page.errorpage);
+                WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                        "Incorrect Page: " + page.getPagerole(), HttpResponseStatus.BAD_REQUEST);
+                if (page.getErrorpage() != null || page.getErrorpage().length() > 1) {
+                    page = this.getHashmap().get(page.getErrorpage());
                 } else {
                     page = null;
                 }
@@ -139,5 +139,19 @@ public class HttpPageHandler {
             throw new HttpIncorrectRequestException("No Page found");
         }
         return page;
+    }
+
+    /**
+     * @return the hashmap
+     */
+    public HashMap<String, HttpPage> getHashmap() {
+        return hashmap;
+    }
+
+    /**
+     * @param hashmap the hashmap to set
+     */
+    private void setHashmap(HashMap<String, HttpPage> hashmap) {
+        this.hashmap = hashmap;
     }
 }

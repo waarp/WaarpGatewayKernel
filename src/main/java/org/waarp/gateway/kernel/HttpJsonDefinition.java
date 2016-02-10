@@ -125,7 +125,7 @@ public class HttpJsonDefinition {
         // Now read the configuration
         for (ConfigHttpField fieldValue : list) {
             AbstractHttpField field = loadHttpPage(fieldValue);
-            linkedHashMap.put(field.fieldname, field);
+            linkedHashMap.put(field.getFieldname(), field);
         }
         list.clear();
         list = null;
@@ -165,7 +165,7 @@ public class HttpJsonDefinition {
         // Now read the configuration
         for (ConfigHttpPage cpage : cpages.PAGE) {
             HttpPage page = loadHttpConfiguration(cpage);
-            pages.put(page.uri, page);
+            pages.put(page.getUri(), page);
         }
         cpages.PAGE.clear();
         return new HttpPageHandler(pages);
@@ -173,34 +173,34 @@ public class HttpJsonDefinition {
 
     protected static void addToField(List<ConfigHttpField> fields, AbstractHttpField field) {
         ConfigHttpField cfield = new ConfigHttpField();
-        cfield.FIELDNAME = field.fieldname;
-        cfield.FIELDTYPE = field.fieldtype;
-        cfield.FIELDINFO = field.fieldinfo;
+        cfield.FIELDNAME = field.getFieldname();
+        cfield.FIELDTYPE = field.getFieldtype();
+        cfield.FIELDINFO = field.getFieldinfo();
         cfield.FIELDVALUE = field.fieldvalue;
-        cfield.FIELDVISIBILITY = field.fieldvisibility;
-        cfield.FIELDMANDATORY = field.fieldmandatory;
-        cfield.FIELDCOOKIESET = field.fieldcookieset;
-        cfield.FIELDTOVALIDATE = field.fieldtovalidate;
-        cfield.FIELDPOSITION = field.fieldposition;
-        cfield.FIELDRANK = field.fieldrank;
+        cfield.FIELDVISIBILITY = field.isFieldvisibility();
+        cfield.FIELDMANDATORY = field.isFieldmandatory();
+        cfield.FIELDCOOKIESET = field.isFieldcookieset();
+        cfield.FIELDTOVALIDATE = field.isFieldtovalidate();
+        cfield.FIELDPOSITION = field.getFieldposition();
+        cfield.FIELDRANK = field.getFieldrank();
         fields.add(cfield);
     }
 
     protected static void addToElement(List<ConfigHttpPage> pages, HttpPage page) {
         ConfigHttpPage cpage = new ConfigHttpPage();
-        cpage.PAGENAME = page.pagename;
-        cpage.FILEFORM = page.fileform;
-        cpage.HEADER = page.header;
-        cpage.FOOTER = page.footer;
-        cpage.BEGINFORM = page.beginform;
-        cpage.ENDFORM = page.endform;
-        cpage.NEXTINFORM = page.nextinform;
-        cpage.URI = page.uri;
-        cpage.PAGEROLE = page.pagerole;
-        cpage.ERRORPAGE = page.errorpage;
-        cpage.CLASSNAME = page.classname;
+        cpage.PAGENAME = page.getPagename();
+        cpage.FILEFORM = page.getFileform();
+        cpage.HEADER = page.getHeader();
+        cpage.FOOTER = page.getFooter();
+        cpage.BEGINFORM = page.getBeginform();
+        cpage.ENDFORM = page.getEndform();
+        cpage.NEXTINFORM = page.getNextinform();
+        cpage.URI = page.getUri();
+        cpage.PAGEROLE = page.getPagerole();
+        cpage.ERRORPAGE = page.getErrorpage();
+        cpage.CLASSNAME = page.getClassname();
         cpage.FIELD = new ArrayList<ConfigHttpField>();
-        for (AbstractHttpField field : page.fields.values()) {
+        for (AbstractHttpField field : page.getFields().values()) {
             addToField(cpage.FIELD, field);
         }
         pages.add(cpage);
@@ -210,7 +210,7 @@ public class HttpJsonDefinition {
             throws HttpIncorrectRequestException {
         ConfigHttpPages cpages = new ConfigHttpPages();
         cpages.PAGE = new ArrayList<ConfigHttpPage>();
-        for (HttpPage page : httpPageHandler.hashmap.values()) {
+        for (HttpPage page : httpPageHandler.getHashmap().values()) {
             addToElement(cpages.PAGE, page);
         }
         File file = new File(filename);

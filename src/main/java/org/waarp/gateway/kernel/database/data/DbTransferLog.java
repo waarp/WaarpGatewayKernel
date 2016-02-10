@@ -299,10 +299,10 @@ public class DbTransferLog extends AbstractDbData {
      * @return The Where condition on Primary Key
      */
     protected String getWherePrimaryKey() {
-        return primaryKey[0].column + " = ? AND " +
-                primaryKey[1].column + " = ? AND " +
-                primaryKey[2].column + " = ? AND " +
-                primaryKey[3].column + " = ? ";
+        return primaryKey[0].getColumn() + " = ? AND " +
+                primaryKey[1].getColumn() + " = ? AND " +
+                primaryKey[2].getColumn() + " = ? AND " +
+                primaryKey[3].getColumn() + " = ? ";
     }
 
     /**
@@ -373,7 +373,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
+            specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -400,7 +400,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
-            specialId = dbSession.admin.getDbModel().nextSequence(dbSession);
+            specialId = dbSession.getAdmin().getDbModel().nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
             setPrimaryKey();
@@ -422,11 +422,11 @@ public class DbTransferLog extends AbstractDbData {
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
                 try {
                     find.createPrepareStatement("SELECT MAX(" +
-                            primaryKey[3].column + ") FROM " + table + " WHERE " +
-                            primaryKey[0].column + " = ? AND " +
-                            primaryKey[1].column + " = ? AND " +
-                            primaryKey[2].column + " = ? AND " +
-                            primaryKey[3].column + " != ? ");
+                            primaryKey[3].getColumn() + ") FROM " + table + " WHERE " +
+                            primaryKey[0].getColumn() + " = ? AND " +
+                            primaryKey[1].getColumn() + " = ? AND " +
+                            primaryKey[2].getColumn() + " = ? AND " +
+                            primaryKey[3].getColumn() + " != ? ");
                     setPrimaryKey();
                     setValues(find, primaryKey);
                     find.executeQuery();
@@ -438,7 +438,7 @@ public class DbTransferLog extends AbstractDbData {
                             throw new WaarpDatabaseSqlException(e1);
                         }
                         specialId = result + 1;
-                        dbSession.admin.getDbModel().resetSequence(dbSession, specialId + 1);
+                        dbSession.getAdmin().getDbModel().resetSequence(dbSession, specialId + 1);
                         setToArray();
                         preparedStatement.close();
                         setValues(preparedStatement, allFields);
@@ -508,7 +508,7 @@ public class DbTransferLog extends AbstractDbData {
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         if (limit > 0) {
-            request = session.admin.getDbModel().limitRequest(selectAllFields, request, limit);
+            request = session.getAdmin().getDbModel().limitRequest(selectAllFields, request, limit);
         }
         return new DbPreparedStatement(session, request);
     }
@@ -973,11 +973,7 @@ public class DbTransferLog extends AbstractDbData {
     public String toString() {
         Map<String, Object> map = new HashMap<String, Object>();
         for (Columns col : Columns.values()) {
-            try {
-                map.put(col.name(), allFields[col.ordinal()].getValue());
-            } catch (WaarpDatabaseSqlException e) {
-                // ignore
-            }
+            map.put(col.name(), allFields[col.ordinal()].getValue());
         }
         return JsonHandler.writeAsString(map);
     }

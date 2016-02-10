@@ -173,7 +173,7 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
             DbPreparedStatement preparedStatement = new DbPreparedStatement(
                     dbSession);
             try {
-                dbSession.conn.setAutoCommit(false);
+                dbSession.getConn().setAutoCommit(false);
             } catch (SQLException e1) {
             }
             try {
@@ -205,7 +205,7 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
             return result;
         } finally {
             try {
-                dbSession.conn.setAutoCommit(true);
+                dbSession.getConn().setAutoCommit(true);
             } catch (SQLException e1) {
             }
             lock.unlock();

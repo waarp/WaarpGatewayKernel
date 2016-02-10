@@ -291,10 +291,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
                     }
                 }
                 httpPage = httpPageTemp;
-                session.setCurrentCommand(httpPage.pagerole);
-                WaarpActionLogger.logCreate(DbConstant.admin.session, "Request received: "
-                        + httpPage.pagename, session);
-                if (httpPageTemp.pagerole == PageRole.ERROR) {
+                session.setCurrentCommand(httpPage.getPagerole());
+                WaarpActionLogger.logCreate(DbConstant.admin.getSession(), "Request received: "
+                        + httpPage.getPagename(), session);
+                if (httpPageTemp.getPagerole() == PageRole.ERROR) {
                     status = HttpResponseStatus.BAD_REQUEST;
                     error(ctx);
                     clean();
@@ -302,8 +302,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
                     this.businessRequest = httpPage.newRequest(ctx.channel().remoteAddress());
                     willClose = true;
                     writeSimplePage(ctx);
-                    WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                            "Error: " + httpPage.pagename, status);
+                    WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                            "Error: " + httpPage.getPagename(), status);
                     return;
                     // end of task
                 }
@@ -312,7 +312,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
                 getHeaderArgs();
                 getCookieArgs();
                 checkConnection(ctx);
-                switch (httpPage.pagerole) {
+                switch (httpPage.getPagerole()) {
                     case DELETE:
                         // no body element
                         delete(ctx);
@@ -392,8 +392,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      * @param ctx
      */
     protected void writeErrorPage(ChannelHandlerContext ctx) {
-        WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                "Error: " + (httpPage == null ? "no page" : httpPage.pagename), status);
+        WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                "Error: " + (httpPage == null ? "no page" : httpPage.getPagename()), status);
         error(ctx);
         clean();
         willClose = true;
@@ -429,8 +429,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             logger.debug("Will close");
             future.addListener(WaarpSslUtility.SSLCLOSE);
         }
-        WaarpActionLogger.logErrorAction(DbConstant.admin.session, session,
-                "Error: " + httpPage.pagename, status);
+        WaarpActionLogger.logErrorAction(DbConstant.admin.getSession(), session,
+                "Error: " + httpPage.getPagename(), status);
     }
 
     /**
@@ -440,10 +440,10 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      * @throws HttpIncorrectRequestException
      */
     protected void writeSimplePage(ChannelHandlerContext ctx) throws HttpIncorrectRequestException {
-        logger.debug("HttpPage: " + (httpPage != null ? httpPage.pagename : "no page") +
+        logger.debug("HttpPage: " + (httpPage != null ? httpPage.getPagename() : "no page") +
                 " businessRequest: "
                 + (businessRequest != null ? businessRequest.getClass().getName() : "no BR"));
-        if (httpPage.pagerole == PageRole.ERROR) {
+        if (httpPage.getPagerole() == PageRole.ERROR) {
             try {
                 httpPage.setValue(businessRequest, AbstractHttpField.ERRORINFO, errorMesg,
                         FieldPosition.BODY);
@@ -492,9 +492,9 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
      */
     protected void addBusinessCookie(FullHttpResponse response, Set<String> cookieNames) {
         for (AbstractHttpField field : httpPage.getFieldsForRequest(businessRequest).values()) {
-            if (field.fieldcookieset && !cookieNames.contains(field.fieldname)) {
+            if (field.isFieldcookieset() && !cookieNames.contains(field.getFieldname())) {
                 response.headers().add(HttpHeaderNames.SET_COOKIE,
-                        ServerCookieEncoder.LAX.encode(field.fieldname, field.fieldvalue));
+                        ServerCookieEncoder.LAX.encode(field.getFieldname(), field.fieldvalue));
             }
         }
     }
@@ -607,31 +607,31 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             if (!httpPage.isRequestValid(businessRequest)) {
                 throw new HttpIncorrectRequestException("Request unvalid");
             }
-            switch (httpPage.pagerole) {
+            switch (httpPage.getPagerole()) {
                 case DELETE:
                     session.setFilename(getFilename());
                     finalDelete(ctx);
-                    WaarpActionLogger.logAction(DbConstant.admin.session, session,
+                    WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
                             "Delete OK", status, UpdatedInfo.DONE);
                     break;
                 case GETDOWNLOAD:
                     finalGet(ctx);
-                    WaarpActionLogger.logAction(DbConstant.admin.session, session,
+                    WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
                             "Download OK", status, UpdatedInfo.DONE);
                     break;
                 case POST:
                     finalPost(ctx);
-                    WaarpActionLogger.logAction(DbConstant.admin.session, session,
+                    WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
                             "Post OK", status, UpdatedInfo.DONE);
                     break;
                 case POSTUPLOAD:
                     finalPostUpload(ctx);
-                    WaarpActionLogger.logAction(DbConstant.admin.session, session,
+                    WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
                             "PostUpload OK", status, UpdatedInfo.DONE);
                     break;
                 case PUT:
                     finalPut(ctx);
-                    WaarpActionLogger.logAction(DbConstant.admin.session, session,
+                    WaarpActionLogger.logAction(DbConstant.admin.getSession(), session,
                             "Put OK", status, UpdatedInfo.DONE);
                     break;
                 default:
@@ -865,8 +865,8 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
             if (fileUpload.isCompleted()) {
                 AbstractHttpField field =
                         httpPage.getField(businessRequest, fileUpload.getName());
-                if (field != null && field.fieldtype == FieldRole.BUSINESS_INPUT_FILE) {
-                    httpPage.setValue(businessRequest, field.fieldname, fileUpload);
+                if (field != null && field.getFieldtype() == FieldRole.BUSINESS_INPUT_FILE) {
+                    httpPage.setValue(businessRequest, field.getFieldname(), fileUpload);
                 } else {
                     logger.warn("File received but no variable for it");
                     fileUpload.delete();
