@@ -147,8 +147,6 @@ public class HttpWriteCacheEnable {
         }
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.OK);
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH,
-                String.valueOf(size));
 
         String type = mimetypesFileTypeMap.getContentType(filename);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, type);
