@@ -547,6 +547,7 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         if (request == null) {
             if (buf != null) {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, buf);
+                response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
             }
@@ -567,9 +568,9 @@ public abstract class HttpRequestHandler extends SimpleChannelInboundHandler<Htt
         // Build the response object.
         if (buf != null) {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status, buf);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         } else {
-            response = new DefaultFullHttpResponse(
-                    request.protocolVersion(), status);
+            response = new DefaultFullHttpResponse(request.protocolVersion(), status);
         }
         if (keepAlive) {
             response.headers().set(HttpHeaderNames.CONNECTION,
