@@ -142,6 +142,7 @@ public class HttpWriteCacheEnable {
         } catch (IOException e) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
             handleCookies(request, response, cookieNameToRemove);
             ctx.writeAndFlush(response);
             return;
