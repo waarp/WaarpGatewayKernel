@@ -113,6 +113,7 @@ public class HttpWriteCacheEnable {
         if (!file.isFile() || !file.canRead()) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
             handleCookies(request, response, cookieNameToRemove);
             ctx.writeAndFlush(response);
             return;
