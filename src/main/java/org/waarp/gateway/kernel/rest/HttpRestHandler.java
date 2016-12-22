@@ -619,6 +619,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
+                response.headers().add(HttpHeaderNames.CONTENT_LENGTH, content.array().length);
             }
             setCookies(response);
             setWillClose(true);
@@ -638,6 +639,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
         FullHttpResponse response;
         if (content != null) {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, content.array().length);
         } else {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status);
         }
