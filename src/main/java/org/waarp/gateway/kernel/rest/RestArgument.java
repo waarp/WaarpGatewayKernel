@@ -665,6 +665,9 @@ public class RestArgument {
      *            the filter used in multi get
      */
     public void addFilter(ObjectNode filter) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
         getAnswer().putObject(DATAMODEL.JSON_FILTER.field).setAll(filter);
     }
 
