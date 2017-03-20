@@ -13,7 +13,7 @@ public class RestArgumentTest {
         RestArgument ra = new RestArgument(null);
         ra.addFilter(null);
 
-        assertSame("filters should be an empty ObjectNode",
+        assertEquals("filters should be an empty ObjectNode",
             new ObjectNode(JsonNodeFactory.instance), ra.getFilter());
     }
 }
