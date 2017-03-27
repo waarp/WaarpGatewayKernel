@@ -22,6 +22,7 @@ package org.waarp.gateway.kernel.rest;
 
 import java.nio.charset.UnsupportedCharsetException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -132,10 +133,12 @@ public abstract class DataModelRestMethodHandler<E extends AbstractDbData> exten
         ObjectNode node = null;
         try {
             String json = body.toString(WaarpStringUtils.UTF8);
-            node = JsonHandler.getFromString(json);
+            node = JsonHandler.getFromStringExc(json);
         } catch (UnsupportedCharsetException e) {
             logger.warn("Error", e);
             throw new HttpIncorrectRequestException(e);
+        } catch (JsonProcessingException e) {
+            result.setDetail("ERROR: JSON body cannot be parsed");
         }
         if (node != null) {
             arguments.getBody().setAll(node);
