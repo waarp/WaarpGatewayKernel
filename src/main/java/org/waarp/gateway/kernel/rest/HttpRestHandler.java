@@ -619,6 +619,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status);
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, status, content);
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.array().length);
             }
             setCookies(response);
             setWillClose(true);
@@ -638,6 +639,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
         FullHttpResponse response;
         if (content != null) {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status, content);
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.array().length);
         } else {
             response = new DefaultFullHttpResponse(request.protocolVersion(), status);
         }
@@ -664,10 +666,10 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
             ByteBuf buffer = chunk.content();
             if (cumulativeBody != null) {
                 if (buffer.isReadable()) {
-                    cumulativeBody = Unpooled.wrappedBuffer(cumulativeBody, buffer);
+                    cumulativeBody.writeBytes(buffer);
                 }
             } else {
-                cumulativeBody = buffer;
+                cumulativeBody = Unpooled.buffer().writeBytes(buffer);
             }
         } else {
             try {
@@ -684,6 +686,7 @@ public abstract class HttpRestHandler extends SimpleChannelInboundHandler<HttpOb
         if (chunk instanceof LastHttpContent) {
             if (handler.isBodyJsonDecoded()) {
                 jsonObject = getBodyJsonArgs(cumulativeBody);
+                cumulativeBody.release();
                 cumulativeBody = null;
             }
             response.setFromArgument(arguments);

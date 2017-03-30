@@ -113,6 +113,7 @@ public class HttpWriteCacheEnable {
         if (!file.isFile() || !file.canRead()) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
             handleCookies(request, response, cookieNameToRemove);
             ctx.writeAndFlush(response);
             return;
@@ -141,12 +142,13 @@ public class HttpWriteCacheEnable {
         } catch (IOException e) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                     HttpResponseStatus.NOT_FOUND);
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
             handleCookies(request, response, cookieNameToRemove);
             ctx.writeAndFlush(response);
             return;
         }
-        response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.OK);
+        response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(size));
 
         String type = mimetypesFileTypeMap.getContentType(filename);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, type);
