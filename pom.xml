@@ -247,13 +247,13 @@
   	<dependency>
   		<groupId>Waarp</groupId>
   		<artifactId>WaarpFtpClient</artifactId>
-  		<version>3.0.3</version>
+  		<version>3.0.4</version>
   		<optional>true</optional>
   	</dependency>
   	<dependency>
   		<groupId>Waarp</groupId>
   		<artifactId>WaarpExec</artifactId>
-  		<version>3.0.2</version>
+  		<version>3.0.3</version>
   		<optional>true</optional>
   	</dependency>
   	<dependency>
