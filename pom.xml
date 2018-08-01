@@ -247,7 +247,7 @@
   	<dependency>
   		<groupId>Waarp</groupId>
   		<artifactId>WaarpFtpClient</artifactId>
-  		<version>3.0.4</version>
+  		<version>3.0.5</version>
   		<optional>true</optional>
   	</dependency>
   	<dependency>
