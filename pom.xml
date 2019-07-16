@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpGatewayKernel</artifactId>
   <name>GoldenGate Gateway Kernel</name>
-  <version>3.0.10</version>
+  <version>3.1.0</version>
   <description>Waarp Gateway contains the kernel for Http Gateway</description>
     <inceptionYear>2009</inceptionYear>
   <parent>
@@ -49,7 +49,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.15</version>
+        <version>1.16</version>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>
@@ -247,19 +247,19 @@
   	<dependency>
   		<groupId>Waarp</groupId>
   		<artifactId>WaarpFtpClient</artifactId>
-  		<version>3.0.6</version>
+  		<version>3.0.7</version>
   		<optional>true</optional>
   	</dependency>
   	<dependency>
   		<groupId>Waarp</groupId>
   		<artifactId>WaarpExec</artifactId>
-  		<version>3.0.4</version>
+  		<version>3.0.5</version>
   		<optional>true</optional>
   	</dependency>
   	<dependency>
   	    <groupId>joda-time</groupId>
   	    <artifactId>joda-time</artifactId>
-  	    <version>2.10.1</version>
+  	    <version>2.10.3</version>
   	</dependency>
   	<dependency>
   	    <groupId>ch.qos.logback</groupId>
@@ -274,7 +274,7 @@
   	<dependency>
   	    <groupId>io.netty</groupId>
   	    <artifactId>netty-all</artifactId>
-  	    <version>4.1.33.Final</version>
+  	    <version>4.1.37.Final</version>
   	</dependency>
 
     <dependency>
